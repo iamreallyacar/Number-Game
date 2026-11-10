@@ -19,7 +19,7 @@ describe('advanceStage', () => {
     expect(nextState.score).toBe(40 + stageClearBonus(3));
     expect(nextState.stage).toBe(4);
     expect(nextState.cells).toHaveLength(121);
-    expect(nextState.cells.every((cell) => cell !== null)).toBe(true);
+    expect(nextState.cells.filter((cell) => cell !== null)).toHaveLength(120);
     expect(nextState.addNumbersLeft).toBe(DIFFICULTY_PRESETS.hard.addNumbersUsesPerStage);
     expect(nextState.hintsLeft).toBe(DIFFICULTY_PRESETS.hard.hintsPerStage);
     expect(nextState.randomState).not.toBe(state.randomState);

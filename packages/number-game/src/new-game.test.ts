@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DIFFICULTY_IDS, DIFFICULTY_PRESETS } from './difficulty.js';
 import { BOARD_WIDTHS } from './game-state.js';
 import { createGame } from './new-game.js';
-import { isPair } from './pair.js';
+import { isPair, pairGroupsWithOddCount } from './pair.js';
 
 function countNeighbourPairsInReadingOrder(seed: number, difficulty: 'easy' | 'normal'): number {
   const { cells } = createGame({ width: 10, difficulty, seed });
@@ -19,7 +19,22 @@ describe('createGame', () => {
     const state = createGame({ width, difficulty: 'normal', seed: 1 });
     expect(state.width).toBe(width);
     expect(state.cells).toHaveLength(width * width);
-    expect(state.cells.every((cell) => cell !== null)).toBe(true);
+    expect(state.cells.slice(0, -1).every((cell) => cell !== null)).toBe(true);
+  });
+
+  it('leaves the last cell empty only when the board has an odd count of cells', () => {
+    expect(createGame({ width: 10, difficulty: 'normal', seed: 1 }).cells.at(-1)).not.toBeNull();
+    expect(createGame({ width: 11, difficulty: 'normal', seed: 1 }).cells.at(-1)).toBeNull();
+    expect(createGame({ width: 12, difficulty: 'normal', seed: 1 }).cells.at(-1)).not.toBeNull();
+  });
+
+  it.each(DIFFICULTY_IDS)('starts %s boards with every pair group even', (difficulty) => {
+    for (const width of BOARD_WIDTHS) {
+      for (let seed = 0; seed < 30; seed++) {
+        const { cells } = createGame({ width, difficulty, seed });
+        expect(pairGroupsWithOddCount(cells)).toEqual([]);
+      }
+    }
   });
 
   it.each(DIFFICULTY_IDS)(

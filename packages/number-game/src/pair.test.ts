@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { isPair, pairPartners } from './pair.js';
+import { isPair, pairGroupsWithOddCount, pairPartners } from './pair.js';
+import { cellsFromRows } from './test-support.js';
 
 describe('isPair', () => {
   it('accepts equal numbers', () => {
@@ -26,5 +27,19 @@ describe('pairPartners', () => {
   it('lists the equal number and the number adding up to 10', () => {
     expect(pairPartners(3)).toEqual([3, 7]);
     expect(pairPartners(5)).toEqual([5]);
+  });
+});
+
+describe('pairGroupsWithOddCount', () => {
+  it('finds nothing when every number can be paired off', () => {
+    expect(pairGroupsWithOddCount(cellsFromRows(['19.28.3746', '55........']))).toEqual([]);
+  });
+
+  it('lists each pair group with an odd count of numbers', () => {
+    expect(pairGroupsWithOddCount(cellsFromRows(['786668....']))).toEqual([
+      [3, 7],
+      [4, 6],
+    ]);
+    expect(pairGroupsWithOddCount(cellsFromRows(['5.........']))).toEqual([[5]]);
   });
 });

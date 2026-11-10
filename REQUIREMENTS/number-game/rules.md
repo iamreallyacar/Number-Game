@@ -10,12 +10,13 @@ These requirements define how the Number Game plays. Cells are counted by row (t
 | Cell | One square of the board. A cell is either empty or holds a number from 1 to 9 |
 | Reading order | Left to right along a row, then continuing at column 1 of the next row, like reading text |
 | Pair | Two numbers that are equal, or that add up to 10 |
+| Pair group | Numbers that all pair with each other: 1 and 9, 2 and 8, 3 and 7, 4 and 6, and 5 alone |
 | Stage | One full board. Clearing every number moves the player to the next stage |
 
 ## Board
 
 - NG-01: When starting a new game, the player chooses the width n from 10, 11, or 12.
-- NG-02: Each stage starts with n rows of n cells, each filled with a random number from 1 to 9.
+- NG-02: Each stage starts with n rows of n cells, each filled with a random number from 1 to 9, balanced as described in NG-34. When n times n is odd (width 11), the last cell starts empty, because an odd count of numbers can never all be paired off.
 - NG-03: The board has no height limit. Rows are added below as needed, and the board scrolls vertically when it is taller than the screen.
 - NG-29: Thin grid lines separate every row and column, including empty cells, so the player can follow a row, column, or diagonal across long distances.
 
@@ -48,10 +49,11 @@ Reading order example on a board with width 10: row 1 column 7 holds a 3, and ro
 ## Adding Numbers
 
 - NG-16: An Add Numbers button sits below the board.
-- NG-17: Pressing it adds new random numbers from 1 to 9, limited as described in NG-33. The count is 50 percent of the numbers currently on the board, rounded up, with at least 1.
+- NG-17: Pressing it adds new random numbers from 1 to 9, limited as described in NG-33. The count is 50 percent of the numbers currently on the board, rounded up, with at least 1. When that count cannot leave every pair group even (NG-34), it grows to the smallest count that can, which is usually 1 more.
 - NG-18: New numbers are placed in reading order starting right after the last number on the board, filling the rest of that row and then new rows below.
 - NG-19: The number of uses per stage is set by the difficulty (see `difficulty.md`). The button shows how many uses remain and is disabled when none remain.
 - NG-33: Add Numbers only adds numbers that are still on the board. A number that has been cleared off the board completely is not added again for the rest of the stage. A new stage fills the board from all numbers 1 to 9 as described in NG-02, so every number can appear again.
+- NG-34: A pair group is a set of numbers that all pair with each other: 1 and 9, 2 and 8, 3 and 7, 4 and 6, and 5 alone. Every number can only be cleared when each pair group has an even count of numbers on the board. A new stage board always starts with every group even. Add Numbers first adds one number for each group that is odd, then adds the rest in pairs from the same group, mixed into a random order. Line of sight can still block pairs, so this does not promise that the board can be cleared.
 
 ## Stages
 

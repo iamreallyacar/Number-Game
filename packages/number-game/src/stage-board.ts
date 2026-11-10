@@ -1,6 +1,7 @@
+import { padToFullRows } from './board.js';
 import type { Cell, Digit } from './cell.js';
 import type { DifficultyPreset } from './difficulty.js';
-import { pairPartners } from './pair.js';
+import { pairGroupsWithOddCount, pairPartners } from './pair.js';
 import {
   drawRandomDigit,
   drawRandomFraction,
@@ -24,18 +25,57 @@ function drawStartingDigit(
   return drawRandomDigit(chanceDraw.randomState);
 }
 
-/** Fills a new stage board of width x width numbers (NG-02), shaped by the difficulty preset. */
+/**
+ * Changes a few random numbers so every pair group has an even count (NG-34). The count of numbers
+ * is even, so the odd groups come in twos, and moving one number from the first group of each two
+ * into the second makes both even.
+ */
+function evenOutPairGroups(
+  digits: readonly Digit[],
+  randomState: RandomState,
+): RandomDraw<Digit[]> {
+  if (digits.length % 2 === 1) {
+    throw new Error('Pair groups can only be evened out for an even count of numbers');
+  }
+  const evenedDigits = [...digits];
+  let currentState = randomState;
+  const oddGroups = pairGroupsWithOddCount(digits);
+  for (let groupIndex = 0; groupIndex < oddGroups.length; groupIndex += 2) {
+    const fromGroup = oddGroups[groupIndex];
+    const toGroup = oddGroups[groupIndex + 1];
+    if (fromGroup === undefined || toGroup === undefined) {
+      throw new Error('Odd pair groups did not come in twos');
+    }
+    const fromGroupIndexes = evenedDigits.flatMap((digit, cellIndex) =>
+      fromGroup.includes(digit) ? [cellIndex] : [],
+    );
+    const cellDraw = drawRandomItem(currentState, fromGroupIndexes);
+    const digitDraw = drawRandomItem(cellDraw.randomState, toGroup);
+    evenedDigits[cellDraw.value] = digitDraw.value;
+    currentState = digitDraw.randomState;
+  }
+  return { value: evenedDigits, randomState: currentState };
+}
+
+/**
+ * Fills a new stage board of width x width cells (NG-02), shaped by the difficulty preset, so that
+ * every number can be paired off (NG-34).
+ */
 export function generateStageBoard(
   width: number,
   preset: DifficultyPreset,
   randomState: RandomState,
 ): RandomDraw<Cell[]> {
+  const cellCount = width * width;
+  // An odd count of numbers can never all be paired off, so such a board leaves its last cell empty.
+  const numberCount = cellCount - (cellCount % 2);
   const digits: Digit[] = [];
   let currentState = randomState;
-  for (let cellCount = 0; cellCount < width * width; cellCount++) {
+  while (digits.length < numberCount) {
     const draw = drawStartingDigit(currentState, digits.at(-1), preset.startingPairChance);
     digits.push(draw.value);
     currentState = draw.randomState;
   }
-  return { value: digits, randomState: currentState };
+  const evened = evenOutPairGroups(digits, currentState);
+  return { value: padToFullRows(evened.value, width), randomState: evened.randomState };
 }

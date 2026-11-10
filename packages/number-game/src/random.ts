@@ -68,3 +68,19 @@ export function drawRandomDigits(
   }
   return { value: digits, randomState: currentState };
 }
+
+/** Returns the items in a random order, each order having the same chance. */
+export function drawShuffled<Item>(
+  randomState: RandomState,
+  items: readonly Item[],
+): RandomDraw<Item[]> {
+  const remaining = [...items];
+  const shuffled: Item[] = [];
+  let currentState = randomState;
+  while (remaining.length > 0) {
+    const draw = drawRandomFraction(currentState);
+    shuffled.push(...remaining.splice(Math.floor(draw.value * remaining.length), 1));
+    currentState = draw.randomState;
+  }
+  return { value: shuffled, randomState: currentState };
+}

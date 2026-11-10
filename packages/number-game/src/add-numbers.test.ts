@@ -1,15 +1,27 @@
 import { describe, expect, it } from 'vitest';
 import { applyAddNumbers, countNumbersToAdd } from './add-numbers.js';
+import { pairGroupsWithOddCount } from './pair.js';
 import { cellsFromRows, makeTestState } from './test-support.js';
 
 describe('countNumbersToAdd', () => {
   it('adds half of the numbers on the board, rounded up', () => {
-    expect(countNumbersToAdd(cellsFromRows(['1234.'.padEnd(10, '.')]))).toBe(2);
-    expect(countNumbersToAdd(cellsFromRows(['12345'.padEnd(10, '.')]))).toBe(3);
+    expect(countNumbersToAdd(cellsFromRows(['1919......']))).toBe(2);
+    expect(countNumbersToAdd(cellsFromRows(['19191.....']))).toBe(3);
   });
 
   it('adds at least one number', () => {
-    expect(countNumbersToAdd([])).toBe(1);
+    expect(countNumbersToAdd(cellsFromRows(['1.........']))).toBe(1);
+  });
+
+  it('adds one more when half would leave a number with nothing to pair with', () => {
+    // Every pair group is even, so 3 new numbers would always leave one of them alone.
+    expect(countNumbersToAdd(cellsFromRows(['191919....']))).toBe(4);
+    // 1 new number evens out the 1 and 9 group, and the second needs a partner.
+    expect(countNumbersToAdd(cellsFromRows(['199.......']))).toBe(3);
+  });
+
+  it('adds at least one number for each odd pair group', () => {
+    expect(countNumbersToAdd(cellsFromRows(['1234......']))).toBe(4);
   });
 });
 
@@ -63,6 +75,24 @@ describe('applyAddNumbers', () => {
     const addedDigits = result.state.cells.slice(14).filter((cell) => cell !== null);
     expect(addedDigits).toHaveLength(result.addedCount);
     expect(new Set(addedDigits)).toEqual(new Set([3, 7]));
+  });
+
+  it.each([
+    ['7866......'],
+    ['37.37.3773', '7337......'],
+    ['1234567899', '2.........'],
+    ['5.........'],
+    ['12........'],
+  ])('leaves every pair group even after adding to %s', (...rows: string[]) => {
+    for (let seed = 0; seed < 50; seed++) {
+      const result = applyAddNumbers(
+        makeTestState({ cells: cellsFromRows(rows), randomState: seed }),
+      );
+      if (!result.accepted) {
+        throw new Error(`Expected Add Numbers to be accepted, got ${result.reason}`);
+      }
+      expect(pairGroupsWithOddCount(result.state.cells)).toEqual([]);
+    }
   });
 
   it('throws on a board with no numbers, since clearing the last one starts a new stage', () => {

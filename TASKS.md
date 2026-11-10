@@ -76,3 +76,4 @@ Findings from `AUDIT.md`.
 - [x] T-46: Play the Number Game sounds for selecting, clearing a pair, removing a row, a wrong match, Add Numbers, hints, and clearing a stage. (NG-31, NG-32)
 - [x] T-47: Show a burst on cleared cells and a floating points number after each match, turned down for reduced motion. (NG-30, PL-20)
 - [x] T-48: Add Numbers only adds numbers that are still on the board, so a number cleared off completely stays gone until the next stage. (NG-17, NG-33)
+- [x] T-49: Keep every pair group even: balance new stage boards, leave the last cell empty on odd sized boards, and make Add Numbers even out odd groups. (NG-02, NG-17, NG-34)

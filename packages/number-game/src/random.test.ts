@@ -4,6 +4,7 @@ import {
   createRandomState,
   drawRandomDigits,
   drawRandomFraction,
+  drawShuffled,
   isRandomState,
 } from './random.js';
 
@@ -50,5 +51,13 @@ describe('seeded random numbers', () => {
   it('draws only the allowed numbers', () => {
     const digits = drawRandomDigits(createRandomState(3), 500, [2, 8]).value;
     expect(new Set(digits)).toEqual(new Set([2, 8]));
+  });
+
+  it('shuffles the same items into a new order, the same way from the same state', () => {
+    const items = [1, 2, 3, 4, 5, 6, 7, 8];
+    const shuffled = drawShuffled(createRandomState(5), items);
+    expect([...shuffled.value].sort()).toEqual(items);
+    expect(shuffled.value).not.toEqual(items);
+    expect(drawShuffled(createRandomState(5), items)).toEqual(shuffled);
   });
 });
