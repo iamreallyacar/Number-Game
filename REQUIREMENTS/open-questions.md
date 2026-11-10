@@ -7,6 +7,8 @@ This file tracks decisions about the project. New questions go in the Open secti
 | Id | Question | Current assumption |
 | --- | --- | --- |
 | OQ-17 | `npm audit` reports moderate warnings from `minimatch` inside ESLint 10. The only offered fix moves ESLint back to version 9. Should it be downgraded? | No. The warnings only affect lint tooling, not the shipped game. Keep ESLint 10 and update when a fixed version is released |
+| OQ-18 | What may a player ID contain? | 1 to 24 letters, digits, or the characters _ . -, in any language, with single spaces between words. Letter case does not make an ID different, so Sam and sam cannot both exist |
+| OQ-19 | What happens to saves in slots above `SAVE_SLOTS_PER_GAME` if the setting is lowered? | They stay in the database but are not listed or reachable until the setting is raised again |
 
 ## Tech Stack
 
@@ -15,8 +17,8 @@ This file tracks decisions about the project. New questions go in the Open secti
 | Language | TypeScript in strict mode, for both the browser and the server | One language everywhere and strong type checking |
 | Game rules | A shared TypeScript package with no browser or server code | The browser uses it to play, and the server can use it to check saves |
 | Frontend | Svelte with Vite | Small, fast on phones, and simple for a grid of buttons |
-| Backend | Node.js with Fastify | Light web server with built-in input validation |
-| Storage | SQLite file | No separate database server to install. Easy to back up |
+| Backend | Node.js with Fastify, and TypeBox for request checks | Light web server with built-in input validation. TypeBox schemas also give the route handlers their types |
+| Storage | SQLite file, using the SQLite support built into Node.js | No separate database server to install and no native package to compile. Easy to back up |
 | Packaging | One Docker image and a docker compose file | Others can self-host with a few commands. Runs in a Proxmox VM or LXC container |
 
 ## Answered

@@ -51,6 +51,7 @@ The `REQUIREMENTS/` folder holds the detailed requirements:
 Requires Node.js 24 or newer.
 
 - `npm install` installs everything.
+- `npm run build` builds every part, and `npm start` then starts the server. It reads settings from `.env` if that file exists.
 - `npm run check` builds every part and runs type checks, lint, the format check, and the tests.
 - `npm run format` fixes code formatting.
 
@@ -58,7 +59,7 @@ How the code is organised is described in `ARCHITECTURE.md`.
 
 ## Configuration
 
-The server reads these settings from environment variables. Copy `.env.example` to `.env` to change them.
+The server reads these settings from environment variables. Copy `.env.example` to `.env` to change them. A setting that is not set uses its default, and the server stops with a clear error if a value is invalid.
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
@@ -69,4 +70,4 @@ The server reads these settings from environment variables. Copy `.env.example` 
 
 ## Status
 
-Phase 1 (project setup) is done. Phase 2 (game rules) is next. The work plan is in `TASKS.md`.
+Phases 1 to 3 (project setup, game rules, and server) are done. Phase 4 (browser app) is next. The work plan is in `TASKS.md`.

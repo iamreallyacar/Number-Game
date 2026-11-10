@@ -15,32 +15,32 @@ The work plan for the first version. Tasks are grouped into phases that build on
 
 All rules live in `packages/number-game` as plain TypeScript with no browser or server code. The browser and the server both use this package.
 
-- [ ] T-07: Define the game state type: width, cells, score, stage, difficulty, Add Numbers and hint uses left, and the random number generator state. The state must turn into JSON and back without losing anything. Then remove `passWithNoTests` from `vitest.config.ts`, since tests now exist.
-- [ ] T-08: Add a seeded random number generator whose state is stored in the game state, so the browser and the server produce the same numbers. (NG-02, NG-17)
-- [ ] T-09: Create a new game for a given width and difficulty. (NG-01, NG-02, DF-01)
-- [ ] T-10: Check whether two numbers are a pair. (NG-05, NG-08)
-- [ ] T-11: Check line of sight in all four ways: horizontal, vertical, diagonal, and reading order. Include the 3 and 7 example from the rules as a test. (NG-09 to NG-13)
-- [ ] T-12: Apply a match: clear both cells, remove fully empty rows, and add points. (NG-06, NG-14, NG-15, NG-23)
-- [ ] T-13: Add Numbers: add the right amount of new numbers after the last number and count down the uses left. (NG-17, NG-18, NG-19)
-- [ ] T-14: Stage clear: add the bonus, move up a stage, fill a new board, and reset Add Numbers and hints. (NG-20, NG-21, DF-02)
-- [ ] T-15: Find a valid pair, which is used for hints, the stuck warning, and game over. (DF-03, NG-25, NG-26)
-- [ ] T-16: Define the three difficulty presets and the Easy starting board that is built to contain many pairs. (DF-01, DF-02)
-- [ ] T-17: Check that a stored game state is well formed, so a broken save is rejected with a clear error instead of being loaded.
+- [x] T-07: Define the game state type: width, cells, score, stage, difficulty, Add Numbers and hint uses left, and the random number generator state. The state must turn into JSON and back without losing anything. Then remove `passWithNoTests` from `vitest.config.ts`, since tests now exist.
+- [x] T-08: Add a seeded random number generator whose state is stored in the game state, so the browser and the server produce the same numbers. (NG-02, NG-17)
+- [x] T-09: Create a new game for a given width and difficulty. (NG-01, NG-02, DF-01)
+- [x] T-10: Check whether two numbers are a pair. (NG-05, NG-08)
+- [x] T-11: Check line of sight in all four ways: horizontal, vertical, diagonal, and reading order. Include the 3 and 7 example from the rules as a test. (NG-09 to NG-13)
+- [x] T-12: Apply a match: clear both cells, remove fully empty rows, and add points. (NG-06, NG-14, NG-15, NG-23)
+- [x] T-13: Add Numbers: add the right amount of new numbers after the last number and count down the uses left. (NG-17, NG-18, NG-19)
+- [x] T-14: Stage clear: add the bonus, move up a stage, fill a new board, and reset Add Numbers and hints. (NG-20, NG-21, DF-02)
+- [x] T-15: Find a valid pair, which is used for hints, the stuck warning, and game over. (DF-03, NG-25, NG-26)
+- [x] T-16: Define the three difficulty presets and the Easy starting board that is built to contain many pairs. (DF-01, DF-02)
+- [x] T-17: Check that a stored game state is well formed, so a broken save is rejected with a clear error instead of being loaded.
 
 ## Phase 3: Server
 
 The server is the source of truth. The browser sends moves, the server applies them with the rules package and saves the result.
 
-- [ ] T-18: Set up a Fastify server that reads its settings at startup and stops with a clear error if any are missing or invalid. Add a health check route. (PL-10, PL-12)
-- [ ] T-19: Create the SQLite tables for players, save slots, and high scores, with a migration step that runs at startup. Store the database file in `DATA_DIR`.
-- [ ] T-20: Add a game registry on the server, so each game registers its own routes and rules without changes to shared code. (PL-04, PL-05, PL-06)
-- [ ] T-21: Player routes: list player IDs and create a new one, rejecting duplicates. (PS-01, PS-02, PS-03)
-- [ ] T-22: Save slot routes: list slots, start a new game in an empty slot, load a slot, and delete a slot. (PS-04, PS-05, PS-06, PS-09, PS-10, PS-11, PS-17)
-- [ ] T-23: Move route: apply a match, Add Numbers, or hint to a saved game and save it right away. (PS-07)
-- [ ] T-24: Device lock: a save belongs to the device that opened it last, and moves from any other device are refused with a clear reason. (PS-18)
-- [ ] T-25: Game over: record the result in the high scores and empty the slot. (NG-27, PS-12, PS-13)
-- [ ] T-26: High score routes: top results filtered by difficulty, and each player's personal best per difficulty. (PS-14, PS-15)
-- [ ] T-27: Serve the built browser app from the same server, so only one port is needed. (PL-11)
+- [x] T-18: Set up a Fastify server that reads its settings at startup, uses the default from the README for any setting that is not set, and stops with a clear error if a value is invalid. Add a health check route. (PL-10, PL-12)
+- [x] T-19: Create the SQLite tables for players, save slots, and high scores, with a migration step that runs at startup. Store the database file in `DATA_DIR`.
+- [x] T-20: Add a game registry on the server, so each game registers its own routes and rules without changes to shared code. (PL-04, PL-05, PL-06)
+- [x] T-21: Player routes: list player IDs and create a new one, rejecting duplicates. (PS-01, PS-02, PS-03)
+- [x] T-22: Save slot routes: list slots, start a new game in an empty slot, load a slot, and delete a slot. (PS-04, PS-05, PS-06, PS-09, PS-10, PS-11, PS-17)
+- [x] T-23: Move route: apply a match, Add Numbers, or hint to a saved game and save it right away. (PS-07)
+- [x] T-24: Device lock: a save belongs to the device that opened it last, and moves from any other device are refused with a clear reason. (PS-18)
+- [x] T-25: Game over: record the result in the high scores and empty the slot. (NG-27, PS-12, PS-13)
+- [x] T-26: High score routes: top results filtered by difficulty, and each player's personal best per difficulty. (PS-14, PS-15)
+- [x] T-27: Serve the built browser app from the same server, so only one port is needed. (PL-11)
 
 ## Phase 4: Browser App
 
