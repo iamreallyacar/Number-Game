@@ -14,7 +14,8 @@ export interface Tone {
 export type SoundCue = readonly Tone[];
 
 const SOUND_MUTED_STORAGE_KEY = 'game-dashboard.sound-muted';
-const TONE_ATTACK_SECONDS = 0.005;
+// A very fast start makes a click, so each tone swells in over a short moment instead.
+const TONE_ATTACK_SECONDS = 0.015;
 // A fade that shrinks by a fixed share each moment never reaches 0, so it ends at this
 // gain, which is too quiet to hear.
 const SILENT_GAIN = 0.0001;
