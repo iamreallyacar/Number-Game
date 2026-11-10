@@ -1,4 +1,4 @@
-// Lookups that several routes start with. Each one throws the matching 404 error when the thing
+// Lookups that several routes start with. Each one throws the matching error when the thing
 // named in the request does not exist.
 import type { PlayersStore } from '../database/players-store.js';
 import type { SaveSlotsStore, StoredSave } from '../database/save-slots-store.js';
@@ -8,6 +8,10 @@ import { HttpError } from '../http-error.js';
 export interface SlotParams {
   readonly gameId: string;
   readonly slotNumber: number;
+}
+
+export interface SaveParams extends SlotParams {
+  readonly saveId: string;
 }
 
 export interface GameSlot {
@@ -37,19 +41,27 @@ export function findGameSlot(
   return { game, slotNumber: params.slotNumber };
 }
 
-export function emptySlotError(slotNumber: number): HttpError {
-  return new HttpError(404, 'empty-slot', `Slot ${String(slotNumber)} is empty`);
-}
-
-/** Finds the game, the slot, and the save in it. */
+/**
+ * Finds the game, the slot, and the save named in the request. A slot that is empty, or that
+ * now holds a different game, is refused with 'save-gone', so an old link or a stale tab never
+ * reaches someone else's game (PS-19, PS-20).
+ */
 export function findGameSave(
   dependencies: SlotLookupDependencies,
-  params: SlotParams,
+  params: SaveParams,
 ): GameSlot & { readonly save: StoredSave } {
   const gameSlot = findGameSlot(dependencies, params);
   const save = dependencies.saves.findSave(gameSlot.game.id, gameSlot.slotNumber);
+  const slotText = String(gameSlot.slotNumber);
   if (save === null) {
-    throw emptySlotError(gameSlot.slotNumber);
+    throw new HttpError(410, 'save-gone', `The game in slot ${slotText} has ended or was deleted`);
+  }
+  if (save.saveId !== params.saveId) {
+    throw new HttpError(
+      410,
+      'save-gone',
+      `The game in slot ${slotText} has ended, and the slot now holds a different game`,
+    );
   }
   return { ...gameSlot, save };
 }

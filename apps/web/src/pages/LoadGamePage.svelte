@@ -16,7 +16,7 @@
 <SaveSlotList
   {game}
   mode="load"
-  onPick={(slotNumber: number) => {
-    navigate(routePath({ page: 'play', gameId: game.id, slotNumber }));
+  onPickSave={(slotNumber: number, saveId: string) => {
+    navigate(routePath({ page: 'play', gameId: game.id, slotNumber, saveId }));
   }}
 />

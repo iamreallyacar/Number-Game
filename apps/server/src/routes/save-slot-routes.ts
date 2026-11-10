@@ -1,4 +1,4 @@
-import { randomInt } from 'node:crypto';
+import { randomInt, randomUUID } from 'node:crypto';
 import {
   openedSaveResponseSchema,
   slotListResponseSchema,
@@ -9,9 +9,14 @@ import type { PlayersStore } from '../database/players-store.js';
 import type { SaveSlotsStore, StoredSave } from '../database/save-slots-store.js';
 import type { GameRegistry, RegisteredGame } from '../games/game-registry.js';
 import { HttpError } from '../http-error.js';
-import { deviceHeadersSchema, gameParamsSchema, slotParamsSchema } from '../request-schemas.js';
+import {
+  deviceHeadersSchema,
+  gameParamsSchema,
+  saveParamsSchema,
+  slotParamsSchema,
+} from '../request-schemas.js';
 import type { TypedFastify } from '../typed-fastify.js';
-import { emptySlotError, findGameSave, findGameSlot, findPlayerId } from './request-lookups.js';
+import { findGameSave, findGameSlot, findPlayerId } from './request-lookups.js';
 
 export interface SaveSlotRouteDependencies {
   readonly games: GameRegistry;
@@ -24,6 +29,7 @@ const RANDOM_SEED_LIMIT = 2 ** 32;
 
 function describeOpenSave(game: RegisteredGame, save: StoredSave): OpenedSave {
   return {
+    saveId: save.saveId,
     slotNumber: save.slotNumber,
     playerId: save.playerId,
     lastPlayedAt: save.lastPlayedAt,
@@ -52,6 +58,7 @@ export function registerSaveSlotRoutes(
             save === undefined
               ? null
               : {
+                  saveId: save.saveId,
                   playerId: save.playerId,
                   lastPlayedAt: save.lastPlayedAt,
                   summary: game.summarize(save),
@@ -79,6 +86,7 @@ export function registerSaveSlotRoutes(
       const save: StoredSave = {
         gameId: game.id,
         slotNumber,
+        saveId: randomUUID(),
         playerId,
         ...startedGame.storedState,
         lockedDeviceId: request.headers['x-device-id'],
@@ -92,31 +100,29 @@ export function registerSaveSlotRoutes(
   );
 
   app.post(
-    '/api/games/:gameId/slots/:slotNumber/open',
+    '/api/games/:gameId/slots/:slotNumber/saves/:saveId/open',
     {
       schema: {
-        params: slotParamsSchema,
+        params: saveParamsSchema,
         headers: deviceHeadersSchema,
         response: { 200: openedSaveResponseSchema },
       },
     },
     (request) => {
-      const { game, slotNumber, save } = findGameSave(dependencies, request.params);
+      const { game, save } = findGameSave(dependencies, request.params);
       // Opening takes the lock, so any other device that had this save open stops saving to it.
       const openedSave: StoredSave = { ...save, lockedDeviceId: request.headers['x-device-id'] };
-      saves.updateSave(game.id, slotNumber, openedSave);
+      saves.updateSave(save.saveId, openedSave);
       return describeOpenSave(game, openedSave);
     },
   );
 
   app.delete(
-    '/api/games/:gameId/slots/:slotNumber',
-    { schema: { params: slotParamsSchema } },
+    '/api/games/:gameId/slots/:slotNumber/saves/:saveId',
+    { schema: { params: saveParamsSchema } },
     async (request, reply) => {
-      const { game, slotNumber } = findGameSlot(dependencies, request.params);
-      if (!saves.deleteSave(game.id, slotNumber)) {
-        throw emptySlotError(slotNumber);
-      }
+      const { save } = findGameSave(dependencies, request.params);
+      saves.deleteSave(save.saveId);
       return reply.code(204).send();
     },
   );

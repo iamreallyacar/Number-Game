@@ -5,6 +5,8 @@ import { readChangedRowCount, readIntegerColumn, readTextColumn } from './row-va
 export interface StoredSave {
   readonly gameId: string;
   readonly slotNumber: number;
+  /** Tells this game apart from earlier and later games in the same slot. */
+  readonly saveId: string;
   readonly playerId: string;
   readonly stateJson: string;
   /** The game's format version of `stateJson`, so older states can be upgraded. */
@@ -25,6 +27,7 @@ function toStoredSave(row: Record<string, SQLOutputValue>): StoredSave {
   return {
     gameId: readTextColumn(row, 'game_id'),
     slotNumber: readIntegerColumn(row, 'slot_number'),
+    saveId: readTextColumn(row, 'save_id'),
     playerId: readTextColumn(row, 'player_id'),
     stateJson: readTextColumn(row, 'state_json'),
     stateVersion: readIntegerColumn(row, 'state_version'),
@@ -55,14 +58,15 @@ export class SaveSlotsStore {
     const result = this.database
       .prepare(
         `INSERT INTO save_slots
-           (game_id, slot_number, player_id, state_json, state_version, locked_device_id,
-            last_played_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)
+           (game_id, slot_number, save_id, player_id, state_json, state_version,
+            locked_device_id, last_played_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT DO NOTHING`,
       )
       .run(
         save.gameId,
         save.slotNumber,
+        save.saveId,
         save.playerId,
         save.stateJson,
         save.stateVersion,
@@ -72,31 +76,29 @@ export class SaveSlotsStore {
     return readChangedRowCount(result) === 1;
   }
 
-  updateSave(gameId: string, slotNumber: number, update: SaveUpdate): void {
+  updateSave(saveId: string, update: SaveUpdate): void {
     const result = this.database
       .prepare(
         `UPDATE save_slots
          SET state_json = ?, state_version = ?, locked_device_id = ?, last_played_at = ?
-         WHERE game_id = ? AND slot_number = ?`,
+         WHERE save_id = ?`,
       )
       .run(
         update.stateJson,
         update.stateVersion,
         update.lockedDeviceId,
         update.lastPlayedAt,
-        gameId,
-        slotNumber,
+        saveId,
       );
     if (readChangedRowCount(result) !== 1) {
-      throw new Error(`Save slot ${String(slotNumber)} of ${gameId} vanished while being updated`);
+      throw new Error(`Save ${saveId} vanished while being updated`);
     }
   }
 
-  /** Returns false when the slot was already empty. */
-  deleteSave(gameId: string, slotNumber: number): boolean {
-    const result = this.database
-      .prepare('DELETE FROM save_slots WHERE game_id = ? AND slot_number = ?')
-      .run(gameId, slotNumber);
-    return readChangedRowCount(result) === 1;
+  deleteSave(saveId: string): void {
+    const result = this.database.prepare('DELETE FROM save_slots WHERE save_id = ?').run(saveId);
+    if (readChangedRowCount(result) !== 1) {
+      throw new Error(`Save ${saveId} vanished before it could be deleted`);
+    }
   }
 }

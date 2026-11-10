@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { OpenedSave } from '@local/game-server-api';
   import { describeError } from '../api/api-request.js';
   import { startGame } from '../api/game-server-api.js';
   import PlayerPicker from '../components/PlayerPicker.svelte';
@@ -26,14 +27,15 @@
   async function handleOptions(slotNumber: number, playerId: string, options: unknown) {
     step = { kind: 'starting', slotNumber, playerId };
     startError = null;
+    let startedSave: OpenedSave;
     try {
-      await startGame({ gameId: game.id, slotNumber, playerId, options });
+      startedSave = await startGame({ gameId: game.id, slotNumber, playerId, options });
     } catch (error) {
       startError = describeError(error);
       step = { kind: 'slot' };
       return;
     }
-    navigate(routePath({ page: 'play', gameId: game.id, slotNumber }));
+    navigate(routePath({ page: 'play', gameId: game.id, slotNumber, saveId: startedSave.saveId }));
   }
 </script>
 
@@ -49,7 +51,7 @@
   <SaveSlotList
     {game}
     mode="new"
-    onPick={(slotNumber: number) => {
+    onPickEmptySlot={(slotNumber: number) => {
       step = { kind: 'player', slotNumber };
     }}
   />

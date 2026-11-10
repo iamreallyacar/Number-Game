@@ -22,6 +22,7 @@ export {
 } from './player-schemas.js';
 export {
   openedSaveResponseSchema,
+  saveIdSchema,
   slotListResponseSchema,
   startGameRequestSchema,
   type OpenedSave,

@@ -43,3 +43,9 @@ These requirements cover player IDs, save slots stored on the server, and high s
 
 - PS-17: A save slot can be deleted from the load list, which makes it empty. Player IDs cannot be deleted in the first version.
 - PS-18: A save is locked to the device that opened it most recently. If another device had it open, that device is told the game was opened elsewhere and stops saving to it.
+
+## Links to Saved Games
+
+- PS-19: Every new game gets its own save id, and the link to its play page names that save as well as the slot. A link or an open page for a game that has ended, was deleted, or whose slot now holds a different game opens nothing and changes nothing, not even the device lock. The player is told the game is over and is offered Load Game, New Game, and the dashboard, but not a reload, because a reload would open the other game.
+- PS-20: A play link from before save ids, which names only the slot, opens no game. It shows the same choices, so the player can pick their game on the Load Game page.
+- PS-21: Deleting a save from the Load Game list names the save, so a list that is out of date cannot delete a newer game in the same slot.

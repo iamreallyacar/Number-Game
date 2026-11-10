@@ -1,8 +1,9 @@
 import type { DatabaseSync } from 'node:sqlite';
 
 // Each entry upgrades the schema by one version. Never edit an entry that has shipped; add a new
-// one instead, because existing databases have already run the old ones.
-const MIGRATIONS: readonly string[] = [
+// one instead, because existing databases have already run the old ones. Exported so the tests
+// can build a database at an older version and check the upgrade.
+export const MIGRATIONS: readonly string[] = [
   `
   CREATE TABLE players (
     player_id TEXT PRIMARY KEY COLLATE NOCASE,
@@ -36,6 +37,34 @@ const MIGRATIONS: readonly string[] = [
   `
   ALTER TABLE save_slots ADD COLUMN state_version INTEGER NOT NULL DEFAULT 1;
   ALTER TABLE high_scores ADD COLUMN details_version INTEGER NOT NULL DEFAULT 1;
+  `,
+  // Each save gets its own id, so a link to a game that ended cannot open the next game started
+  // in the same slot. SQLite cannot add a NOT NULL column without a fixed default, so the table
+  // is rebuilt, and saves that already exist get a random id in the same shape as the server's.
+  `
+  CREATE TABLE save_slots_with_save_ids (
+    game_id TEXT NOT NULL,
+    slot_number INTEGER NOT NULL,
+    save_id TEXT NOT NULL UNIQUE,
+    player_id TEXT NOT NULL REFERENCES players (player_id),
+    state_json TEXT NOT NULL,
+    state_version INTEGER NOT NULL,
+    locked_device_id TEXT NOT NULL,
+    last_played_at TEXT NOT NULL,
+    PRIMARY KEY (game_id, slot_number)
+  ) STRICT;
+
+  INSERT INTO save_slots_with_save_ids
+    (game_id, slot_number, save_id, player_id, state_json, state_version, locked_device_id,
+     last_played_at)
+  SELECT game_id, slot_number,
+    lower(hex(randomblob(4)) || '-' || hex(randomblob(2)) || '-' || hex(randomblob(2)) || '-' ||
+      hex(randomblob(2)) || '-' || hex(randomblob(6))),
+    player_id, state_json, state_version, locked_device_id, last_played_at
+  FROM save_slots;
+
+  DROP TABLE save_slots;
+  ALTER TABLE save_slots_with_save_ids RENAME TO save_slots;
   `,
 ];
 

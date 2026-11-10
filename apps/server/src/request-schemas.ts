@@ -1,3 +1,4 @@
+import { saveIdSchema } from '@local/game-server-api';
 import { Type } from 'typebox';
 
 // Request parts that only the server reads. The request bodies and the answers are shared with
@@ -16,4 +17,11 @@ export const gameParamsSchema = Type.Object({ gameId: Type.String() });
 export const slotParamsSchema = Type.Object({
   gameId: Type.String(),
   slotNumber: Type.Integer({ minimum: 1 }),
+});
+
+/** Names one save, so a request made for an older game in the slot cannot reach a newer one. */
+export const saveParamsSchema = Type.Object({
+  gameId: Type.String(),
+  slotNumber: Type.Integer({ minimum: 1 }),
+  saveId: saveIdSchema,
 });

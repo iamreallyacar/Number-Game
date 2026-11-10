@@ -1,19 +1,39 @@
+import { randomUUID } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
+import type { TypedFastify } from '../typed-fastify.js';
 import {
   createPlayer,
   DEVICE_A,
   DEVICE_B,
+  saveUrl,
   SLOTS_URL,
   startTestServer,
   storeSave,
 } from '../test-support.js';
 
 const NEW_GAME = { playerId: 'Sam', options: { target: 3 } };
+const SAVE_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 async function startServerWithPlayer() {
   const server = await startTestServer();
   await createPlayer(server.app, 'Sam');
   return server;
+}
+
+/** Starts a counter game in a slot and returns its save id. */
+async function startGameInSlot(
+  app: TypedFastify,
+  slotNumber: number,
+  device: Record<string, string>,
+): Promise<string> {
+  const created = await app.inject({
+    method: 'POST',
+    url: `${SLOTS_URL}/${String(slotNumber)}`,
+    headers: device,
+    body: NEW_GAME,
+  });
+  expect(created.statusCode).toBe(201);
+  return created.json<{ saveId: string }>().saveId;
 }
 
 describe('save slot routes', () => {
@@ -38,6 +58,8 @@ describe('save slot routes', () => {
       body: NEW_GAME,
     });
     expect(created.statusCode).toBe(201);
+    const { saveId } = created.json<{ saveId: string }>();
+    expect(saveId).toMatch(SAVE_ID_PATTERN);
     expect(created.json()).toMatchObject({
       slotNumber: 2,
       playerId: 'Sam',
@@ -51,6 +73,7 @@ describe('save slot routes', () => {
         {
           slotNumber: 2,
           save: {
+            saveId,
             playerId: 'Sam',
             summary: { score: 0, category: 'to-3', details: { count: 0 } },
           },
@@ -126,6 +149,14 @@ describe('save slot routes', () => {
     expect(response.statusCode).toBe(400);
   });
 
+  it('gives every new game in a slot its own save id', async () => {
+    const { app } = await startServerWithPlayer();
+    const firstSaveId = await startGameInSlot(app, 1, DEVICE_A);
+    await app.inject({ method: 'DELETE', url: saveUrl(1, firstSaveId) });
+    const secondSaveId = await startGameInSlot(app, 1, DEVICE_A);
+    expect(secondSaveId).not.toBe(firstSaveId);
+  });
+
   it('loads a slot exactly as it was saved', async () => {
     const { app } = await startServerWithPlayer();
     const created = await app.inject({
@@ -136,7 +167,7 @@ describe('save slot routes', () => {
     });
     const opened = await app.inject({
       method: 'POST',
-      url: `${SLOTS_URL}/1/open`,
+      url: `${saveUrl(1, created.json<{ saveId: string }>().saveId)}/open`,
       headers: DEVICE_B,
     });
     expect(opened.statusCode).toBe(200);
@@ -145,7 +176,7 @@ describe('save slot routes', () => {
 
   it('upgrades a save written in an older format before using it', async () => {
     const { app, database } = await startServerWithPlayer();
-    storeSave(database, {
+    const saveId = storeSave(database, {
       slotNumber: 1,
       playerId: 'Sam',
       state: { value: 2, target: 3 },
@@ -153,7 +184,7 @@ describe('save slot routes', () => {
     });
     const opened = await app.inject({
       method: 'POST',
-      url: `${SLOTS_URL}/1/open`,
+      url: `${saveUrl(1, saveId)}/open`,
       headers: DEVICE_A,
     });
     expect(opened.json()).toMatchObject({ state: { count: 2, target: 3 } });
@@ -166,7 +197,7 @@ describe('save slot routes', () => {
 
   it('reports a save in a format newer than the server knows as broken', async () => {
     const { app, database } = await startServerWithPlayer();
-    storeSave(database, {
+    const saveId = storeSave(database, {
       slotNumber: 1,
       playerId: 'Sam',
       state: { count: 2, target: 3 },
@@ -174,31 +205,81 @@ describe('save slot routes', () => {
     });
     const opened = await app.inject({
       method: 'POST',
-      url: `${SLOTS_URL}/1/open`,
+      url: `${saveUrl(1, saveId)}/open`,
       headers: DEVICE_A,
     });
     expect(opened.statusCode).toBe(500);
     expect(opened.json()).toMatchObject({ error: 'broken-save' });
   });
 
-  it('refuses to open an empty slot', async () => {
+  it('refuses to open a save in a slot that is now empty, as save-gone', async () => {
     const { app } = await startServerWithPlayer();
     const response = await app.inject({
       method: 'POST',
-      url: `${SLOTS_URL}/1/open`,
+      url: `${saveUrl(1, randomUUID())}/open`,
       headers: DEVICE_A,
     });
-    expect(response.statusCode).toBe(404);
-    expect(response.json()).toMatchObject({ error: 'empty-slot' });
+    expect(response.statusCode).toBe(410);
+    expect(response.json()).toMatchObject({ error: 'save-gone' });
   });
 
-  it('deletes a slot so it is empty again', async () => {
+  it('refuses an old save id after the slot was reused, and leaves the lock alone', async () => {
     const { app } = await startServerWithPlayer();
-    await app.inject({ method: 'POST', url: `${SLOTS_URL}/1`, headers: DEVICE_A, body: NEW_GAME });
-    const deleted = await app.inject({ method: 'DELETE', url: `${SLOTS_URL}/1` });
+    const oldSaveId = await startGameInSlot(app, 1, DEVICE_A);
+    await app.inject({ method: 'DELETE', url: saveUrl(1, oldSaveId) });
+    const newSaveId = await startGameInSlot(app, 1, DEVICE_B);
+
+    const stale = await app.inject({
+      method: 'POST',
+      url: `${saveUrl(1, oldSaveId)}/open`,
+      headers: DEVICE_A,
+    });
+    expect(stale.statusCode).toBe(410);
+    expect(stale.json()).toMatchObject({ error: 'save-gone' });
+
+    // Had the lock moved to device A, this move from device B would be refused.
+    const moveFromOwner = await app.inject({
+      method: 'POST',
+      url: `${saveUrl(1, newSaveId)}/moves`,
+      headers: DEVICE_B,
+      body: { move: { type: 'add', amount: 1 } },
+    });
+    expect(moveFromOwner.statusCode).toBe(200);
+  });
+
+  it('refuses a save id that is not in the server format', async () => {
+    const { app } = await startServerWithPlayer();
+    const response = await app.inject({
+      method: 'POST',
+      url: `${saveUrl(1, 'not-a-save-id')}/open`,
+      headers: DEVICE_A,
+    });
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toMatchObject({ error: 'invalid-request' });
+  });
+
+  it('deletes a save so its slot is empty again', async () => {
+    const { app } = await startServerWithPlayer();
+    const saveId = await startGameInSlot(app, 1, DEVICE_A);
+    const deleted = await app.inject({ method: 'DELETE', url: saveUrl(1, saveId) });
     expect(deleted.statusCode).toBe(204);
-    const deletedAgain = await app.inject({ method: 'DELETE', url: `${SLOTS_URL}/1` });
-    expect(deletedAgain.statusCode).toBe(404);
-    expect(deletedAgain.json()).toMatchObject({ error: 'empty-slot' });
+    const deletedAgain = await app.inject({ method: 'DELETE', url: saveUrl(1, saveId) });
+    expect(deletedAgain.statusCode).toBe(410);
+    expect(deletedAgain.json()).toMatchObject({ error: 'save-gone' });
+  });
+
+  it('does not delete a newer game with an old save id', async () => {
+    const { app } = await startServerWithPlayer();
+    const oldSaveId = await startGameInSlot(app, 1, DEVICE_A);
+    await app.inject({ method: 'DELETE', url: saveUrl(1, oldSaveId) });
+    const newSaveId = await startGameInSlot(app, 1, DEVICE_B);
+    const stale = await app.inject({ method: 'DELETE', url: saveUrl(1, oldSaveId) });
+    expect(stale.statusCode).toBe(410);
+    const opened = await app.inject({
+      method: 'POST',
+      url: `${saveUrl(1, newSaveId)}/open`,
+      headers: DEVICE_B,
+    });
+    expect(opened.statusCode).toBe(200);
   });
 });

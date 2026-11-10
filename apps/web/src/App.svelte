@@ -9,6 +9,7 @@
   import LoadGamePage from './pages/LoadGamePage.svelte';
   import NewGamePage from './pages/NewGamePage.svelte';
   import NotFoundPage from './pages/NotFoundPage.svelte';
+  import OutdatedPlayLinkPage from './pages/OutdatedPlayLinkPage.svelte';
   import PlayPage from './pages/PlayPage.svelte';
   import { startRouter } from './routing/router.js';
   import { parseRoute } from './routing/routes.js';
@@ -46,7 +47,9 @@
       {:else if route.page === 'load-game'}
         <LoadGamePage {game} />
       {:else if route.page === 'play'}
-        <PlayPage {game} slotNumber={route.slotNumber} />
+        <PlayPage {game} slotNumber={route.slotNumber} saveId={route.saveId} />
+      {:else if route.page === 'outdated-play-link'}
+        <OutdatedPlayLinkPage {game} />
       {:else}
         <HighScoresPage {game} />
       {/if}

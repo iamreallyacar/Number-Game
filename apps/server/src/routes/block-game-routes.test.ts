@@ -26,29 +26,30 @@ async function startServerWithBlockGameInSlot() {
     body: { playerId: 'Sam', options: { size: 8 } },
   });
   expect(started.statusCode).toBe(201);
-  return app;
+  const saveUrl = `${SLOT_URL}/saves/${started.json<{ saveId: string }>().saveId}`;
+  return { app, saveUrl };
 }
 
 describe('Block Game through the routes', () => {
   it('accepts a placement and saves it', async () => {
-    const app = await startServerWithBlockGameInSlot();
+    const { app, saveUrl } = await startServerWithBlockGameInSlot();
     const moved = await app.inject({
       method: 'POST',
-      url: `${SLOT_URL}/moves`,
+      url: `${saveUrl}/moves`,
       headers: DEVICE_A,
       body: PLACE_FIRST_SHAPE_AT_CORNER,
     });
     expect(moved.statusCode).toBe(200);
     expect(moved.json()).toEqual({ gameOver: false });
-    const opened = await app.inject({ method: 'POST', url: `${SLOT_URL}/open`, headers: DEVICE_A });
+    const opened = await app.inject({ method: 'POST', url: `${saveUrl}/open`, headers: DEVICE_A });
     expect(opened.json()).toMatchObject({ state: { shapesPlaced: 1 } });
   });
 
   it('refuses a placement off the board and gives the reason', async () => {
-    const app = await startServerWithBlockGameInSlot();
+    const { app, saveUrl } = await startServerWithBlockGameInSlot();
     const moved = await app.inject({
       method: 'POST',
-      url: `${SLOT_URL}/moves`,
+      url: `${saveUrl}/moves`,
       headers: DEVICE_A,
       body: { move: { type: 'place-shape', slotIndex: 0, topRow: 99, leftColumn: 0 } },
     });

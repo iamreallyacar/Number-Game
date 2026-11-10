@@ -8,7 +8,12 @@ export type SaveStatus =
   | { readonly kind: 'retrying'; readonly message: string }
   /** Another device opened this save, so this device stopped saving to it. */
   | { readonly kind: 'opened-elsewhere' }
-  /** The server refused a move or the save is gone. The game must be reloaded from the server. */
+  /**
+   * The slot no longer holds this game, because it ended, was deleted, or a new game took the
+   * slot. Reloading would open a different game, so the player is sent elsewhere (PS-19, PS-20).
+   */
+  | { readonly kind: 'save-gone' }
+  /** The server refused a move. The game must be reloaded from the server. */
   | { readonly kind: 'out-of-sync'; readonly message: string };
 
 export type SendMove = (move: unknown) => Promise<unknown>;
@@ -125,6 +130,8 @@ export class MoveSync {
     this.stop();
     if (error instanceof ApiError && error.errorCode === 'opened-elsewhere') {
       this.setStatus({ kind: 'opened-elsewhere' });
+    } else if (error instanceof ApiError && error.errorCode === 'save-gone') {
+      this.setStatus({ kind: 'save-gone' });
     } else {
       this.setStatus({ kind: 'out-of-sync', message: describeError(error) });
     }

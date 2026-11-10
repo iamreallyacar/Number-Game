@@ -5,7 +5,7 @@ import { runInTransaction } from '../database/run-in-transaction.js';
 import type { SaveSlotsStore } from '../database/save-slots-store.js';
 import type { GameRegistry } from '../games/game-registry.js';
 import { HttpError } from '../http-error.js';
-import { deviceHeadersSchema, slotParamsSchema } from '../request-schemas.js';
+import { deviceHeadersSchema, saveParamsSchema } from '../request-schemas.js';
 import type { TypedFastify } from '../typed-fastify.js';
 import { findGameSave } from './request-lookups.js';
 
@@ -26,17 +26,17 @@ export function registerMoveRoutes(app: TypedFastify, dependencies: MoveRouteDep
   const { database, saves, highScores } = dependencies;
 
   app.post(
-    '/api/games/:gameId/slots/:slotNumber/moves',
+    '/api/games/:gameId/slots/:slotNumber/saves/:saveId/moves',
     {
       schema: {
-        params: slotParamsSchema,
+        params: saveParamsSchema,
         headers: deviceHeadersSchema,
         body: moveRequestSchema,
         response: { 200: moveResponseSchema },
       },
     },
     (request): MoveResponse => {
-      const { game, slotNumber, save } = findGameSave(dependencies, request.params);
+      const { game, save } = findGameSave(dependencies, request.params);
       const deviceId = request.headers['x-device-id'];
       if (save.lockedDeviceId !== deviceId) {
         throw new HttpError(
@@ -53,7 +53,7 @@ export function registerMoveRoutes(app: TypedFastify, dependencies: MoveRouteDep
 
       const now = new Date().toISOString();
       if (!outcome.gameOver) {
-        saves.updateSave(game.id, slotNumber, {
+        saves.updateSave(save.saveId, {
           ...outcome.storedState,
           lockedDeviceId: deviceId,
           lastPlayedAt: now,
@@ -71,7 +71,7 @@ export function registerMoveRoutes(app: TypedFastify, dependencies: MoveRouteDep
           ...outcome.storedSummaryDetails,
           finishedAt: now,
         });
-        saves.deleteSave(game.id, slotNumber);
+        saves.deleteSave(save.saveId);
       });
       return {
         gameOver: true,

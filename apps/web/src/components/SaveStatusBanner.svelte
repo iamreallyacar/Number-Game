@@ -1,14 +1,16 @@
 <script lang="ts">
   import type { SaveStatus } from '../saving/move-sync.js';
+  import SaveGoneNotice from './SaveGoneNotice.svelte';
 
   interface Props {
     readonly status: SaveStatus;
+    readonly gameId: string;
     /** Loads the save from the server again, which also takes the lock back to this device. */
     readonly onReload: () => void;
     readonly dashboardPath: string;
   }
 
-  const { status, onReload, dashboardPath }: Props = $props();
+  const { status, gameId, onReload, dashboardPath }: Props = $props();
 </script>
 
 <!-- Saving problems are always shown and never hidden away (PS-08, PS-18). -->
@@ -24,6 +26,13 @@
       <button type="button" class="button primary" onclick={onReload}>Continue here</button>
       <a class="button" href={dashboardPath}>Dashboard</a>
     </div>
+  </div>
+{:else if status.kind === 'save-gone'}
+  <div class="banner error" role="alert">
+    <SaveGoneNotice
+      {gameId}
+      message="This game has ended or was replaced by a new game in the same slot, so this device stopped saving it."
+    />
   </div>
 {:else if status.kind === 'out-of-sync'}
   <div class="banner error" role="alert">

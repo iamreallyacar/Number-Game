@@ -1,14 +1,25 @@
+import { saveIdSchema } from '@local/game-server-api';
+import { Value } from 'typebox/value';
+
 /** Every page of the browser app. Pages inside a game carry the game id from the URL. */
 export type Route =
   | { readonly page: 'dashboard' }
   | { readonly page: 'game-menu'; readonly gameId: string }
   | { readonly page: 'new-game'; readonly gameId: string }
   | { readonly page: 'load-game'; readonly gameId: string }
-  | { readonly page: 'play'; readonly gameId: string; readonly slotNumber: number }
+  | {
+      readonly page: 'play';
+      readonly gameId: string;
+      readonly slotNumber: number;
+      readonly saveId: string;
+    }
   | { readonly page: 'high-scores'; readonly gameId: string }
+  /** A play link from before save ids, which names only the slot and so cannot be trusted. */
+  | { readonly page: 'outdated-play-link'; readonly gameId: string }
   | { readonly page: 'not-found' };
 
-export type PageRoute = Exclude<Route, { readonly page: 'not-found' }>;
+/** The routes the app links to. It never makes outdated play links or links to nowhere. */
+export type PageRoute = Exclude<Route, { readonly page: 'not-found' | 'outdated-play-link' }>;
 
 const SLOT_NUMBER_PATTERN = /^[1-9]\d*$/;
 
@@ -27,7 +38,7 @@ export function parseRoute(path: string): Route {
   if (parts.length === 0) {
     return { page: 'dashboard' };
   }
-  const [section, encodedGameId, subPage, slotText, ...extraParts] = parts;
+  const [section, encodedGameId, subPage, slotText, savesText, saveId, ...extraParts] = parts;
   if (section !== 'games' || encodedGameId === undefined || extraParts.length > 0) {
     return { page: 'not-found' };
   }
@@ -49,8 +60,14 @@ export function parseRoute(path: string): Route {
     }
     return { page: 'not-found' };
   }
-  if (subPage === 'slots' && SLOT_NUMBER_PATTERN.test(slotText)) {
-    return { page: 'play', gameId, slotNumber: Number(slotText) };
+  if (subPage !== 'slots' || !SLOT_NUMBER_PATTERN.test(slotText)) {
+    return { page: 'not-found' };
+  }
+  if (savesText === undefined) {
+    return { page: 'outdated-play-link', gameId };
+  }
+  if (savesText === 'saves' && Value.Check(saveIdSchema, saveId)) {
+    return { page: 'play', gameId, slotNumber: Number(slotText), saveId };
   }
   return { page: 'not-found' };
 }
@@ -71,6 +88,6 @@ export function routePath(route: PageRoute): string {
     case 'high-scores':
       return `${gamePath}/high-scores`;
     case 'play':
-      return `${gamePath}/slots/${String(route.slotNumber)}`;
+      return `${gamePath}/slots/${String(route.slotNumber)}/saves/${route.saveId}`;
   }
 }

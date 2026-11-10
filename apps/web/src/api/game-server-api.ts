@@ -23,6 +23,20 @@ function slotPath(gameId: string, slotNumber: number): string {
   return `${gamePath(gameId)}/slots/${String(slotNumber)}`;
 }
 
+/**
+ * Names one game in one slot. The server refuses a save id that no longer matches the slot with
+ * the error 'save-gone', so a stale page never reaches a newer game in the same slot (PS-19).
+ */
+export interface SaveAddress {
+  readonly gameId: string;
+  readonly slotNumber: number;
+  readonly saveId: string;
+}
+
+function savePath(address: SaveAddress): string {
+  return `${slotPath(address.gameId, address.slotNumber)}/saves/${encodeURIComponent(address.saveId)}`;
+}
+
 export async function listPlayerIds(): Promise<readonly string[]> {
   const response = await requestJson(
     { method: 'GET', path: '/api/players' },
@@ -68,26 +82,22 @@ export async function startGame(request: StartGameRequest): Promise<OpenedSave> 
 }
 
 /** Loads a save and moves its lock to this device (PS-18). */
-export async function openSlot(gameId: string, slotNumber: number): Promise<OpenedSave> {
+export async function openSave(address: SaveAddress): Promise<OpenedSave> {
   return requestJson(
-    { method: 'POST', path: `${slotPath(gameId, slotNumber)}/open`, deviceId: getDeviceId() },
+    { method: 'POST', path: `${savePath(address)}/open`, deviceId: getDeviceId() },
     openedSaveResponseSchema,
   );
 }
 
-export async function deleteSlot(gameId: string, slotNumber: number): Promise<void> {
-  await requestWithoutBody({ method: 'DELETE', path: slotPath(gameId, slotNumber) });
+export async function deleteSave(address: SaveAddress): Promise<void> {
+  await requestWithoutBody({ method: 'DELETE', path: savePath(address) });
 }
 
-export async function sendMove(
-  gameId: string,
-  slotNumber: number,
-  move: unknown,
-): Promise<MoveResponse> {
+export async function sendMove(address: SaveAddress, move: unknown): Promise<MoveResponse> {
   return requestJson(
     {
       method: 'POST',
-      path: `${slotPath(gameId, slotNumber)}/moves`,
+      path: `${savePath(address)}/moves`,
       body: { move },
       deviceId: getDeviceId(),
     },

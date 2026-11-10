@@ -90,6 +90,19 @@ describe('MoveSync', () => {
     expect(statuses.at(-1)).toEqual({ kind: 'opened-elsewhere' });
   });
 
+  it('stops saving when the slot no longer holds this game', async () => {
+    const { sends, sendMove } = createFakeSender();
+    const sync = new MoveSync(sendMove, (status) => statuses.push(status));
+    sync.saveMove('first');
+    sync.saveMove('second');
+    lastSend(sends).fail(new ApiError(410, 'save-gone', 'The game has ended', null));
+    await vi.runAllTimersAsync();
+    sync.saveMove('third');
+    await vi.runAllTimersAsync();
+    expect(sends).toHaveLength(1);
+    expect(statuses.at(-1)).toEqual({ kind: 'save-gone' });
+  });
+
   it('asks for a reload when the server refuses a move', async () => {
     const { sends, sendMove } = createFakeSender();
     const sync = new MoveSync(sendMove, (status) => statuses.push(status));

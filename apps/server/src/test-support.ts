@@ -1,4 +1,5 @@
 // Builders shared by the test files. Excluded from the build in tsconfig.build.json.
+import { randomUUID } from 'node:crypto';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import type { DatabaseSync } from 'node:sqlite';
 import { tmpdir } from 'node:os';
@@ -14,6 +15,11 @@ export const DEVICE_A = { 'x-device-id': 'device-aaaa' };
 export const DEVICE_B = { 'x-device-id': 'device-bbbb' };
 export const COUNTER_URL = `/api/games/${COUNTER_GAME_ID}`;
 export const SLOTS_URL = `${COUNTER_URL}/slots`;
+
+/** The URL of one save of the counter test game. Open and moves are added after it. */
+export function saveUrl(slotNumber: number, saveId: string): string {
+  return `${SLOTS_URL}/${String(slotNumber)}/saves/${saveId}`;
+}
 
 export interface TestServer {
   readonly app: TypedFastify;
@@ -58,15 +64,21 @@ export interface HandMadeSave {
   readonly stateVersion?: number;
 }
 
-/** Puts a hand-made counter game state into a slot, locked to device A. */
-export function storeSave(database: DatabaseSync, save: HandMadeSave): void {
-  new SaveSlotsStore(database).insertSave({
+/** Puts a hand-made counter game state into a slot, locked to device A. Returns its save id. */
+export function storeSave(database: DatabaseSync, save: HandMadeSave): string {
+  const saveId = randomUUID();
+  const inserted = new SaveSlotsStore(database).insertSave({
     gameId: COUNTER_GAME_ID,
     slotNumber: save.slotNumber,
+    saveId,
     playerId: save.playerId,
     stateJson: JSON.stringify(save.state),
     stateVersion: save.stateVersion ?? COUNTER_FORMAT_VERSION,
     lockedDeviceId: DEVICE_A['x-device-id'],
     lastPlayedAt: '2026-01-01T00:00:00.000Z',
   });
+  if (!inserted) {
+    throw new Error(`Test slot ${String(save.slotNumber)} is already in use`);
+  }
+  return saveId;
 }

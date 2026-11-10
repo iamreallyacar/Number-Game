@@ -89,3 +89,6 @@ The second game. Its requirements are in `REQUIREMENTS/block-game/rules.md`.
 - [x] T-54: Browser module: dashboard entry, board size form, play screen with drag and drop, landing preview, score and streak, clear effects, sounds, and the game over screen. (BG-03, BG-07, BG-16 to BG-18, BG-20, BG-21)
 - [ ] T-55: Playtest the Block Game on a phone and a laptop, then tune the shape weights and scoring values. (BG-10, BG-14)
 
+## Phase 8: Fixes
+
+- [x] T-56: Give every save its own save id and put it in the play page link, so an old link or an open tab for an ended or deleted game cannot open or change a newer game in the same slot, or move its device lock. Old links without a save id open no game. (PS-19, PS-20, PS-21)

@@ -33,11 +33,11 @@ The dashboard, players, save slots, and high scores are shared code that works w
 
 The server is the source of truth for every saved game.
 
-1. The browser loads a save slot and receives the full game state.
+1. The browser opens the save named in the page link, by slot and save id, and receives the full game state.
 2. The player makes a move, such as a match. The browser applies it right away with the rules package so the screen responds instantly.
 3. The browser sends the move, not the new state, to the server.
-4. The server checks the device lock, applies the same move to its stored state with the same rules package, and saves the result. It answers only whether the game is over, and the result that went into the high scores if it is.
-5. If the server refuses the move, the browser shows the reason and reloads the server state. (PS-07, PS-08, PS-18)
+4. The server checks that the slot still holds this save and that this device holds the lock, applies the same move to its stored state with the same rules package, and saves the result. It answers only whether the game is over, and the result that went into the high scores if it is.
+5. If the server refuses the move, the browser shows the reason and offers to reload the server state. If the slot no longer holds this save, it offers Load Game, New Game, and the dashboard instead. (PS-07, PS-08, PS-18, PS-19)
 
 Because the server applies every move itself, a changed browser cannot save an impossible board or a fake high score.
 
@@ -48,6 +48,8 @@ New boards and Add Numbers use a seeded random number generator whose state is p
 ## Storage
 
 The server stores everything in one SQLite file inside `DATA_DIR`. Tables are created and upgraded by migrations that run when the server starts. (PS-03, PS-13)
+
+Each save row has a random save id, made with `crypto.randomUUID()` when a game starts. A slot holds many games one after another, so the save id is what tells them apart. The migration that added it gave every save that already existed its own random id. (PS-19)
 
 Game states and high score summary details are stored as JSON, each with the format version of the game that wrote it. Before the server uses one, it runs the game's upgrades from the stored version to the newest, then checks it with the rules package. This works like the database migrations, but each game keeps its own list. A stored format newer than the server knows, or one that fails the check, is refused with the error `broken-save` or `broken-high-score` instead of being loaded. The server does not write the upgraded state back on its own. The next move saves it in the newest format.
 
@@ -85,12 +87,14 @@ Every error response has the shape `{ "error": "<code>", "message": "<text>" }`.
 | `GET /api/players` | Lists player IDs |
 | `POST /api/players` | Creates a player ID. Refuses a duplicate in any letter case |
 | `GET /api/games/:gameId/slots` | Lists every slot, with a summary of each used one |
-| `POST /api/games/:gameId/slots/:slotNumber` | Starts a new game in an empty slot |
-| `POST /api/games/:gameId/slots/:slotNumber/open` | Loads a slot and locks it to this device |
-| `DELETE /api/games/:gameId/slots/:slotNumber` | Empties a slot |
-| `POST /api/games/:gameId/slots/:slotNumber/moves` | Applies one move and saves it. Ends the game when no moves are left, and then answers with the result |
+| `POST /api/games/:gameId/slots/:slotNumber` | Starts a new game in an empty slot and answers with its new save id |
+| `POST /api/games/:gameId/slots/:slotNumber/saves/:saveId/open` | Loads a save and locks it to this device |
+| `DELETE /api/games/:gameId/slots/:slotNumber/saves/:saveId` | Deletes a save, which empties its slot |
+| `POST /api/games/:gameId/slots/:slotNumber/saves/:saveId/moves` | Applies one move and saves it. Ends the game when no moves are left, and then answers with the result |
 | `GET /api/games/:gameId/high-scores` | Top results. Optional `category` (the difficulty) and `limit` |
 | `GET /api/games/:gameId/personal-bests/:playerId` | A player's best result per difficulty |
+
+The slot list, the start answer, and the open answer all carry the save id. Open, move, and delete name the save in the URL. If the slot is empty or holds a different save, they are refused with status 410 and the error `save-gone`, and nothing changes. This check comes before the lock check, so a stale page is never offered to take the lock of a newer game. (PS-19, PS-21)
 
 Requests that start, open, or change a save must send an `x-device-id` header. The browser makes up a random device ID once and keeps it. Opening a save moves its lock to that device, and moves from any other device are refused with the error `opened-elsewhere`. (PS-18)
 
@@ -109,12 +113,12 @@ Paths outside `/api/` serve the built browser app from `apps/web/dist`, and unkn
 | `routing/` | Page paths and page routing with the browser history |
 | `api/` | One function per server route. Every answer is checked with the shared schemas from `@local/game-server-api` before it is used |
 | `api/device-id.ts` | The random device ID kept in local storage and sent in the `x-device-id` header |
-| `saving/move-sync.ts` | Sends moves to the server one at a time and in order, retries failed saves, and stops when the save was opened elsewhere |
+| `saving/move-sync.ts` | Sends moves to the server one at a time and in order, retries failed saves, and stops when the save was opened elsewhere or is gone |
 | `games/` | The browser game registry and each game's browser module |
 | `audio/` | The shared sound player. It makes short tones in the browser, so games need no audio files, and keeps the mute choice from the header button in local storage (PL-18, PL-19) |
 | `test-support/` | Helpers for the tests, such as a local storage kept in memory. Only tests use them |
-| `pages/` | One Svelte component per page: dashboard, game menu, new game, load game, play, and high scores |
-| `components/` | Pieces of pages: the sound mute button, the save slot list, the player ID picker, the save status banner, the top results table, and the personal bests list |
+| `pages/` | One Svelte component per page: dashboard, game menu, new game, load game, play, outdated play link, and high scores |
+| `components/` | Pieces of pages: the sound mute button, the save slot list, the player ID picker, the save status banner, the save gone notice, the top results table, and the personal bests list |
 
 Pages and their paths:
 
@@ -124,10 +128,11 @@ Pages and their paths:
 | `/games/:gameId` | Game menu with New Game, Load Game, and High Scores |
 | `/games/:gameId/new` | Pick an empty slot, then a player ID, then the game's options |
 | `/games/:gameId/load` | Pick a used slot to continue, or delete one |
-| `/games/:gameId/slots/:slotNumber` | Opens the slot and shows the game's play screen |
+| `/games/:gameId/slots/:slotNumber/saves/:saveId` | Opens the save and shows the game's play screen |
+| `/games/:gameId/slots/:slotNumber` | An older play link without a save id. It opens no game and links to Load Game, New Game, and the dashboard (PS-20) |
 | `/games/:gameId/high-scores` | Top results with a category filter, and personal bests |
 
-The play page loads the save and hands its state to the game's play screen. The play screen applies each move with the rules package, then hands the move to the move sync. Network errors and server errors are retried with growing waits, and the save status banner tells the player while that happens. A move the server refuses, or a save that was opened on another device, stops saving and offers to reload the game from the server. Leaving the page while moves are still unsaved shows the browser's leave warning. (PS-07, PS-08, PS-18)
+The play page loads the save and hands its state to the game's play screen. The play screen applies each move with the rules package, then hands the move to the move sync. Network errors and server errors are retried with growing waits, and the save status banner tells the player while that happens. A move the server refuses, or a save that was opened on another device, stops saving and offers to reload the game from the server. A save that is gone, because the game ended, was deleted, or a new game took the slot, stops saving too. Then the page offers Load Game, New Game, and the dashboard, never a reload, and reloading the page shows the same message. A finished game still shows its game over panel, since the last move was saved before the slot was emptied. Leaving the page while moves are still unsaved shows the browser's leave warning. (PS-07, PS-08, PS-18, PS-19)
 
 The Number Game play screen still calls the single rules (`applyMatch`, `applyAddNumbers`, `applyHint`) instead of `applyMove`, because it needs what only they return, such as whether a stage was cleared and which pair a hint shows. The moves it sends use the `NumberGameMove` type from the rules package.
 
