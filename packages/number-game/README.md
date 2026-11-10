@@ -24,7 +24,7 @@ Saved games keep a `GameState` as JSON, and high scores keep the summary details
 | `game-id.ts` | The game id |
 | `game-state.ts` | The `GameState` type. Cells are a flat list in reading order, padded with empty cells to whole rows |
 | `cell.ts` | The `Digit` and `Cell` types |
-| `board.ts` | Row and column math, counting numbers, and removing empty rows |
+| `board.ts` | Row and column math, counting numbers, finding which numbers are on the board, and removing empty rows |
 | `random.ts` | Mulberry32 seeded random numbers. The generator state is stored in the game state |
 | `difficulty.ts` | Easy, Normal, and Hard presets |
 | `stage-board.ts` | Fills a new stage board. On Easy, many cells are made to pair with the cell before them |
@@ -32,7 +32,7 @@ Saved games keep a `GameState` as JSON, and high scores keep the summary details
 | `scoring.ts` | Points for matches, empty rows, and stage clears |
 | `pair.ts` and `line-of-sight.ts` | Whether two numbers are a pair and whether they can see each other |
 | `match.ts` | Applies a match, removes empty rows, adds points, and moves to the next stage when the board is cleared |
-| `add-numbers.ts` | Applies Add Numbers |
+| `add-numbers.ts` | Applies Add Numbers, drawing only numbers still on the board |
 | `stage-clear.ts` | Adds the stage bonus and fills a new board |
 | `find-pair.ts` and `hint.ts` | Finds a valid pair for hints, the stuck warning, and game over |
 | `move.ts` | The move type and `applyMove`, which sends each move to its rule |

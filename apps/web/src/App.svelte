@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { describeError } from './api/api-request.js';
+  import SoundToggle from './components/SoundToggle.svelte';
   import { createBrowserGameRegistry } from './games/create-browser-game-registry.js';
   import DashboardPage from './pages/DashboardPage.svelte';
   import GameMenuPage from './pages/GameMenuPage.svelte';
@@ -28,6 +29,7 @@
 <header class="site-header">
   <!-- Every page links back to the dashboard (PL-03). -->
   <a class="site-title" href="/">Game Dashboard</a>
+  <SoundToggle />
 </header>
 
 <main class="page">

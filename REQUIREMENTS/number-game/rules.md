@@ -17,6 +17,7 @@ These requirements define how the Number Game plays. Cells are counted by row (t
 - NG-01: When starting a new game, the player chooses the width n from 10, 11, or 12.
 - NG-02: Each stage starts with n rows of n cells, each filled with a random number from 1 to 9.
 - NG-03: The board has no height limit. Rows are added below as needed, and the board scrolls vertically when it is taller than the screen.
+- NG-29: Thin grid lines separate every row and column, including empty cells, so the player can follow a row, column, or diagonal across long distances.
 
 ## Selecting and Matching
 
@@ -47,9 +48,10 @@ Reading order example on a board with width 10: row 1 column 7 holds a 3, and ro
 ## Adding Numbers
 
 - NG-16: An Add Numbers button sits below the board.
-- NG-17: Pressing it adds new random numbers from 1 to 9. The count is 50 percent of the numbers currently on the board, rounded up, with at least 1.
+- NG-17: Pressing it adds new random numbers from 1 to 9, limited as described in NG-33. The count is 50 percent of the numbers currently on the board, rounded up, with at least 1.
 - NG-18: New numbers are placed in reading order starting right after the last number on the board, filling the rest of that row and then new rows below.
 - NG-19: The number of uses per stage is set by the difficulty (see `difficulty.md`). The button shows how many uses remain and is disabled when none remain.
+- NG-33: Add Numbers only adds numbers that are still on the board. A number that has been cleared off the board completely is not added again for the rest of the stage. A new stage fills the board from all numbers 1 to 9 as described in NG-02, so every number can appear again.
 
 ## Stages
 
@@ -72,6 +74,14 @@ Reading order example on a board with width 10: row 1 column 7 holds a 3, and ro
 ## Stuck Warning
 
 - NG-25: When no pair with line of sight exists and Add Numbers still has uses left, the game shows a message suggesting the player use Add Numbers.
+
+## Effects and Sound
+
+Effects only show what happened. They never change the rules, the score, or what is saved.
+
+- NG-30: When a pair is cleared, both cleared cells show a short burst, and the points earned by the move float up from the second selected cell, such as +10, or +60 when a row is removed too.
+- NG-31: The game plays a short sound for each of these events: selecting a number, clearing a pair, removing an empty row, a wrong match, pressing Add Numbers, showing a hint, and clearing a stage. Clearing a pair plays a bell-like ring.
+- NG-32: Sounds follow the mute button from PL-19.
 
 ## Game Over
 

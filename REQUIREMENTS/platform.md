@@ -24,6 +24,12 @@ These requirements cover everything around the games: the dashboard, how games p
 - PL-08: Layouts adapt to phone portrait screens and laptop screens.
 - PL-09: Games accept both touch and mouse input.
 
+## Sound and Motion
+
+- PL-18: Games may play short sound effects. Sound is on by default.
+- PL-19: A mute button in the site header on every page turns all game sounds off and on. The choice is remembered on that device only and is not stored on the server.
+- PL-20: Moving effects are turned off or reduced when the device asks for reduced motion.
+
 ## Hosting
 
 - PL-10: The project runs on a single Linux server, such as a Proxmox VM or LXC container, on the local network.

@@ -1,4 +1,4 @@
-import type { Cell } from './cell.js';
+import { DIGITS, type Cell, type Digit } from './cell.js';
 import type { CellIndex } from './game-state.js';
 
 export function rowOf(index: CellIndex, width: number): number {
@@ -11,6 +11,11 @@ export function columnOf(index: CellIndex, width: number): number {
 
 export function countNumbers(cells: readonly Cell[]): number {
   return cells.filter((cell) => cell !== null).length;
+}
+
+/** The numbers from 1 to 9 that are on the board at least once, from smallest to largest. */
+export function digitsOnBoard(cells: readonly Cell[]): Digit[] {
+  return DIGITS.filter((digit) => cells.includes(digit));
 }
 
 /** Adds empty cells to the end so the board is a whole number of rows. */

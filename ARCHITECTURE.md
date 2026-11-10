@@ -108,8 +108,10 @@ Paths outside `/api/` serve the built browser app from `apps/web/dist`, and unkn
 | `api/device-id.ts` | The random device ID kept in local storage and sent in the `x-device-id` header |
 | `saving/move-sync.ts` | Sends moves to the server one at a time and in order, retries failed saves, and stops when the save was opened elsewhere |
 | `games/` | The browser game registry and each game's browser module |
+| `audio/` | The shared sound player. It makes short tones in the browser, so games need no audio files, and keeps the mute choice from the header button in local storage (PL-18, PL-19) |
+| `test-support/` | Helpers for the tests, such as a local storage kept in memory. Only tests use them |
 | `pages/` | One Svelte component per page: dashboard, game menu, new game, load game, play, and high scores |
-| `components/` | Pieces of pages: the save slot list, the player ID picker, the save status banner, the top results table, and the personal bests list |
+| `components/` | Pieces of pages: the sound mute button, the save slot list, the player ID picker, the save status banner, the top results table, and the personal bests list |
 
 Pages and their paths:
 
@@ -125,6 +127,8 @@ Pages and their paths:
 The play page loads the save and hands its state to the game's play screen. The play screen applies each move with the rules package, then hands the move to the move sync. Network errors and server errors are retried with growing waits, and the save status banner tells the player while that happens. A move the server refuses, or a save that was opened on another device, stops saving and offers to reload the game from the server. Leaving the page while moves are still unsaved shows the browser's leave warning. (PS-07, PS-08, PS-18)
 
 The Number Game play screen still calls the single rules (`applyMatch`, `applyAddNumbers`, `applyHint`) instead of `applyMove`, because it needs what only they return, such as whether a stage was cleared and which pair a hint shows. The moves it sends use the `NumberGameMove` type from the rules package.
+
+Sounds and effects only show what happened and never change the game state. The play screen picks the Number Game sound for each event from `number-game-sounds.ts` and plays it with the shared sound player. After a match it also hands the board a short-lived match effect: a burst on both cleared cells and the points earned, placed with the cell positions from before the move. (NG-30, NG-31)
 
 ## Packaging
 

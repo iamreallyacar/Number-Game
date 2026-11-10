@@ -53,11 +53,16 @@ export function drawRandomItem<Item>(
   return { value: item, randomState: draw.randomState };
 }
 
-export function drawRandomDigits(randomState: RandomState, count: number): RandomDraw<Digit[]> {
+/** Draws `count` numbers, each picked from `allowedDigits` with the same chance. */
+export function drawRandomDigits(
+  randomState: RandomState,
+  count: number,
+  allowedDigits: readonly Digit[],
+): RandomDraw<Digit[]> {
   const digits: Digit[] = [];
   let currentState = randomState;
   for (let drawn = 0; drawn < count; drawn++) {
-    const draw = drawRandomDigit(currentState);
+    const draw = drawRandomItem(currentState, allowedDigits);
     digits.push(draw.value);
     currentState = draw.randomState;
   }

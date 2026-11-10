@@ -7,6 +7,8 @@
     type CellPair,
     type Digit,
   } from '@local/number-game';
+  import type { MatchEffect } from './match-effect.js';
+  import NumberGameMatchEffect from './NumberGameMatchEffect.svelte';
 
   interface Props {
     readonly cells: readonly Cell[];
@@ -15,11 +17,21 @@
     readonly hintPair: CellPair | null;
     /** The two cells of a wrong match, which shake briefly (NG-07). */
     readonly rejectedPair: CellPair | null;
+    readonly matchEffects: readonly MatchEffect[];
     readonly disabled: boolean;
     readonly onTap: (index: CellIndex) => void;
   }
 
-  const { cells, width, selectedIndex, hintPair, rejectedPair, disabled, onTap }: Props = $props();
+  const {
+    cells,
+    width,
+    selectedIndex,
+    hintPair,
+    rejectedPair,
+    matchEffects,
+    disabled,
+    onTap,
+  }: Props = $props();
 
   function isInPair(pair: CellPair | null, index: CellIndex): boolean {
     return pair !== null && (pair.firstIndex === index || pair.secondIndex === index);
@@ -32,7 +44,8 @@
   }
 </script>
 
-<!-- The board grows downwards without a limit and the page scrolls with it (NG-03). -->
+<!-- The board grows downwards without a limit and the page scrolls with it (NG-03).
+     The lines between cells are the board background showing through the gaps (NG-29). -->
 <div class="board" style:--board-width={width}>
   {#each cells as cell, index (index)}
     {#if cell === null}
@@ -53,17 +66,23 @@
       >
     {/if}
   {/each}
+  {#each matchEffects as effect (effect.id)}
+    <NumberGameMatchEffect {effect} />
+  {/each}
 </div>
 
 <style>
   .board {
+    position: relative;
     container-type: inline-size;
     display: grid;
     grid-template-columns: repeat(var(--board-width), minmax(0, 1fr));
-    gap: 2px;
+    gap: 1px;
     width: 100%;
     max-width: calc(var(--board-width) * 3.5rem);
     margin: 0 auto;
+    border: 1px solid var(--color-border);
+    background: var(--color-border);
   }
 
   .cell {
@@ -71,8 +90,8 @@
     display: grid;
     place-items: center;
     padding: 0;
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
+    border: none;
+    border-radius: 0;
     background: var(--color-surface);
     color: var(--color-text);
     /* The font follows the cell size, which follows the board width on any screen. */
@@ -85,26 +104,25 @@
   }
 
   .cell.empty {
-    border-color: transparent;
-    background: transparent;
+    background: var(--color-background);
     cursor: default;
   }
 
+  /* Inset outlines mark a cell without changing its size or covering the grid lines. */
   .cell.hinted {
     background: var(--color-hint);
-    border-color: var(--color-hint-border);
+    box-shadow: inset 0 0 0 2px var(--color-hint-border);
   }
 
   .cell.selected {
     background: var(--color-accent);
-    border-color: var(--color-accent);
     color: var(--color-on-accent);
   }
 
   .cell.rejected {
     animation: shake 0.4s ease-in-out;
     background: var(--color-error-surface);
-    border-color: var(--color-error);
+    box-shadow: inset 0 0 0 2px var(--color-error);
   }
 
   .cell:disabled {

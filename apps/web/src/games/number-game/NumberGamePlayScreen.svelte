@@ -2,26 +2,33 @@
   import {
     applyAddNumbers,
     applyHint,
+    columnOf,
     DIFFICULTY_PRESETS,
     isGameOver,
     isStuck,
     parseGameState,
+    rowOf,
     type CellIndex,
     type CellPair,
     type GameState,
     type NumberGameMove,
   } from '@local/number-game';
   import { onDestroy } from 'svelte';
+  import { getSoundPlayer } from '../../audio/sound-player.js';
   import type { PlayScreenProps } from '../browser-game.js';
+  import type { BoardPosition, MatchEffect } from './match-effect.js';
   import { MATCH_REFUSAL_MESSAGES } from './match-refusal-messages.js';
   import NumberGameActionBar from './NumberGameActionBar.svelte';
   import NumberGameBoard from './NumberGameBoard.svelte';
   import NumberGameOverPanel from './NumberGameOverPanel.svelte';
   import NumberGameStatusBar from './NumberGameStatusBar.svelte';
+  import { NUMBER_GAME_SOUNDS } from './number-game-sounds.js';
   import { tapCell } from './tap-cell.js';
 
   const REJECTED_PAIR_SHOW_MS = 400;
   const FEEDBACK_SHOW_MS = 2500;
+  // Matches the longest animation in NumberGameMatchEffect.svelte.
+  const MATCH_EFFECT_SHOW_MS = 900;
 
   interface Feedback {
     readonly text: string;
@@ -40,6 +47,10 @@
   let hintPair: CellPair | null = $state(null);
   let rejectedPair: CellPair | null = $state(null);
   let feedback: Feedback | null = $state(null);
+  let matchEffects: readonly MatchEffect[] = $state.raw([]);
+  let nextMatchEffectId = 0;
+
+  const soundPlayer = getSoundPlayer();
 
   const gameOver = $derived(isGameOver(gameState));
   const stuck = $derived(isStuck(gameState));
@@ -47,10 +58,14 @@
 
   let rejectedPairTimer: ReturnType<typeof setTimeout> | undefined;
   let feedbackTimer: ReturnType<typeof setTimeout> | undefined;
+  let matchEffectTimers: readonly ReturnType<typeof setTimeout>[] = [];
 
   onDestroy(() => {
     clearTimeout(rejectedPairTimer);
     clearTimeout(feedbackTimer);
+    for (const timer of matchEffectTimers) {
+      clearTimeout(timer);
+    }
   });
 
   function showFeedback(text: string, tone: Feedback['tone']): void {
@@ -69,6 +84,38 @@
     }, REJECTED_PAIR_SHOW_MS);
   }
 
+  function positionOf(index: CellIndex): BoardPosition {
+    return { row: rowOf(index, gameState.width), column: columnOf(index, gameState.width) };
+  }
+
+  /** Must be called before the match is shown, while the cells are still where they were tapped. */
+  function showMatchEffect(firstIndex: CellIndex, secondIndex: CellIndex, nextScore: number): void {
+    const effect: MatchEffect = {
+      id: nextMatchEffectId,
+      firstCell: positionOf(firstIndex),
+      secondCell: positionOf(secondIndex),
+      pointsEarned: nextScore - gameState.score,
+    };
+    nextMatchEffectId += 1;
+    matchEffects = [...matchEffects, effect];
+    const timer = setTimeout(() => {
+      matchEffectTimers = matchEffectTimers.filter((shownTimer) => shownTimer !== timer);
+      matchEffects = matchEffects.filter((shownEffect) => shownEffect.id !== effect.id);
+    }, MATCH_EFFECT_SHOW_MS);
+    matchEffectTimers = [...matchEffectTimers, timer];
+  }
+
+  function playMatchSound(removedRowCount: number, stageCleared: boolean): void {
+    if (stageCleared) {
+      soundPlayer.play(NUMBER_GAME_SOUNDS.stageClear);
+      return;
+    }
+    soundPlayer.play(NUMBER_GAME_SOUNDS.matchRing);
+    if (removedRowCount > 0) {
+      soundPlayer.play(NUMBER_GAME_SOUNDS.rowRemoved);
+    }
+  }
+
   /** Shows a move right away, then sends it to the server to be saved (PS-07). */
   function playMove(nextState: GameState, move: NumberGameMove): void {
     gameState = nextState;
@@ -84,6 +131,7 @@
         return;
       case 'selected':
         selectedIndex = outcome.selectedIndex;
+        soundPlayer.play(NUMBER_GAME_SOUNDS.select);
         return;
       case 'deselected':
         selectedIndex = null;
@@ -92,9 +140,12 @@
         selectedIndex = null;
         showRejectedPair({ firstIndex: outcome.firstIndex, secondIndex: outcome.secondIndex });
         showFeedback(MATCH_REFUSAL_MESSAGES[outcome.reason], 'error');
+        soundPlayer.play(NUMBER_GAME_SOUNDS.wrongMatch);
         return;
       case 'matched': {
         const clearedStage = gameState.stage;
+        showMatchEffect(outcome.firstIndex, outcome.secondIndex, outcome.match.state.score);
+        playMatchSound(outcome.match.removedRowCount, outcome.match.stageCleared);
         playMove(outcome.match.state, {
           type: 'match',
           firstIndex: outcome.firstIndex,
@@ -112,6 +163,7 @@
     const result = applyAddNumbers(gameState);
     if (result.accepted) {
       playMove(result.state, { type: 'add-numbers' });
+      soundPlayer.play(NUMBER_GAME_SOUNDS.addNumbers);
     }
   }
 
@@ -122,6 +174,7 @@
     }
     playMove(result.state, { type: 'hint' });
     hintPair = result.pair;
+    soundPlayer.play(NUMBER_GAME_SOUNDS.hint);
   }
 </script>
 
@@ -149,6 +202,7 @@
     {selectedIndex}
     {hintPair}
     {rejectedPair}
+    {matchEffects}
     disabled={gameOver}
     onTap={handleTap}
   />

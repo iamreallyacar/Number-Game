@@ -14,7 +14,7 @@ A small self-hosted game dashboard that runs on a home server (such as a Proxmox
 - Tap two numbers that are equal or add up to 10. If they can see each other, both are cleared and you earn points.
 - Two numbers can see each other when only empty cells lie between them horizontally, vertically, diagonally, or along the reading order that wraps from the end of one row to the start of the next.
 - When a row becomes fully empty, it is removed and the rows below move up.
-- If you are stuck, press Add Numbers to add new numbers after the existing ones. The number of uses depends on the difficulty.
+- If you are stuck, press Add Numbers to add new numbers after the existing ones. It only adds numbers that are still on the board, so a number you have cleared off completely stays gone until the next stage. The number of uses depends on the difficulty.
 - Clearing the whole board gives a bonus and moves you up a stage. The board fills up again and Add Numbers is reset.
 - The game only ends when no moves are left and Add Numbers is used up.
 - Players create their own player ID. Games are saved automatically on the server in save slots, any slot can be loaded on any device, and high scores are tracked per player ID.

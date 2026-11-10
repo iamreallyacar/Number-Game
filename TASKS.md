@@ -68,3 +68,11 @@ Findings from `AUDIT.md`.
 
 - [x] T-42: Version stored game states and summary details, share the server API schemas, move each game's contract into its rules package, test shared server code with a fake game, and split the documents per game. (AUDIT.md A-01 to A-05, A-07 to A-10)
 - [ ] T-43: Once there are three or more games, load each game's play screen and new game options form only when they are first needed. (AUDIT.md A-06)
+
+## Phase 6: Playtest Improvements
+
+- [x] T-44: Draw grid lines between every row and column of the board. (NG-29)
+- [x] T-45: Add a shared sound player that makes short tones in the browser, and a mute button in the site header that is remembered on the device. (PL-18, PL-19)
+- [x] T-46: Play the Number Game sounds for selecting, clearing a pair, removing a row, a wrong match, Add Numbers, hints, and clearing a stage. (NG-31, NG-32)
+- [x] T-47: Show a burst on cleared cells and a floating points number after each match, turned down for reduced motion. (NG-30, PL-20)
+- [x] T-48: Add Numbers only adds numbers that are still on the board, so a number cleared off completely stays gone until the next stage. (NG-17, NG-33)

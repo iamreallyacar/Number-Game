@@ -53,4 +53,20 @@ describe('applyAddNumbers', () => {
     const state = makeTestState({ cells: cellsFromRows(['1111111111']), addNumbersLeft: 0 });
     expect(applyAddNumbers(state)).toEqual({ accepted: false, reason: 'no-uses-left' });
   });
+
+  it('adds only numbers that are still on the board', () => {
+    const state = makeTestState({ cells: cellsFromRows(['37.37.3773', '7337......']) });
+    const result = applyAddNumbers(state);
+    if (!result.accepted) {
+      throw new Error(`Expected Add Numbers to be accepted, got ${result.reason}`);
+    }
+    const addedDigits = result.state.cells.slice(14).filter((cell) => cell !== null);
+    expect(addedDigits).toHaveLength(result.addedCount);
+    expect(new Set(addedDigits)).toEqual(new Set([3, 7]));
+  });
+
+  it('throws on a board with no numbers, since clearing the last one starts a new stage', () => {
+    const state = makeTestState({ cells: cellsFromRows(['..........']) });
+    expect(() => applyAddNumbers(state)).toThrow('at least one number');
+  });
 });
