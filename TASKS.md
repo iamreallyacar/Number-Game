@@ -77,3 +77,15 @@ Findings from `AUDIT.md`.
 - [x] T-47: Show a burst on cleared cells and a floating points number after each match, turned down for reduced motion. (NG-30, PL-20)
 - [x] T-48: Add Numbers only adds numbers that are still on the board, so a number cleared off completely stays gone until the next stage. (NG-17, NG-33)
 - [x] T-49: Keep every pair group even: balance new stage boards, leave the last cell empty on odd sized boards, and make Add Numbers even out odd groups. (NG-02, NG-17, NG-34)
+
+## Phase 7: Block Game
+
+The second game. Its requirements are in `REQUIREMENTS/block-game/rules.md`.
+
+- [x] T-50: Move the seeded random number generator into the shared `packages/seeded-random` package so every game's rules package can use it.
+- [x] T-51: Write the Block Game requirements. (BG-01 to BG-21)
+- [x] T-52: Rules package `packages/block-game`: board, shape catalogue with weights, placing, line clearing, slot refill, scoring with streaks, game over, summary, and stored state checks. (BG-01, BG-02, BG-04 to BG-06, BG-08 to BG-15, BG-19)
+- [x] T-53: Server module that registers the Block Game with its new game options and move schemas. (BG-01, BG-05, BG-21)
+- [x] T-54: Browser module: dashboard entry, board size form, play screen with drag and drop, landing preview, score and streak, clear effects, sounds, and the game over screen. (BG-03, BG-07, BG-16 to BG-18, BG-20, BG-21)
+- [ ] T-55: Playtest the Block Game on a phone and a laptop, then tune the shape weights and scoring values. (BG-10, BG-14)
+

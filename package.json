@@ -7,8 +7,12 @@
     "node": ">=24"
   },
   "workspaces": [
-    "packages/*",
-    "apps/*"
+    "packages/seeded-random",
+    "packages/game-server-api",
+    "packages/number-game",
+    "packages/block-game",
+    "apps/server",
+    "apps/web"
   ],
   "scripts": {
     "build": "npm run build --workspaces",

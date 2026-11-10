@@ -1,6 +1,6 @@
 # Number Game Rules Package
 
-This package holds the Number Game rules as plain TypeScript, with no browser or server code. The server module in `apps/server/src/games/number-game.ts` and the browser module in `apps/web/src/games/number-game/` both use it. The requirements are in `REQUIREMENTS/number-game/`.
+This package holds the Number Game rules as plain TypeScript, with no browser or server code. Its random numbers come from `@local/seeded-random`, whose generator state is stored in the game state. The server module in `apps/server/src/games/number-game.ts` and the browser module in `apps/web/src/games/number-game/` both use it. The requirements are in `REQUIREMENTS/number-game/`.
 
 ## Contract
 
@@ -25,7 +25,6 @@ Saved games keep a `GameState` as JSON, and high scores keep the summary details
 | `game-state.ts` | The `GameState` type. Cells are a flat list in reading order, padded with empty cells to whole rows |
 | `cell.ts` | The `Digit` and `Cell` types |
 | `board.ts` | Row and column math, counting numbers, finding which numbers are on the board, and removing empty rows |
-| `random.ts` | Mulberry32 seeded random numbers. The generator state is stored in the game state |
 | `difficulty.ts` | Easy, Normal, and Hard presets |
 | `stage-board.ts` | Fills a new stage board. On Easy, many cells are made to pair with the cell before them |
 | `new-game.ts` | Starts a game from a width, a difficulty, and a seed chosen by the caller |

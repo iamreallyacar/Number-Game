@@ -4,25 +4,28 @@ This file describes how the code is organised and how its parts talk to each oth
 
 ## Parts
 
-The repository is one npm workspace with four parts:
+The repository is one npm workspace with these parts:
 
 | Folder | Package | Job |
 | --- | --- | --- |
+| `packages/seeded-random` | `@local/seeded-random` | The seeded random number generator shared by the game rules packages. No browser or server code. See Randomness below |
 | `packages/game-server-api` | `@local/game-server-api` | TypeBox schemas of every server request body and answer, shared by the server and the browser app |
 | `packages/number-game` | `@local/number-game` | The Number Game rules as plain TypeScript. No browser or server code. Its files are listed in `packages/number-game/README.md` |
+| `packages/block-game` | `@local/block-game` | The Block Game rules as plain TypeScript. No browser or server code. Its files are listed in `packages/block-game/README.md` |
 | `apps/server` | `@local/server` | Fastify server. Stores players, saves, and high scores in SQLite, applies moves, and serves the built browser app |
 | `apps/web` | `@local/web` | Svelte app built with Vite. Shows the dashboard and the games |
 
-Dependencies only point one way: `apps/server` and `apps/web` both use the two packages, and the packages use neither app. The browser and the server talk only over HTTP.
+Dependencies only point one way: `apps/server` and `apps/web` both use the packages, the game rules packages use `packages/seeded-random`, and the packages use neither app. A rules package never uses another game's rules package. The browser and the server talk only over HTTP.
 
 ## Adding a Game
 
 Each game provides its own rules package plus one module for each app:
 
 - Rules package: a folder under `packages/` with a `README.md` that lists its files. It owns every fact the two apps must agree on: the game id, the game state type, the move type, one function that applies any move, the summary of a state for save slots and high scores, a check that reads stored states and summary details back, and the upgrade lists for older stored formats.
-- Server module: registers the game with the server game registry. It adds the TypeBox schemas of the new game options and the moves, and checks when it compiles that the move schema matches the rules package move type. Everything else it passes on from the rules package. The shared save slot and move routes call it for the game named in the URL, so a game does not need routes of its own. The Number Game module is `apps/server/src/games/number-game.ts`, and every game is listed in `apps/server/src/games/create-game-registry.ts`.
-- Browser module: registers the game with the browser game registry under the id from the rules package. It gives the dashboard a name and a description, the high score categories, a way to label the summary details, a new game options form, and the play screen. The Number Game module is `apps/web/src/games/number-game/number-game-module.ts`, and every game is listed in `apps/web/src/games/create-browser-game-registry.ts`.
+- Server module: registers the game with the server game registry. It adds the TypeBox schemas of the new game options and the moves, and checks when it compiles that the move schema matches the rules package move type. Everything else it passes on from the rules package. The shared save slot and move routes call it for the game named in the URL, so a game does not need routes of its own. The modules are `apps/server/src/games/number-game.ts` and `apps/server/src/games/block-game.ts`, and every game is listed in `apps/server/src/games/create-game-registry.ts`.
+- Browser module: registers the game with the browser game registry under the id from the rules package. It gives the dashboard a name and a description, the high score categories, a way to label the summary details, a new game options form, and the play screen. The modules are `apps/web/src/games/number-game/number-game-module.ts` and `apps/web/src/games/block-game/block-game-module.ts`, and every game is listed in `apps/web/src/games/create-browser-game-registry.ts`.
 - Requirements: a folder under `REQUIREMENTS/` named after the game.
+- Registrations: the new package is added to the workspace list in the root `package.json`, which must stay in build order with dependencies first, and to the `Dockerfile`.
 
 The dashboard, players, save slots, and high scores are shared code that works with any registered game through the game id. Shared code never contains rules for a specific game. (PL-04, PL-05, PL-06, PL-17)
 
@@ -91,7 +94,7 @@ Every error response has the shape `{ "error": "<code>", "message": "<text>" }`.
 
 Requests that start, open, or change a save must send an `x-device-id` header. The browser makes up a random device ID once and keeps it. Opening a save moves its lock to that device, and moves from any other device are refused with the error `opened-elsewhere`. (PS-18)
 
-High scores store a `category` used for filtering and a `details` object shown next to the score. For the Number Game, the category is the difficulty, and the details are the stage, width, and difficulty.
+High scores store a `category` used for filtering and a `details` object shown next to the score. For the Number Game, the category is the difficulty, and the details are the stage, width, and difficulty. For the Block Game, the category is the board size, and the details are the board size and the lines cleared.
 
 Paths outside `/api/` serve the built browser app from `apps/web/dist`, and unknown pages get its `index.html` so the browser app can handle its own page routing. If the browser app has not been built, the server logs a warning and serves only the API.
 
@@ -155,4 +158,4 @@ The server and the browser app use the built `dist` folder of each package, not 
 
 ## Current State
 
-Phases 1 to 4 are done, the Docker packaging and setup steps of Phase 5 are done, and the fixes from `AUDIT.md` are applied. The rules package, the server, and the browser app are complete. The browser app's routing, server calls, saving, and game logic helpers have tests, but its Svelte components do not, and it still needs a playtest on a phone and a laptop (T-41). The next step is T-41 in `TASKS.md`.
+Phases 1 to 4 are done, the Docker packaging and setup steps of Phase 5 are done, and the fixes from `AUDIT.md` are applied. The Number Game and the Block Game (Phase 7) each have a rules package, a server module, and a browser module. The browser app's routing, server calls, saving, and game logic helpers have tests, but its Svelte components do not, and it still needs a playtest on a phone and a laptop (T-41), and so does the Block Game (T-55). The next steps are T-41 and T-55 in `TASKS.md`.

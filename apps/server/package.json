@@ -9,6 +9,7 @@
   "dependencies": {
     "@fastify/static": "^10.1.10",
     "@fastify/type-provider-typebox": "^6.3.0",
+    "@local/block-game": "*",
     "@local/game-server-api": "*",
     "@local/number-game": "*",
     "fastify": "^5.12.8",

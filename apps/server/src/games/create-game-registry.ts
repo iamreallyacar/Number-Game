@@ -1,3 +1,4 @@
+import { blockGameServerModule } from './block-game.js';
 import { GameRegistry } from './game-registry.js';
 import { numberGameServerModule } from './number-game.js';
 
@@ -5,5 +6,6 @@ import { numberGameServerModule } from './number-game.js';
 export function createGameRegistry(): GameRegistry {
   const registry = new GameRegistry();
   registry.register(numberGameServerModule);
+  registry.register(blockGameServerModule);
   return registry;
 }

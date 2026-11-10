@@ -7,7 +7,7 @@ import {
   type HintAllowance,
 } from './difficulty.js';
 import { BOARD_WIDTHS, isBoardWidth, type BoardWidth, type GameState } from './game-state.js';
-import { isRandomState } from './random.js';
+import { isRandomState } from '@local/seeded-random';
 
 export class InvalidGameStateError extends Error {
   override readonly name = 'InvalidGameStateError';

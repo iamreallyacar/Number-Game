@@ -1,12 +1,12 @@
 # Number Game
 
-A small self-hosted game dashboard that runs on a home server (such as a Proxmox VM or container) and is played from a phone or laptop browser on the local network. The first game on the dashboard is the Number Game, a grid puzzle where you clear pairs of numbers.
+A small self-hosted game dashboard that runs on a home server (such as a Proxmox VM or container) and is played from a phone or laptop browser on the local network. The dashboard has two games: the Number Game, a grid puzzle where you clear pairs of numbers, and the Block Game, a grid puzzle where you place shapes to fill and clear rows and columns.
 
 ## Goals
 
 - Primary: host the Number Game on a local Proxmox server and play it from a phone or laptop browser.
 - Secondary: publish the project as a git repository that anyone can clone and host on their own server with minimal setup.
-- Future: grow the dashboard so it can host several different games, with the Number Game as the first one.
+- Ongoing: grow the dashboard with more games. The Number Game was the first one and the Block Game is the second.
 
 ## The Number Game in Short
 
@@ -21,12 +21,24 @@ A small self-hosted game dashboard that runs on a home server (such as a Proxmox
 
 The full rules are in `REQUIREMENTS/number-game/rules.md`.
 
+## The Block Game in Short
+
+- You pick a board size of 8 x 8, 9 x 9, or 10 x 10 when starting a new game. The board starts empty.
+- You always have 3 slots, each holding a random shape that fits inside a 3 x 3 box, such as a square, a line, an L, or a diagonal. Shapes cannot be rotated.
+- Drag a shape from a slot onto empty cells of the board. The used slot is filled again with a new random shape right away.
+- When a row or a column is completely filled, it is cleared. Only the cells inside the full line are cleared, so the rest of a shape stays on the board.
+- You earn 1 point for each block you place and more for clearing lines. Clearing several lines at once, or on back-to-back placements, earns extra.
+- The game ends when none of the 3 shapes fits anywhere on the board.
+- Saves, player IDs, and high scores work the same way as in the Number Game. High scores are filtered by board size.
+
+The full rules are in `REQUIREMENTS/block-game/rules.md`.
+
 ## Scope
 
 In scope:
 
 - A web dashboard that lists the available games.
-- The Number Game, playable with touch and mouse.
+- The Number Game and the Block Game, playable with touch and mouse.
 - Hosting on a single local server, packaged so others can self-host it.
 
 Out of scope for now:
@@ -43,6 +55,7 @@ The `REQUIREMENTS/` folder holds the detailed requirements. Platform requirement
 | `REQUIREMENTS/platform.md` | Dashboard, multi-game support, hosting, and self-hosting |
 | `REQUIREMENTS/number-game/rules.md` | Board, matching, line of sight, row removal, adding numbers, stages, scoring, and game over |
 | `REQUIREMENTS/number-game/difficulty.md` | Difficulty presets and ideas for later |
+| `REQUIREMENTS/block-game/rules.md` | Board, slots, shapes, placing, line clearing, scoring, and game over |
 | `REQUIREMENTS/players-saves-scores.md` | Player IDs, server save slots, and high scores |
 | `REQUIREMENTS/open-questions.md` | Open decisions, the chosen tech stack, and answered questions |
 
@@ -113,4 +126,4 @@ With Docker, `compose.yaml` reads the same `.env` file, but some settings mean s
 
 ## Status
 
-Phases 1 to 4 (project setup, game rules, server, and browser app) are done. In Phase 5, the Docker packaging and the setup steps are done, and the playtest on a phone and a laptop (T-41) is next. The work plan is in `TASKS.md`.
+Phases 1 to 4 (project setup, game rules, server, and browser app) are done. In Phase 5, the Docker packaging and the setup steps are done, and the playtest on a phone and a laptop (T-41) is next. The Block Game (Phase 7) is built and needs its own playtest (T-55). The work plan is in `TASKS.md`.

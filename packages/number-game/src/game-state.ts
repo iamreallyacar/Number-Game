@@ -1,6 +1,6 @@
 import type { Cell } from './cell.js';
 import type { DifficultyId, HintAllowance } from './difficulty.js';
-import type { RandomState } from './random.js';
+import type { RandomState } from '@local/seeded-random';
 
 export const BOARD_WIDTHS = [10, 11, 12] as const;
 export type BoardWidth = (typeof BOARD_WIDTHS)[number];

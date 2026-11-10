@@ -1,8 +1,6 @@
-import { DIGITS, type Digit } from './cell.js';
-
 /**
- * State of a Mulberry32 generator: an unsigned 32-bit integer. It lives in the game state so the
- * browser and the server draw exactly the same numbers from the same state.
+ * State of a Mulberry32 generator: an unsigned 32-bit integer. A game keeps it in its game state
+ * so the browser and the server draw exactly the same values from the same state.
  */
 export type RandomState = number;
 
@@ -37,10 +35,7 @@ export function drawRandomFraction(randomState: RandomState): RandomDraw<number>
   return { value: fraction, randomState: nextState };
 }
 
-export function drawRandomDigit(randomState: RandomState): RandomDraw<Digit> {
-  return drawRandomItem(randomState, DIGITS);
-}
-
+/** Draws one item, each item having the same chance. */
 export function drawRandomItem<Item>(
   randomState: RandomState,
   items: readonly Item[],
@@ -53,20 +48,37 @@ export function drawRandomItem<Item>(
   return { value: item, randomState: draw.randomState };
 }
 
-/** Draws `count` numbers, each picked from `allowedDigits` with the same chance. */
-export function drawRandomDigits(
+/**
+ * Draws one item, where an item's chance is its weight divided by the total of all weights.
+ * Weights must be whole numbers of 1 or more, so the running total never loses precision.
+ */
+export function drawWeightedItem<Item>(
   randomState: RandomState,
-  count: number,
-  allowedDigits: readonly Digit[],
-): RandomDraw<Digit[]> {
-  const digits: Digit[] = [];
-  let currentState = randomState;
-  for (let drawn = 0; drawn < count; drawn++) {
-    const draw = drawRandomItem(currentState, allowedDigits);
-    digits.push(draw.value);
-    currentState = draw.randomState;
+  items: readonly Item[],
+  weightOf: (item: Item) => number,
+): RandomDraw<Item> {
+  const weightedItems = items.map((item) => {
+    const weight = weightOf(item);
+    if (!Number.isSafeInteger(weight) || weight < 1) {
+      throw new RangeError(
+        `Item weights must be whole numbers of 1 or more, got ${String(weight)}`,
+      );
+    }
+    return { item, weight };
+  });
+  const totalWeight = weightedItems.reduce((total, { weight }) => total + weight, 0);
+  if (totalWeight === 0) {
+    throw new RangeError('Cannot draw a weighted item from an empty list');
   }
-  return { value: digits, randomState: currentState };
+  const draw = drawRandomFraction(randomState);
+  let remainingTarget = Math.floor(draw.value * totalWeight);
+  for (const { item, weight } of weightedItems) {
+    if (remainingTarget < weight) {
+      return { value: item, randomState: draw.randomState };
+    }
+    remainingTarget -= weight;
+  }
+  throw new Error('Weighted draw ran past the last item, which should be impossible');
 }
 
 /** Returns the items in a random order, each order having the same chance. */

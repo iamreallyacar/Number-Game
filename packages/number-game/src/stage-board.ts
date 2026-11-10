@@ -1,14 +1,13 @@
 import { padToFullRows } from './board.js';
-import type { Cell, Digit } from './cell.js';
+import { DIGITS, type Cell, type Digit } from './cell.js';
 import type { DifficultyPreset } from './difficulty.js';
 import { pairGroupsWithOddCount, pairPartners } from './pair.js';
 import {
-  drawRandomDigit,
   drawRandomFraction,
   drawRandomItem,
   type RandomDraw,
   type RandomState,
-} from './random.js';
+} from '@local/seeded-random';
 
 function drawStartingDigit(
   randomState: RandomState,
@@ -16,13 +15,13 @@ function drawStartingDigit(
   startingPairChance: number,
 ): RandomDraw<Digit> {
   if (previousDigit === undefined || startingPairChance === 0) {
-    return drawRandomDigit(randomState);
+    return drawRandomItem(randomState, DIGITS);
   }
   const chanceDraw = drawRandomFraction(randomState);
   if (chanceDraw.value < startingPairChance) {
     return drawRandomItem(chanceDraw.randomState, pairPartners(previousDigit));
   }
-  return drawRandomDigit(chanceDraw.randomState);
+  return drawRandomItem(chanceDraw.randomState, DIGITS);
 }
 
 /**

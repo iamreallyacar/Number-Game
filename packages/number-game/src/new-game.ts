@@ -1,6 +1,6 @@
 import { DIFFICULTY_PRESETS, type DifficultyId } from './difficulty.js';
 import type { BoardWidth, GameState } from './game-state.js';
-import { createRandomState } from './random.js';
+import { createRandomState } from '@local/seeded-random';
 import { generateStageBoard } from './stage-board.js';
 
 export interface NewGameOptions {

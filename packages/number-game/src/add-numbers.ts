@@ -2,7 +2,12 @@ import { countNumbers, digitsOnBoard, padToFullRows } from './board.js';
 import type { Cell, Digit } from './cell.js';
 import type { GameState } from './game-state.js';
 import { pairGroupsWithOddCount, pairPartners } from './pair.js';
-import { drawRandomItem, drawShuffled, type RandomDraw, type RandomState } from './random.js';
+import {
+  drawRandomItem,
+  drawShuffled,
+  type RandomDraw,
+  type RandomState,
+} from '@local/seeded-random';
 
 export type AddNumbersRefusal = 'no-uses-left';
 
