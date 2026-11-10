@@ -1,16 +1,20 @@
 import {
-  applyAddNumbers,
-  applyHint,
-  applyMatch,
+  applyMove,
   BOARD_WIDTHS,
   createGame,
   DIFFICULTY_IDS,
+  GAME_STATE_UPGRADES,
   isGameOver,
+  NUMBER_GAME_ID,
   parseGameState,
-  type GameState,
+  parseSummaryDetails,
+  summarizeGame,
+  SUMMARY_DETAILS_UPGRADES,
+  type NumberGameMove,
 } from '@local/number-game';
-import { Type } from 'typebox';
-import { defineServerGame, type GameMoveOutcome } from './game-registry.js';
+import { Type, type Static } from 'typebox';
+import { expectSameType } from './expect-same-type.js';
+import { defineServerGame } from './game-registry.js';
 
 const newGameOptionsSchema = Type.Object(
   {
@@ -31,36 +35,8 @@ const moveSchema = Type.Union([
   Type.Object({ type: Type.Literal('hint') }, { additionalProperties: false }),
 ]);
 
-type NumberGameMove = Type.Static<typeof moveSchema>;
-
-function applyNumberGameMove(state: GameState, move: NumberGameMove): GameMoveOutcome<GameState> {
-  switch (move.type) {
-    case 'match': {
-      const result = applyMatch(state, move.firstIndex, move.secondIndex);
-      return result.accepted
-        ? {
-            accepted: true,
-            state: result.state,
-            details: { removedRowCount: result.removedRowCount, stageCleared: result.stageCleared },
-          }
-        : result;
-    }
-    case 'add-numbers': {
-      const result = applyAddNumbers(state);
-      return result.accepted
-        ? { accepted: true, state: result.state, details: { addedCount: result.addedCount } }
-        : result;
-    }
-    case 'hint': {
-      const result = applyHint(state);
-      return result.accepted
-        ? { accepted: true, state: result.state, details: { pair: result.pair } }
-        : result;
-    }
-  }
-}
-
-export const NUMBER_GAME_ID = 'number-game';
+// The schema checks moves at run time and the rules package owns the move type.
+expectSameType<Static<typeof moveSchema>, NumberGameMove>(true);
 
 export const numberGameServerModule = defineServerGame({
   id: NUMBER_GAME_ID,
@@ -68,12 +44,11 @@ export const numberGameServerModule = defineServerGame({
   newGameOptionsSchema,
   moveSchema,
   createGame: (options, seed) => createGame({ ...options, seed }),
+  stateUpgrades: GAME_STATE_UPGRADES,
   parseState: parseGameState,
-  applyMove: applyNumberGameMove,
+  applyMove,
   isGameOver,
-  summarize: (state) => ({
-    score: state.score,
-    category: state.difficulty,
-    details: { stage: state.stage, width: state.width, difficulty: state.difficulty },
-  }),
+  summarize: summarizeGame,
+  summaryDetailsUpgrades: SUMMARY_DETAILS_UPGRADES,
+  parseSummaryDetails,
 });

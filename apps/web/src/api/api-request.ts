@@ -1,4 +1,5 @@
-import { Type, type Static, type TSchema } from 'typebox';
+import { apiErrorBodySchema } from '@local/game-server-api';
+import type { Static, TSchema } from 'typebox';
 import { Value } from 'typebox/value';
 
 /** The server answered with an error body: `{ error, message, reason? }`. */
@@ -19,12 +20,6 @@ export class ApiError extends Error {
 export class NetworkError extends Error {
   override readonly name = 'NetworkError';
 }
-
-const errorBodySchema = Type.Object({
-  error: Type.String(),
-  message: Type.String(),
-  reason: Type.Optional(Type.String()),
-});
 
 export interface ApiRequest {
   readonly method: 'GET' | 'POST' | 'DELETE';
@@ -66,7 +61,7 @@ async function readJson(response: Response, request: ApiRequest): Promise<unknow
 
 async function throwApiError(response: Response, request: ApiRequest): Promise<never> {
   const body = await readJson(response, request).catch(() => null);
-  if (Value.Check(errorBodySchema, body)) {
+  if (Value.Check(apiErrorBodySchema, body)) {
     throw new ApiError(response.status, body.error, body.message, body.reason ?? null);
   }
   throw new ApiError(

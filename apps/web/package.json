@@ -8,6 +8,7 @@
     "typecheck": "svelte-check --fail-on-warnings --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
   },
   "dependencies": {
+    "@local/game-server-api": "*",
     "@local/number-game": "*",
     "typebox": "^1.4.6"
   },

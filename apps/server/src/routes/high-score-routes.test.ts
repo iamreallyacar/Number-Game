@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { COUNTER_FORMAT_VERSION, COUNTER_GAME_ID } from '../counter-test-game.js';
 import { HighScoresStore } from '../database/high-scores-store.js';
-import { createPlayer, startTestServer } from '../test-support.js';
+import { COUNTER_URL, createPlayer, startTestServer } from '../test-support.js';
 
-const HIGH_SCORES_URL = '/api/games/number-game/high-scores';
+const HIGH_SCORES_URL = `${COUNTER_URL}/high-scores`;
 
 async function startServerWithResults() {
   const server = await startTestServer();
@@ -10,16 +11,17 @@ async function startServerWithResults() {
   await createPlayer(server.app, 'Ana');
   const store = new HighScoresStore(server.database);
   const results = [
-    { playerId: 'Sam', score: 300, category: 'easy' },
-    { playerId: 'Sam', score: 900, category: 'easy' },
-    { playerId: 'Ana', score: 500, category: 'hard' },
-    { playerId: 'Sam', score: 100, category: 'hard' },
+    { playerId: 'Sam', score: 30, category: 'to-3' },
+    { playerId: 'Sam', score: 90, category: 'to-3' },
+    { playerId: 'Ana', score: 50, category: 'to-5' },
+    { playerId: 'Sam', score: 10, category: 'to-5' },
   ];
   for (const [index, result] of results.entries()) {
     store.insertResult({
       ...result,
-      gameId: 'number-game',
-      detailsJson: '{"stage":1}',
+      gameId: COUNTER_GAME_ID,
+      detailsJson: '{"count":1}',
+      detailsVersion: COUNTER_FORMAT_VERSION,
       finishedAt: `2026-01-0${String(index + 1)}T00:00:00.000Z`,
     });
   }
@@ -32,49 +34,64 @@ describe('high score routes', () => {
     const response = await app.inject({ method: 'GET', url: `${HIGH_SCORES_URL}?limit=3` });
     expect(
       response.json<{ highScores: { score: number }[] }>().highScores.map((result) => result.score),
-    ).toEqual([900, 500, 300]);
+    ).toEqual([90, 50, 30]);
   });
 
-  it('filters by difficulty', async () => {
+  it('filters by category', async () => {
     const { app } = await startServerWithResults();
-    const response = await app.inject({ method: 'GET', url: `${HIGH_SCORES_URL}?category=hard` });
+    const response = await app.inject({ method: 'GET', url: `${HIGH_SCORES_URL}?category=to-5` });
     expect(response.json()).toEqual({
       highScores: [
         {
           playerId: 'Ana',
-          score: 500,
-          category: 'hard',
-          details: { stage: 1 },
+          score: 50,
+          category: 'to-5',
+          details: { count: 1 },
           finishedAt: '2026-01-03T00:00:00.000Z',
         },
         {
           playerId: 'Sam',
-          score: 100,
-          category: 'hard',
-          details: { stage: 1 },
+          score: 10,
+          category: 'to-5',
+          details: { count: 1 },
           finishedAt: '2026-01-04T00:00:00.000Z',
         },
       ],
     });
   });
 
-  it('rejects an unknown difficulty', async () => {
+  it('rejects an unknown category', async () => {
     const { app } = await startServerWithResults();
-    const response = await app.inject({ method: 'GET', url: `${HIGH_SCORES_URL}?category=expert` });
+    const response = await app.inject({ method: 'GET', url: `${HIGH_SCORES_URL}?category=to-9` });
     expect(response.statusCode).toBe(400);
     expect(response.json()).toMatchObject({ error: 'unknown-category' });
   });
 
-  it("lists a player's best result per difficulty", async () => {
+  it('upgrades details written in an older format', async () => {
+    const { app, database } = await startServerWithResults();
+    new HighScoresStore(database).insertResult({
+      gameId: COUNTER_GAME_ID,
+      playerId: 'Ana',
+      score: 999,
+      category: 'to-3',
+      detailsJson: '{"value":3}',
+      detailsVersion: 1,
+      finishedAt: '2026-02-01T00:00:00.000Z',
+    });
+    const response = await app.inject({ method: 'GET', url: `${HIGH_SCORES_URL}?limit=1` });
+    expect(response.json()).toMatchObject({ highScores: [{ score: 999, details: { count: 3 } }] });
+  });
+
+  it("lists a player's best result per category", async () => {
     const { app } = await startServerWithResults();
     const response = await app.inject({
       method: 'GET',
-      url: '/api/games/number-game/personal-bests/sam',
+      url: `${COUNTER_URL}/personal-bests/sam`,
     });
     expect(response.json()).toMatchObject({
       personalBests: [
-        { playerId: 'Sam', score: 900, category: 'easy' },
-        { playerId: 'Sam', score: 100, category: 'hard' },
+        { playerId: 'Sam', score: 90, category: 'to-3' },
+        { playerId: 'Sam', score: 10, category: 'to-5' },
       ],
     });
   });
@@ -83,8 +100,9 @@ describe('high score routes', () => {
     const { app } = await startServerWithResults();
     const response = await app.inject({
       method: 'GET',
-      url: '/api/games/number-game/personal-bests/Nobody',
+      url: `${COUNTER_URL}/personal-bests/Nobody`,
     });
     expect(response.statusCode).toBe(404);
+    expect(response.json()).toMatchObject({ error: 'unknown-player' });
   });
 });

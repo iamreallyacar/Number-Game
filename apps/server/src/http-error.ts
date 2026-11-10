@@ -1,12 +1,5 @@
+import type { ApiErrorBody } from '@local/game-server-api';
 import type { FastifyInstance } from 'fastify';
-
-/** Body of every error response, so the browser can react to `error` and show `message`. */
-export interface ApiErrorBody {
-  readonly error: string;
-  readonly message: string;
-  /** Set when a game refused a move, such as 'not-a-pair'. */
-  readonly reason?: string;
-}
 
 /** An error the client caused or should know about. The error handler turns it into a response. */
 export class HttpError extends Error {

@@ -3,9 +3,11 @@ import type { Cell } from './cell.js';
 import type { GameState } from './game-state.js';
 import { drawRandomDigits } from './random.js';
 
+export type AddNumbersRefusal = 'no-uses-left';
+
 export type AddNumbersResult =
   | { readonly accepted: true; readonly state: GameState; readonly addedCount: number }
-  | { readonly accepted: false; readonly reason: 'no-uses-left' };
+  | { readonly accepted: false; readonly reason: AddNumbersRefusal };
 
 /** Half of the numbers on the board, rounded up, and never fewer than 1 (NG-17). */
 export function countNumbersToAdd(cells: readonly Cell[]): number {

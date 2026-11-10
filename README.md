@@ -19,7 +19,7 @@ A small self-hosted game dashboard that runs on a home server (such as a Proxmox
 - The game only ends when no moves are left and Add Numbers is used up.
 - Players create their own player ID. Games are saved automatically on the server in save slots, any slot can be loaded on any device, and high scores are tracked per player ID.
 
-The full rules are in `REQUIREMENTS/number-game-rules.md`.
+The full rules are in `REQUIREMENTS/number-game/rules.md`.
 
 ## Scope
 
@@ -36,13 +36,13 @@ Out of scope for now:
 
 ## Requirements
 
-The `REQUIREMENTS/` folder holds the detailed requirements:
+The `REQUIREMENTS/` folder holds the detailed requirements. Platform requirements sit at the top of the folder, and each game has its own folder:
 
 | File | Contents |
 | --- | --- |
 | `REQUIREMENTS/platform.md` | Dashboard, multi-game support, hosting, and self-hosting |
-| `REQUIREMENTS/number-game-rules.md` | Board, matching, line of sight, row removal, adding numbers, stages, scoring, and game over |
-| `REQUIREMENTS/number-game-difficulty.md` | Difficulty presets and ideas for later |
+| `REQUIREMENTS/number-game/rules.md` | Board, matching, line of sight, row removal, adding numbers, stages, scoring, and game over |
+| `REQUIREMENTS/number-game/difficulty.md` | Difficulty presets and ideas for later |
 | `REQUIREMENTS/players-saves-scores.md` | Player IDs, server save slots, and high scores |
 | `REQUIREMENTS/open-questions.md` | Open decisions, the chosen tech stack, and answered questions |
 

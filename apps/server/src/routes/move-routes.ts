@@ -1,5 +1,5 @@
 import type { DatabaseSync } from 'node:sqlite';
-import { Type } from 'typebox';
+import { moveRequestSchema, moveResponseSchema, type MoveResponse } from '@local/game-server-api';
 import type { HighScoresStore } from '../database/high-scores-store.js';
 import { runInTransaction } from '../database/run-in-transaction.js';
 import type { SaveSlotsStore } from '../database/save-slots-store.js';
@@ -7,7 +7,7 @@ import type { GameRegistry } from '../games/game-registry.js';
 import { HttpError } from '../http-error.js';
 import { deviceHeadersSchema, slotParamsSchema } from '../request-schemas.js';
 import type { TypedFastify } from '../typed-fastify.js';
-import { checkSlotNumber, requireSave } from './slot-access.js';
+import { findGameSave } from './request-lookups.js';
 
 export interface MoveRouteDependencies {
   readonly database: DatabaseSync;
@@ -22,25 +22,22 @@ export interface MoveRouteDependencies {
  * (PS-07). When the move ends the game, the result goes into the high scores and the slot is
  * emptied in the same transaction (NG-27, PS-12).
  */
-export function registerMoveRoutes(
-  app: TypedFastify,
-  { database, games, saves, highScores, saveSlotsPerGame }: MoveRouteDependencies,
-): void {
+export function registerMoveRoutes(app: TypedFastify, dependencies: MoveRouteDependencies): void {
+  const { database, saves, highScores } = dependencies;
+
   app.post(
     '/api/games/:gameId/slots/:slotNumber/moves',
     {
       schema: {
         params: slotParamsSchema,
         headers: deviceHeadersSchema,
-        body: Type.Object({ move: Type.Unknown() }),
+        body: moveRequestSchema,
+        response: { 200: moveResponseSchema },
       },
     },
-    (request) => {
-      const game = games.getGame(request.params.gameId);
-      const { slotNumber } = request.params;
+    (request): MoveResponse => {
+      const { game, slotNumber, save } = findGameSave(dependencies, request.params);
       const deviceId = request.headers['x-device-id'];
-      checkSlotNumber(slotNumber, saveSlotsPerGame);
-      const save = requireSave(saves.findSave(game.id, slotNumber), slotNumber);
       if (save.lockedDeviceId !== deviceId) {
         throw new HttpError(
           409,
@@ -49,7 +46,7 @@ export function registerMoveRoutes(
         );
       }
 
-      const outcome = game.applyMove(save.stateJson, request.body.move);
+      const outcome = game.applyMove(save, request.body.move);
       if (!outcome.accepted) {
         throw new HttpError(422, 'move-refused', `Move refused: ${outcome.reason}`, outcome.reason);
       }
@@ -57,36 +54,28 @@ export function registerMoveRoutes(
       const now = new Date().toISOString();
       if (!outcome.gameOver) {
         saves.updateSave(game.id, slotNumber, {
-          stateJson: outcome.stateJson,
+          ...outcome.storedState,
           lockedDeviceId: deviceId,
           lastPlayedAt: now,
         });
-        return { gameOver: false, state: outcome.state, details: outcome.details };
+        return { gameOver: false };
       }
 
-      const result = {
-        gameId: game.id,
-        playerId: save.playerId,
-        score: outcome.summary.score,
-        category: outcome.summary.category,
-        detailsJson: JSON.stringify(outcome.summary.details),
-        finishedAt: now,
-      };
+      const { score, category, details } = outcome.summary;
       runInTransaction(database, () => {
-        highScores.insertResult(result);
+        highScores.insertResult({
+          gameId: game.id,
+          playerId: save.playerId,
+          score,
+          category,
+          ...outcome.storedSummaryDetails,
+          finishedAt: now,
+        });
         saves.deleteSave(game.id, slotNumber);
       });
       return {
         gameOver: true,
-        state: outcome.state,
-        details: outcome.details,
-        result: {
-          playerId: result.playerId,
-          score: result.score,
-          category: result.category,
-          details: outcome.summary.details,
-          finishedAt: result.finishedAt,
-        },
+        result: { playerId: save.playerId, score, category, details, finishedAt: now },
       };
     },
   );

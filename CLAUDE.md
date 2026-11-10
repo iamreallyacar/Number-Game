@@ -51,4 +51,4 @@
 - `README.md`: project purpose and scope
 - `TASKS.md`: task list
 - `ARCHITECTURE.md`: code architecture
-- `REQUIREMENTS/`: requirement folder
+- `REQUIREMENTS/`: requirement folder, with one subfolder per game

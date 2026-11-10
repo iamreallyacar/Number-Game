@@ -11,7 +11,7 @@ describe('web app routes', () => {
 
   it('serves the index page for browser app pages', async () => {
     const { app } = await startTestServer(makeWebAppDir());
-    const response = await app.inject({ method: 'GET', url: '/games/number-game' });
+    const response = await app.inject({ method: 'GET', url: '/games/counter' });
     expect(response.statusCode).toBe(200);
     expect(response.body).toContain('dashboard');
   });

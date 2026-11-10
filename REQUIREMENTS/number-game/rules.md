@@ -49,7 +49,7 @@ Reading order example on a board with width 10: row 1 column 7 holds a 3, and ro
 - NG-16: An Add Numbers button sits below the board.
 - NG-17: Pressing it adds new random numbers from 1 to 9. The count is 50 percent of the numbers currently on the board, rounded up, with at least 1.
 - NG-18: New numbers are placed in reading order starting right after the last number on the board, filling the rest of that row and then new rows below.
-- NG-19: The number of uses per stage is set by the difficulty (see `number-game-difficulty.md`). The button shows how many uses remain and is disabled when none remain.
+- NG-19: The number of uses per stage is set by the difficulty (see `difficulty.md`). The button shows how many uses remain and is disabled when none remain.
 
 ## Stages
 

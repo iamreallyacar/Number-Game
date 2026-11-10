@@ -9,13 +9,13 @@
     type CellIndex,
     type CellPair,
     type GameState,
+    type NumberGameMove,
   } from '@local/number-game';
   import { onDestroy } from 'svelte';
   import type { PlayScreenProps } from '../browser-game.js';
   import { MATCH_REFUSAL_MESSAGES } from './match-refusal-messages.js';
   import NumberGameActionBar from './NumberGameActionBar.svelte';
   import NumberGameBoard from './NumberGameBoard.svelte';
-  import type { NumberGameMove } from './number-game-move.js';
   import NumberGameOverPanel from './NumberGameOverPanel.svelte';
   import NumberGameStatusBar from './NumberGameStatusBar.svelte';
   import { tapCell } from './tap-cell.js';

@@ -1,13 +1,7 @@
 import { Type } from 'typebox';
 
-// Letters, digits, and _ . - in any language, with single spaces between words.
-const PLAYER_ID_PATTERN = '^[\\p{L}\\p{N}_.-]+( [\\p{L}\\p{N}_.-]+)*$';
-
-export const playerIdSchema = Type.String({
-  minLength: 1,
-  maxLength: 24,
-  pattern: PLAYER_ID_PATTERN,
-});
+// Request parts that only the server reads. The request bodies and the answers are shared with
+// the browser app in @local/game-server-api.
 
 /**
  * Each browser makes up a random device ID once and sends it with every request that opens or

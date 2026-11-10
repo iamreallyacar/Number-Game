@@ -12,10 +12,10 @@ describe('describeNumberGameDetails', () => {
 
   it('fails loudly on details from a different shape', () => {
     expect(() => describeNumberGameDetails({ stage: '3', width: 11, difficulty: 'hard' })).toThrow(
-      'numeric stage',
+      'stage must be a whole number',
     );
     expect(() => describeNumberGameDetails({ stage: 3, width: 11, difficulty: 'odd' })).toThrow(
-      'unknown difficulty',
+      'difficulty must be one of',
     );
   });
 });

@@ -61,3 +61,10 @@ The server is the source of truth. The browser sends moves, the server applies t
 - [ ] T-39: Write a Dockerfile and a compose file that stores the database in a mounted folder so saves survive updates. (PL-15)
 - [ ] T-40: Write setup steps in the README for running in a Proxmox VM or LXC container and opening the game from a phone. (PL-10, PL-11, PL-14)
 - [ ] T-41: Playtest on a phone and a laptop, then tune the scoring values and difficulty presets. (NG-23, DF-01)
+
+## Audit Follow-up
+
+Findings from `AUDIT.md`.
+
+- [x] T-42: Version stored game states and summary details, share the server API schemas, move each game's contract into its rules package, test shared server code with a fake game, and split the documents per game. (AUDIT.md A-01 to A-05, A-07 to A-10)
+- [ ] T-43: Once there are three or more games, load each game's play screen and new game options form only when they are first needed. (AUDIT.md A-06)

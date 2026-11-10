@@ -9,6 +9,8 @@ export interface GameResult {
   readonly category: string;
   /** Extra facts the game wants shown next to the score, such as stage and width, as JSON. */
   readonly detailsJson: string;
+  /** The game's format version of `detailsJson`, so older details can be upgraded. */
+  readonly detailsVersion: number;
   readonly finishedAt: string;
 }
 
@@ -19,6 +21,7 @@ function toGameResult(row: Record<string, SQLOutputValue>): GameResult {
     score: readIntegerColumn(row, 'score'),
     category: readTextColumn(row, 'category'),
     detailsJson: readTextColumn(row, 'details_json'),
+    detailsVersion: readIntegerColumn(row, 'details_version'),
     finishedAt: readTextColumn(row, 'finished_at'),
   };
 }
@@ -29,8 +32,9 @@ export class HighScoresStore {
   insertResult(result: GameResult): void {
     this.database
       .prepare(
-        `INSERT INTO high_scores (game_id, player_id, score, category, details_json, finished_at)
-         VALUES (?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO high_scores
+           (game_id, player_id, score, category, details_json, details_version, finished_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         result.gameId,
@@ -38,6 +42,7 @@ export class HighScoresStore {
         result.score,
         result.category,
         result.detailsJson,
+        result.detailsVersion,
         result.finishedAt,
       );
   }

@@ -1,20 +1,20 @@
 import { describe, expect, it } from 'vitest';
+import { counterTestGame } from '../counter-test-game.js';
 import { HttpError } from '../http-error.js';
 import { GameRegistry } from './game-registry.js';
-import { numberGameServerModule } from './number-game.js';
 
 describe('GameRegistry', () => {
   it('finds a registered game by id', () => {
     const registry = new GameRegistry();
-    registry.register(numberGameServerModule);
-    expect(registry.getGame('number-game')).toBe(numberGameServerModule);
+    registry.register(counterTestGame);
+    expect(registry.getGame('counter')).toBe(counterTestGame);
   });
 
   it('refuses two games with the same id', () => {
     const registry = new GameRegistry();
-    registry.register(numberGameServerModule);
+    registry.register(counterTestGame);
     expect(() => {
-      registry.register(numberGameServerModule);
+      registry.register(counterTestGame);
     }).toThrow('already registered');
   });
 
@@ -23,7 +23,8 @@ describe('GameRegistry', () => {
   });
 
   it('rejects a broken save with a clear error', () => {
-    expect(() => numberGameServerModule.readState('{"width": 9}')).toThrow('This save is broken');
-    expect(() => numberGameServerModule.readState('not json')).toThrow('This save is broken');
+    expect(() => counterTestGame.readState({ stateJson: 'not json', stateVersion: 2 })).toThrow(
+      'This save is broken',
+    );
   });
 });

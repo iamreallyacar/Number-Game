@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
   import { describeError } from '../api/api-request.js';
-  import { openSlot, sendMove, type OpenedSave } from '../api/game-server-api.js';
+  import type { OpenedSave } from '@local/game-server-api';
+  import { openSlot, sendMove } from '../api/game-server-api.js';
   import SaveStatusBanner from '../components/SaveStatusBanner.svelte';
   import type { BrowserGame } from '../games/browser-game.js';
   import { routePath } from '../routing/routes.js';

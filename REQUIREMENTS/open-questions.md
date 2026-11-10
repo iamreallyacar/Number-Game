@@ -28,11 +28,11 @@ This file tracks decisions about the project. New questions go in the Open secti
 | OQ-01 | What widths can the player choose? | 10, 11, or 12 |
 | OQ-02 | Are added numbers random or copies? | Random numbers from 1 to 9 |
 | OQ-03 | Where do added numbers go? | Right after the last number, in reading order |
-| OQ-04 | How does scoring work? | See Scoring in `number-game-rules.md` |
+| OQ-04 | How does scoring work? | See Scoring in `number-game/rules.md` |
 | OQ-05 | Should a game in progress be saved? | Yes, automatically on the server, in save slots |
 | OQ-06 | Can a game be continued on another device? | Yes, because saves are on the server and any player can load any save |
 | OQ-07 | Should there be high scores? | Yes, stored on the server and tracked per player ID |
-| OQ-08 | Which difficulty settings are used? | Easy, Normal, and Hard presets, see `number-game-difficulty.md` |
+| OQ-08 | Which difficulty settings are used? | Easy, Normal, and Hard presets, see `number-game/difficulty.md` |
 | OQ-09 | Warn the player when stuck? | Yes, suggest Add Numbers |
 | OQ-10 | Is 5 and 5 a valid pair? | Yes, with normal match points |
 | OQ-11 | Which tech stack should be used? | See the Tech Stack section above |

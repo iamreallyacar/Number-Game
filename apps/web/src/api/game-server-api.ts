@@ -1,53 +1,19 @@
-// One function per server route. The answer shapes follow the Server API section of ARCHITECTURE.md.
-import { Type, type Static } from 'typebox';
+// One function per server route. The request and answer shapes are shared with the server.
+import {
+  createPlayerResponseSchema,
+  highScoresResponseSchema,
+  moveResponseSchema,
+  openedSaveResponseSchema,
+  personalBestsResponseSchema,
+  playerListResponseSchema,
+  slotListResponseSchema,
+  type GameResult,
+  type MoveResponse,
+  type OpenedSave,
+  type SlotListing,
+} from '@local/game-server-api';
 import { requestJson, requestWithoutBody } from './api-request.js';
 import { getDeviceId } from './device-id.js';
-
-const summaryDetailsSchema = Type.Record(Type.String(), Type.Union([Type.String(), Type.Number()]));
-
-const savedSlotSchema = Type.Object({
-  playerId: Type.String(),
-  lastPlayedAt: Type.String(),
-  summary: Type.Object({
-    score: Type.Number(),
-    category: Type.String(),
-    details: summaryDetailsSchema,
-  }),
-});
-
-const slotListingSchema = Type.Object({
-  slotNumber: Type.Integer(),
-  save: Type.Union([savedSlotSchema, Type.Null()]),
-});
-
-const openedSaveSchema = Type.Object({
-  slotNumber: Type.Integer(),
-  playerId: Type.String(),
-  lastPlayedAt: Type.String(),
-  // Each game checks its own state shape before using it.
-  state: Type.Unknown(),
-});
-
-const gameResultSchema = Type.Object({
-  playerId: Type.String(),
-  score: Type.Number(),
-  category: Type.String(),
-  details: summaryDetailsSchema,
-  finishedAt: Type.String(),
-});
-
-const moveResponseSchema = Type.Object({
-  gameOver: Type.Boolean(),
-  state: Type.Unknown(),
-  details: Type.Unknown(),
-  result: Type.Optional(gameResultSchema),
-});
-
-export type SummaryDetails = Static<typeof summaryDetailsSchema>;
-export type SlotListing = Static<typeof slotListingSchema>;
-export type OpenedSave = Static<typeof openedSaveSchema>;
-export type GameResult = Static<typeof gameResultSchema>;
-export type MoveResponse = Static<typeof moveResponseSchema>;
 
 function gamePath(gameId: string): string {
   return `/api/games/${encodeURIComponent(gameId)}`;
@@ -60,7 +26,7 @@ function slotPath(gameId: string, slotNumber: number): string {
 export async function listPlayerIds(): Promise<readonly string[]> {
   const response = await requestJson(
     { method: 'GET', path: '/api/players' },
-    Type.Object({ playerIds: Type.Array(Type.String()) }),
+    playerListResponseSchema,
   );
   return response.playerIds;
 }
@@ -69,7 +35,7 @@ export async function listPlayerIds(): Promise<readonly string[]> {
 export async function createPlayer(playerId: string): Promise<string> {
   const response = await requestJson(
     { method: 'POST', path: '/api/players', body: { playerId } },
-    Type.Object({ playerId: Type.String() }),
+    createPlayerResponseSchema,
   );
   return response.playerId;
 }
@@ -77,7 +43,7 @@ export async function createPlayer(playerId: string): Promise<string> {
 export async function listSlots(gameId: string): Promise<readonly SlotListing[]> {
   const response = await requestJson(
     { method: 'GET', path: `${gamePath(gameId)}/slots` },
-    Type.Object({ slots: Type.Array(slotListingSchema) }),
+    slotListResponseSchema,
   );
   return response.slots;
 }
@@ -97,7 +63,7 @@ export async function startGame(request: StartGameRequest): Promise<OpenedSave> 
       body: { playerId: request.playerId, options: request.options },
       deviceId: getDeviceId(),
     },
-    openedSaveSchema,
+    openedSaveResponseSchema,
   );
 }
 
@@ -105,7 +71,7 @@ export async function startGame(request: StartGameRequest): Promise<OpenedSave> 
 export async function openSlot(gameId: string, slotNumber: number): Promise<OpenedSave> {
   return requestJson(
     { method: 'POST', path: `${slotPath(gameId, slotNumber)}/open`, deviceId: getDeviceId() },
-    openedSaveSchema,
+    openedSaveResponseSchema,
   );
 }
 
@@ -137,7 +103,7 @@ export async function listHighScores(
   const query = category === null ? '' : `?category=${encodeURIComponent(category)}`;
   const response = await requestJson(
     { method: 'GET', path: `${gamePath(gameId)}/high-scores${query}` },
-    Type.Object({ highScores: Type.Array(gameResultSchema) }),
+    highScoresResponseSchema,
   );
   return response.highScores;
 }
@@ -152,7 +118,7 @@ export async function listPersonalBests(
       method: 'GET',
       path: `${gamePath(gameId)}/personal-bests/${encodeURIComponent(playerId)}`,
     },
-    Type.Object({ personalBests: Type.Array(gameResultSchema) }),
+    personalBestsResponseSchema,
   );
   return response.personalBests;
 }

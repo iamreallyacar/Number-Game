@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { createPlayer, DEVICE_A, DEVICE_B, SLOTS_URL, startTestServer } from '../test-support.js';
+import {
+  createPlayer,
+  DEVICE_A,
+  DEVICE_B,
+  SLOTS_URL,
+  startTestServer,
+  storeSave,
+} from '../test-support.js';
 
-const NEW_GAME = { playerId: 'Sam', options: { width: 11, difficulty: 'normal' } };
+const NEW_GAME = { playerId: 'Sam', options: { target: 3 } };
 
 async function startServerWithPlayer() {
   const server = await startTestServer();
@@ -34,7 +41,7 @@ describe('save slot routes', () => {
     expect(created.json()).toMatchObject({
       slotNumber: 2,
       playerId: 'Sam',
-      state: { width: 11, stage: 1 },
+      state: { count: 0, target: 3 },
     });
 
     const listed = await app.inject({ method: 'GET', url: SLOTS_URL });
@@ -45,11 +52,7 @@ describe('save slot routes', () => {
           slotNumber: 2,
           save: {
             playerId: 'Sam',
-            summary: {
-              score: 0,
-              category: 'normal',
-              details: { stage: 1, width: 11, difficulty: 'normal' },
-            },
+            summary: { score: 0, category: 'to-3', details: { count: 0 } },
           },
         },
         { slotNumber: 3, save: null },
@@ -90,8 +93,8 @@ describe('save slot routes', () => {
       error: 'unknown-player',
     },
     {
-      name: 'a bad width',
-      body: { ...NEW_GAME, options: { width: 9, difficulty: 'normal' } },
+      name: 'options the game does not offer',
+      body: { ...NEW_GAME, options: { target: 4 } },
       url: `${SLOTS_URL}/1`,
       status: 400,
       error: 'invalid-options',
@@ -140,6 +143,44 @@ describe('save slot routes', () => {
     expect(opened.json<unknown>()).toEqual(created.json<unknown>());
   });
 
+  it('upgrades a save written in an older format before using it', async () => {
+    const { app, database } = await startServerWithPlayer();
+    storeSave(database, {
+      slotNumber: 1,
+      playerId: 'Sam',
+      state: { value: 2, target: 3 },
+      stateVersion: 1,
+    });
+    const opened = await app.inject({
+      method: 'POST',
+      url: `${SLOTS_URL}/1/open`,
+      headers: DEVICE_A,
+    });
+    expect(opened.json()).toMatchObject({ state: { count: 2, target: 3 } });
+    const listed = await app.inject({ method: 'GET', url: SLOTS_URL });
+    expect(listed.json<{ slots: unknown[] }>().slots[0]).toMatchObject({
+      slotNumber: 1,
+      save: { summary: { score: 20, details: { count: 2 } } },
+    });
+  });
+
+  it('reports a save in a format newer than the server knows as broken', async () => {
+    const { app, database } = await startServerWithPlayer();
+    storeSave(database, {
+      slotNumber: 1,
+      playerId: 'Sam',
+      state: { count: 2, target: 3 },
+      stateVersion: 3,
+    });
+    const opened = await app.inject({
+      method: 'POST',
+      url: `${SLOTS_URL}/1/open`,
+      headers: DEVICE_A,
+    });
+    expect(opened.statusCode).toBe(500);
+    expect(opened.json()).toMatchObject({ error: 'broken-save' });
+  });
+
   it('refuses to open an empty slot', async () => {
     const { app } = await startServerWithPlayer();
     const response = await app.inject({
@@ -158,5 +199,6 @@ describe('save slot routes', () => {
     expect(deleted.statusCode).toBe(204);
     const deletedAgain = await app.inject({ method: 'DELETE', url: `${SLOTS_URL}/1` });
     expect(deletedAgain.statusCode).toBe(404);
+    expect(deletedAgain.json()).toMatchObject({ error: 'empty-slot' });
   });
 });

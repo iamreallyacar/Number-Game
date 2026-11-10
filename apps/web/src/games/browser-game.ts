@@ -1,5 +1,5 @@
 import type { Component } from 'svelte';
-import type { SummaryDetails } from '../api/game-server-api.js';
+import type { SummaryDetails } from '@local/game-server-api';
 
 /** A value high scores can be filtered by, such as a difficulty. */
 export interface CategoryOption {

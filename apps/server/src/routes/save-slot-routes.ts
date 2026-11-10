@@ -1,17 +1,17 @@
 import { randomInt } from 'node:crypto';
-import { Type } from 'typebox';
+import {
+  openedSaveResponseSchema,
+  slotListResponseSchema,
+  startGameRequestSchema,
+  type OpenedSave,
+} from '@local/game-server-api';
 import type { PlayersStore } from '../database/players-store.js';
 import type { SaveSlotsStore, StoredSave } from '../database/save-slots-store.js';
 import type { GameRegistry, RegisteredGame } from '../games/game-registry.js';
 import { HttpError } from '../http-error.js';
-import {
-  deviceHeadersSchema,
-  gameParamsSchema,
-  playerIdSchema,
-  slotParamsSchema,
-} from '../request-schemas.js';
+import { deviceHeadersSchema, gameParamsSchema, slotParamsSchema } from '../request-schemas.js';
 import type { TypedFastify } from '../typed-fastify.js';
-import { checkSlotNumber, requireSave } from './slot-access.js';
+import { emptySlotError, findGameSave, findGameSlot, findPlayerId } from './request-lookups.js';
 
 export interface SaveSlotRouteDependencies {
   readonly games: GameRegistry;
@@ -22,39 +22,45 @@ export interface SaveSlotRouteDependencies {
 
 const RANDOM_SEED_LIMIT = 2 ** 32;
 
-function describeOpenSave(game: RegisteredGame, save: StoredSave) {
+function describeOpenSave(game: RegisteredGame, save: StoredSave): OpenedSave {
   return {
     slotNumber: save.slotNumber,
     playerId: save.playerId,
     lastPlayedAt: save.lastPlayedAt,
-    state: game.readState(save.stateJson),
+    state: game.readState(save),
   };
 }
 
 export function registerSaveSlotRoutes(
   app: TypedFastify,
-  { games, players, saves, saveSlotsPerGame }: SaveSlotRouteDependencies,
+  dependencies: SaveSlotRouteDependencies,
 ): void {
-  app.get('/api/games/:gameId/slots', { schema: { params: gameParamsSchema } }, (request) => {
-    const game = games.getGame(request.params.gameId);
-    const savesBySlot = new Map(saves.listSaves(game.id).map((save) => [save.slotNumber, save]));
-    const slots = Array.from({ length: saveSlotsPerGame }, (_, index) => {
-      const slotNumber = index + 1;
-      const save = savesBySlot.get(slotNumber);
-      return {
-        slotNumber,
-        save:
-          save === undefined
-            ? null
-            : {
-                playerId: save.playerId,
-                lastPlayedAt: save.lastPlayedAt,
-                summary: game.summarize(save.stateJson),
-              },
-      };
-    });
-    return { slots };
-  });
+  const { games, players, saves, saveSlotsPerGame } = dependencies;
+
+  app.get(
+    '/api/games/:gameId/slots',
+    { schema: { params: gameParamsSchema, response: { 200: slotListResponseSchema } } },
+    (request) => {
+      const game = games.getGame(request.params.gameId);
+      const savesBySlot = new Map(saves.listSaves(game.id).map((save) => [save.slotNumber, save]));
+      const slots = Array.from({ length: saveSlotsPerGame }, (_, index) => {
+        const slotNumber = index + 1;
+        const save = savesBySlot.get(slotNumber);
+        return {
+          slotNumber,
+          save:
+            save === undefined
+              ? null
+              : {
+                  playerId: save.playerId,
+                  lastPlayedAt: save.lastPlayedAt,
+                  summary: game.summarize(save),
+                },
+        };
+      });
+      return { slots };
+    },
+  );
 
   app.post(
     '/api/games/:gameId/slots/:slotNumber',
@@ -62,27 +68,19 @@ export function registerSaveSlotRoutes(
       schema: {
         params: slotParamsSchema,
         headers: deviceHeadersSchema,
-        body: Type.Object({ playerId: playerIdSchema, options: Type.Unknown() }),
+        body: startGameRequestSchema,
+        response: { 201: openedSaveResponseSchema },
       },
     },
     async (request, reply) => {
-      const game = games.getGame(request.params.gameId);
-      const { slotNumber } = request.params;
-      checkSlotNumber(slotNumber, saveSlotsPerGame);
-      const playerId = players.findPlayerId(request.body.playerId);
-      if (playerId === null) {
-        throw new HttpError(
-          404,
-          'unknown-player',
-          `There is no player ID '${request.body.playerId}'`,
-        );
-      }
+      const { game, slotNumber } = findGameSlot(dependencies, request.params);
+      const playerId = findPlayerId(players, request.body.playerId);
       const startedGame = game.startGame(request.body.options, randomInt(RANDOM_SEED_LIMIT));
       const save: StoredSave = {
         gameId: game.id,
         slotNumber,
         playerId,
-        stateJson: startedGame.stateJson,
+        ...startedGame.storedState,
         lockedDeviceId: request.headers['x-device-id'],
         lastPlayedAt: new Date().toISOString(),
       };
@@ -95,12 +93,15 @@ export function registerSaveSlotRoutes(
 
   app.post(
     '/api/games/:gameId/slots/:slotNumber/open',
-    { schema: { params: slotParamsSchema, headers: deviceHeadersSchema } },
+    {
+      schema: {
+        params: slotParamsSchema,
+        headers: deviceHeadersSchema,
+        response: { 200: openedSaveResponseSchema },
+      },
+    },
     (request) => {
-      const game = games.getGame(request.params.gameId);
-      const { slotNumber } = request.params;
-      checkSlotNumber(slotNumber, saveSlotsPerGame);
-      const save = requireSave(saves.findSave(game.id, slotNumber), slotNumber);
+      const { game, slotNumber, save } = findGameSave(dependencies, request.params);
       // Opening takes the lock, so any other device that had this save open stops saving to it.
       const openedSave: StoredSave = { ...save, lockedDeviceId: request.headers['x-device-id'] };
       saves.updateSave(game.id, slotNumber, openedSave);
@@ -112,11 +113,9 @@ export function registerSaveSlotRoutes(
     '/api/games/:gameId/slots/:slotNumber',
     { schema: { params: slotParamsSchema } },
     async (request, reply) => {
-      const game = games.getGame(request.params.gameId);
-      const { slotNumber } = request.params;
-      checkSlotNumber(slotNumber, saveSlotsPerGame);
+      const { game, slotNumber } = findGameSlot(dependencies, request.params);
       if (!saves.deleteSave(game.id, slotNumber)) {
-        requireSave(null, slotNumber);
+        throw emptySlotError(slotNumber);
       }
       return reply.code(204).send();
     },

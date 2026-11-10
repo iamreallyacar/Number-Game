@@ -1,4 +1,4 @@
-import { DIFFICULTY_IDS } from '@local/number-game';
+import { DIFFICULTY_IDS, NUMBER_GAME_ID } from '@local/number-game';
 import type { BrowserGame } from '../browser-game.js';
 import { describeNumberGameDetails } from './describe-number-game-details.js';
 import { DIFFICULTY_LABELS } from './difficulty-labels.js';
@@ -6,8 +6,7 @@ import NumberGameOptionsForm from './NumberGameOptionsForm.svelte';
 import NumberGamePlayScreen from './NumberGamePlayScreen.svelte';
 
 export const numberGameBrowserModule: BrowserGame = {
-  // Must match NUMBER_GAME_ID in apps/server/src/games/number-game.ts.
-  id: 'number-game',
+  id: NUMBER_GAME_ID,
   name: 'Number Game',
   description:
     'Clear pairs of numbers that are equal or add up to 10. Clear the board to reach the next stage.',

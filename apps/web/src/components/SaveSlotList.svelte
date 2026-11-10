@@ -1,6 +1,7 @@
 <script lang="ts">
   import { describeError } from '../api/api-request.js';
-  import { deleteSlot, listSlots, type SlotListing } from '../api/game-server-api.js';
+  import type { SlotListing } from '@local/game-server-api';
+  import { deleteSlot, listSlots } from '../api/game-server-api.js';
   import type { BrowserGame } from '../games/browser-game.js';
 
   interface Props {

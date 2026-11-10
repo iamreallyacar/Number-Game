@@ -31,6 +31,12 @@ const MIGRATIONS: readonly string[] = [
 
   CREATE INDEX high_scores_by_game_and_score ON high_scores (game_id, category, score DESC);
   `,
+  // Each game numbers the formats of its stored states and summary details, so old ones can be
+  // upgraded when a game changes. Rows written before this migration used format version 1.
+  `
+  ALTER TABLE save_slots ADD COLUMN state_version INTEGER NOT NULL DEFAULT 1;
+  ALTER TABLE high_scores ADD COLUMN details_version INTEGER NOT NULL DEFAULT 1;
+  `,
 ];
 
 function readSchemaVersion(database: DatabaseSync): number {

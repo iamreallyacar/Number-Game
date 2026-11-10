@@ -3,30 +3,33 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import type { DatabaseSync } from 'node:sqlite';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { GameState } from '@local/number-game';
 import { buildApp } from './app.js';
+import { COUNTER_FORMAT_VERSION, COUNTER_GAME_ID, counterTestGame } from './counter-test-game.js';
 import { openInMemoryDatabase } from './database/open-database.js';
 import { SaveSlotsStore } from './database/save-slots-store.js';
-import { createGameRegistry } from './games/create-game-registry.js';
-import { NUMBER_GAME_ID } from './games/number-game.js';
+import { GameRegistry } from './games/game-registry.js';
 import type { TypedFastify } from './typed-fastify.js';
 
 export const DEVICE_A = { 'x-device-id': 'device-aaaa' };
 export const DEVICE_B = { 'x-device-id': 'device-bbbb' };
-export const SLOTS_URL = `/api/games/${NUMBER_GAME_ID}/slots`;
+export const COUNTER_URL = `/api/games/${COUNTER_GAME_ID}`;
+export const SLOTS_URL = `${COUNTER_URL}/slots`;
 
 export interface TestServer {
   readonly app: TypedFastify;
   readonly database: DatabaseSync;
 }
 
+/** A server with an in-memory database that offers only the counter test game. */
 export async function startTestServer(
   webAppDir = join(tmpdir(), 'no-web-app-here'),
 ): Promise<TestServer> {
   const database = openInMemoryDatabase();
+  const games = new GameRegistry();
+  games.register(counterTestGame);
   const app = await buildApp({
     database,
-    games: createGameRegistry(),
+    games,
     saveSlotsPerGame: 3,
     webAppDir,
     logRequests: false,
@@ -48,31 +51,22 @@ export async function createPlayer(app: TypedFastify, playerId: string): Promise
   }
 }
 
-/** Puts a hand-made game state into a slot, locked to device A. */
-export function storeSave(
-  database: DatabaseSync,
-  slotNumber: number,
-  state: GameState,
-  playerId: string,
-): void {
+export interface HandMadeSave {
+  readonly slotNumber: number;
+  readonly playerId: string;
+  readonly state: unknown;
+  readonly stateVersion?: number;
+}
+
+/** Puts a hand-made counter game state into a slot, locked to device A. */
+export function storeSave(database: DatabaseSync, save: HandMadeSave): void {
   new SaveSlotsStore(database).insertSave({
-    gameId: NUMBER_GAME_ID,
-    slotNumber,
-    playerId,
-    stateJson: JSON.stringify(state),
+    gameId: COUNTER_GAME_ID,
+    slotNumber: save.slotNumber,
+    playerId: save.playerId,
+    stateJson: JSON.stringify(save.state),
+    stateVersion: save.stateVersion ?? COUNTER_FORMAT_VERSION,
     lockedDeviceId: DEVICE_A['x-device-id'],
     lastPlayedAt: '2026-01-01T00:00:00.000Z',
   });
 }
-
-/** A Hard game with one match left (the two 5s) and no Add Numbers, so that match ends it. */
-export const ONE_MATCH_FROM_GAME_OVER: GameState = {
-  width: 10,
-  cells: [5, 5, 1, 2, 1, 2, 1, 2, 1, 2],
-  score: 120,
-  stage: 2,
-  difficulty: 'hard',
-  addNumbersLeft: 0,
-  hintsLeft: 0,
-  randomState: 1,
-};

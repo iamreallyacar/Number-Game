@@ -7,6 +7,8 @@ export interface StoredSave {
   readonly slotNumber: number;
   readonly playerId: string;
   readonly stateJson: string;
+  /** The game's format version of `stateJson`, so older states can be upgraded. */
+  readonly stateVersion: number;
   /** The device that opened the save most recently. Only it may change the save (PS-18). */
   readonly lockedDeviceId: string;
   readonly lastPlayedAt: string;
@@ -14,6 +16,7 @@ export interface StoredSave {
 
 export interface SaveUpdate {
   readonly stateJson: string;
+  readonly stateVersion: number;
   readonly lockedDeviceId: string;
   readonly lastPlayedAt: string;
 }
@@ -24,6 +27,7 @@ function toStoredSave(row: Record<string, SQLOutputValue>): StoredSave {
     slotNumber: readIntegerColumn(row, 'slot_number'),
     playerId: readTextColumn(row, 'player_id'),
     stateJson: readTextColumn(row, 'state_json'),
+    stateVersion: readIntegerColumn(row, 'state_version'),
     lockedDeviceId: readTextColumn(row, 'locked_device_id'),
     lastPlayedAt: readTextColumn(row, 'last_played_at'),
   };
@@ -51,8 +55,9 @@ export class SaveSlotsStore {
     const result = this.database
       .prepare(
         `INSERT INTO save_slots
-           (game_id, slot_number, player_id, state_json, locked_device_id, last_played_at)
-         VALUES (?, ?, ?, ?, ?, ?)
+           (game_id, slot_number, player_id, state_json, state_version, locked_device_id,
+            last_played_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT DO NOTHING`,
       )
       .run(
@@ -60,6 +65,7 @@ export class SaveSlotsStore {
         save.slotNumber,
         save.playerId,
         save.stateJson,
+        save.stateVersion,
         save.lockedDeviceId,
         save.lastPlayedAt,
       );
@@ -69,10 +75,18 @@ export class SaveSlotsStore {
   updateSave(gameId: string, slotNumber: number, update: SaveUpdate): void {
     const result = this.database
       .prepare(
-        `UPDATE save_slots SET state_json = ?, locked_device_id = ?, last_played_at = ?
+        `UPDATE save_slots
+         SET state_json = ?, state_version = ?, locked_device_id = ?, last_played_at = ?
          WHERE game_id = ? AND slot_number = ?`,
       )
-      .run(update.stateJson, update.lockedDeviceId, update.lastPlayedAt, gameId, slotNumber);
+      .run(
+        update.stateJson,
+        update.stateVersion,
+        update.lockedDeviceId,
+        update.lastPlayedAt,
+        gameId,
+        slotNumber,
+      );
     if (readChangedRowCount(result) !== 1) {
       throw new Error(`Save slot ${String(slotNumber)} of ${gameId} vanished while being updated`);
     }

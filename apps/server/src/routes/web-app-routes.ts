@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import fastifyStatic from '@fastify/static';
-import type { ApiErrorBody } from '../http-error.js';
+import type { ApiErrorBody } from '@local/game-server-api';
 import type { TypedFastify } from '../typed-fastify.js';
 
 const API_PREFIX = '/api/';
