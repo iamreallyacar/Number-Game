@@ -20,7 +20,7 @@ Each game provides its own rules package plus one module for each app:
 
 - Rules package: a folder under `packages/` holding the game state type, the move types, and pure functions that apply a move to a state.
 - Server module: registers the game with the server game registry under a unique game id. It gives the server the shapes of its new game options and moves, how to start a new game, how to check a stored state, how to apply a move, when the game is over, and a summary of a state for save slots and high scores. The shared save slot and move routes call these for the game named in the URL, so a game does not need routes of its own. The Number Game module is `apps/server/src/games/number-game.ts`, and every game is listed in `apps/server/src/games/create-game-registry.ts`.
-- Browser module: registers the game with the browser game registry under the same game id. It gives the dashboard a name, a description, and the screen to open.
+- Browser module: registers the game with the browser game registry under the same game id. It gives the dashboard a name and a description, the high score categories, a way to label the summary details, a new game options form, and the play screen. The Number Game module is `apps/web/src/games/number-game/number-game-module.ts`, and every game is listed in `apps/web/src/games/create-browser-game-registry.ts`.
 
 The dashboard, players, save slots, and high scores are shared code that works with any registered game through the game id. Shared code never contains rules for a specific game. (PL-04, PL-05, PL-06, PL-17)
 
@@ -114,6 +114,37 @@ High scores store a `category` used for filtering and a `details` object shown n
 
 Paths outside `/api/` serve the built browser app from `apps/web/dist`, and unknown pages get its `index.html` so the browser app can handle its own page routing. If the browser app has not been built, the server logs a warning and serves only the API.
 
+## Browser App
+
+`apps/web/src` is laid out by job:
+
+| Path | Job |
+| --- | --- |
+| `main.ts` and `App.svelte` | Start the app, show the header with the dashboard link, and pick the page for the current URL |
+| `app.css` | Shared look of every page, built for phone portrait screens first |
+| `routing/` | Page paths and page routing with the browser history |
+| `api/` | One function per server route. Every answer is checked with TypeBox before it is used |
+| `api/device-id.ts` | The random device ID kept in local storage and sent in the `x-device-id` header |
+| `saving/move-sync.ts` | Sends moves to the server one at a time and in order, retries failed saves, and stops when the save was opened elsewhere |
+| `games/` | The browser game registry and each game's browser module |
+| `pages/` | One Svelte component per page: dashboard, game menu, new game, load game, play, and high scores |
+| `components/` | Pieces shared by several pages: the save slot list, the player ID picker, and the save status banner |
+
+Pages and their paths:
+
+| Path | Page |
+| --- | --- |
+| `/` | Dashboard with every registered game |
+| `/games/:gameId` | Game menu with New Game, Load Game, and High Scores |
+| `/games/:gameId/new` | Pick an empty slot, then a player ID, then the game's options |
+| `/games/:gameId/load` | Pick a used slot to continue, or delete one |
+| `/games/:gameId/slots/:slotNumber` | Opens the slot and shows the game's play screen |
+| `/games/:gameId/high-scores` | Top results with a category filter, and personal bests |
+
+The play page loads the save and hands its state to the game's play screen. The play screen applies each move with the rules package, then hands the move to the move sync. Network errors and server errors are retried with growing waits, and the save status banner tells the player while that happens. A move the server refuses, or a save that was opened on another device, stops saving and offers to reload the game from the server. Leaving the page while moves are still unsaved shows the browser's leave warning. (PS-07, PS-08, PS-18)
+
+The browser app has its own TypeBox shapes for the server answers in `api/game-server-api.ts`, and the Number Game move type in `games/number-game/number-game-move.ts` matches the server move schema. Both must be updated when the server API changes.
+
 ## Tooling
 
 | Tool | Use |
@@ -122,7 +153,9 @@ Paths outside `/api/` serve the built browser app from `apps/web/dist`, and unkn
 | ESLint | Strict type-aware lint rules from `typescript-eslint` |
 | Prettier | Code formatting. Markdown files are skipped because they follow the documentation style guide in `CLAUDE.md` |
 | Vitest | Unit tests, written next to the code as `*.test.ts` files. Shared test helpers live in `test-support.ts` |
-| TypeBox | Checks server requests and gives route handlers their types |
+| TypeBox | Checks server requests and gives route handlers their types. The browser app uses it to check server answers |
+| Vite | Builds the browser app and runs its dev server, which sends `/api` calls to the server on `PORT` |
+| svelte-check | Type checks the Svelte components with the same strict settings |
 
 `npm run check` builds every part, then runs type checks, lint, the format check, and the tests.
 
@@ -130,4 +163,4 @@ The server and the browser app use the built `dist` folder of each rules package
 
 ## Current State
 
-Phases 1 to 3 are done. The rules package and the server are complete and tested. `apps/web` holds only a placeholder entry file. The next step is Phase 4 in `TASKS.md`.
+Phases 1 to 4 are done. The rules package, the server, and the browser app are complete. The browser app's routing, server calls, saving, and game logic helpers have tests, but its Svelte components do not, and it still needs a playtest on a phone and a laptop (T-41). The next step is Phase 5 in `TASKS.md`.

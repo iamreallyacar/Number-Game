@@ -1,0 +1,64 @@
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import { describeError } from './api/api-request.js';
+  import { createBrowserGameRegistry } from './games/create-browser-game-registry.js';
+  import DashboardPage from './pages/DashboardPage.svelte';
+  import GameMenuPage from './pages/GameMenuPage.svelte';
+  import HighScoresPage from './pages/HighScoresPage.svelte';
+  import LoadGamePage from './pages/LoadGamePage.svelte';
+  import NewGamePage from './pages/NewGamePage.svelte';
+  import NotFoundPage from './pages/NotFoundPage.svelte';
+  import PlayPage from './pages/PlayPage.svelte';
+  import { startRouter } from './routing/router.js';
+  import { parseRoute } from './routing/routes.js';
+
+  const games = createBrowserGameRegistry();
+
+  let path = $state(window.location.pathname);
+  onMount(() =>
+    startRouter((newPath) => {
+      path = newPath;
+    }),
+  );
+
+  const route = $derived(parseRoute(path));
+  const game = $derived('gameId' in route ? games.findGame(route.gameId) : null);
+</script>
+
+<header class="site-header">
+  <!-- Every page links back to the dashboard (PL-03). -->
+  <a class="site-title" href="/">Game Dashboard</a>
+</header>
+
+<main class="page">
+  {#key path}
+    <svelte:boundary>
+      {#if route.page === 'dashboard'}
+        <DashboardPage games={games.listGames()} />
+      {:else if route.page === 'not-found' || game === null}
+        <NotFoundPage />
+      {:else if route.page === 'game-menu'}
+        <GameMenuPage {game} />
+      {:else if route.page === 'new-game'}
+        <NewGamePage {game} />
+      {:else if route.page === 'load-game'}
+        <LoadGamePage {game} />
+      {:else if route.page === 'play'}
+        <PlayPage {game} slotNumber={route.slotNumber} />
+      {:else}
+        <HighScoresPage {game} />
+      {/if}
+
+      {#snippet failed(error, reset)}
+        <div class="stack" role="alert">
+          <h1>Something went wrong</h1>
+          <p class="error-text">{describeError(error)}</p>
+          <div class="button-row">
+            <button type="button" class="button primary" onclick={reset}>Try again</button>
+            <a class="button" href="/">Dashboard</a>
+          </div>
+        </div>
+      {/snippet}
+    </svelte:boundary>
+  {/key}
+</main>

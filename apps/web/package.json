@@ -3,10 +3,18 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json"
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "svelte-check --fail-on-warnings --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
   },
   "dependencies": {
-    "@local/number-game": "*"
+    "@local/number-game": "*",
+    "typebox": "^1.4.6"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "svelte": "^5.57.3",
+    "svelte-check": "^4.7.8",
+    "vite": "^8.3.7"
   }
 }

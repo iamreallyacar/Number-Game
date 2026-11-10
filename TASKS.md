@@ -44,17 +44,17 @@ The server is the source of truth. The browser sends moves, the server applies t
 
 ## Phase 4: Browser App
 
-- [ ] T-28: Set up the Svelte app with page routing and a layout that works on phone portrait screens and laptops. Replace the placeholder `build` and `typecheck` scripts in `apps/web` with Vite and `svelte-check`, and add Svelte support to ESLint and Prettier. (PL-07, PL-08)
-- [ ] T-29: Dashboard page that lists games from a browser-side game registry, with a way back from every game. (PL-01, PL-02, PL-03, PL-05)
-- [ ] T-30: Player ID screen: pick an existing player ID or create a new one. (PS-01, PS-05)
-- [ ] T-31: Save slot list used by both New Game and Load Game, showing player ID, stage, score, width, difficulty, and last played time, with a delete option. (PS-04, PS-09, PS-17)
-- [ ] T-32: New game options screen for width and difficulty. (NG-01, DF-01, PS-05)
-- [ ] T-33: Board display with large tap targets and vertical scrolling. (NG-03, PL-09)
-- [ ] T-34: Selecting numbers, matching, and the shake or flash feedback for a wrong match. (NG-04 to NG-07)
-- [ ] T-35: Score, stage, Add Numbers uses, and hint button shown during play. (NG-16, NG-19, NG-22, NG-24, DF-03)
-- [ ] T-36: Stuck warning and game over screen with New Game and Dashboard options. (NG-25, NG-27)
-- [ ] T-37: Show a clear message when a save fails and keep retrying, and when the game was opened on another device. (PS-08, PS-18)
-- [ ] T-38: High score page with a difficulty filter. (PS-14, PS-15)
+- [x] T-28: Set up the Svelte app with page routing and a layout that works on phone portrait screens and laptops. Replace the placeholder `build` and `typecheck` scripts in `apps/web` with Vite and `svelte-check`, and add Svelte support to ESLint and Prettier. (PL-07, PL-08)
+- [x] T-29: Dashboard page that lists games from a browser-side game registry, with a way back from every game. (PL-01, PL-02, PL-03, PL-05)
+- [x] T-30: Player ID screen: pick an existing player ID or create a new one. (PS-01, PS-05)
+- [x] T-31: Save slot list used by both New Game and Load Game, showing player ID, stage, score, width, difficulty, and last played time, with a delete option. (PS-04, PS-09, PS-17)
+- [x] T-32: New game options screen for width and difficulty. (NG-01, DF-01, PS-05)
+- [x] T-33: Board display with large tap targets and vertical scrolling. (NG-03, PL-09)
+- [x] T-34: Selecting numbers, matching, and the shake or flash feedback for a wrong match. (NG-04 to NG-07)
+- [x] T-35: Score, stage, Add Numbers uses, and hint button shown during play. (NG-16, NG-19, NG-22, NG-24, DF-03)
+- [x] T-36: Stuck warning and game over screen with New Game and Dashboard options. (NG-25, NG-27)
+- [x] T-37: Show a clear message when a save fails and keep retrying, and when the game was opened on another device. (PS-08, PS-18)
+- [x] T-38: High score page with a difficulty filter. (PS-14, PS-15)
 
 ## Phase 5: Packaging and Release
 

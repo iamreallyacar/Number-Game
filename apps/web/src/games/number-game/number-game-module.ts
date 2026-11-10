@@ -1,0 +1,22 @@
+import { DIFFICULTY_IDS } from '@local/number-game';
+import type { BrowserGame } from '../browser-game.js';
+import { describeNumberGameDetails } from './describe-number-game-details.js';
+import { DIFFICULTY_LABELS } from './difficulty-labels.js';
+import NumberGameOptionsForm from './NumberGameOptionsForm.svelte';
+import NumberGamePlayScreen from './NumberGamePlayScreen.svelte';
+
+export const numberGameBrowserModule: BrowserGame = {
+  // Must match NUMBER_GAME_ID in apps/server/src/games/number-game.ts.
+  id: 'number-game',
+  name: 'Number Game',
+  description:
+    'Clear pairs of numbers that are equal or add up to 10. Clear the board to reach the next stage.',
+  // High scores are filtered by difficulty.
+  categories: DIFFICULTY_IDS.map((difficulty) => ({
+    id: difficulty,
+    label: DIFFICULTY_LABELS[difficulty],
+  })),
+  describeDetails: describeNumberGameDetails,
+  NewGameOptionsForm: NumberGameOptionsForm,
+  PlayScreen: NumberGamePlayScreen,
+};
