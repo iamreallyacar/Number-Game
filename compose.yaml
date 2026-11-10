@@ -1,0 +1,19 @@
+# Settings come from .env next to this file. See the Configuration section of README.md.
+services:
+  number-game:
+    build: .
+    image: number-game-dashboard
+    restart: unless-stopped
+    ports:
+      - '${PORT:-3000}:3000'
+    volumes:
+      # The database lives on the host, so saves survive rebuilding or updating the container.
+      - '${DATA_DIR:-./data}:/data'
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # These describe the inside of the container and override the same names from .env.
+      HOST: 0.0.0.0
+      PORT: 3000
+      DATA_DIR: /data

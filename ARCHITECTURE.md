@@ -126,6 +126,12 @@ The play page loads the save and hands its state to the game's play screen. The 
 
 The Number Game play screen still calls the single rules (`applyMatch`, `applyAddNumbers`, `applyHint`) instead of `applyMove`, because it needs what only they return, such as whether a stage was cleared and which pair a hint shows. The moves it sends use the `NumberGameMove` type from the rules package.
 
+## Packaging
+
+The `Dockerfile` builds the image in two stages. The first installs every dependency and runs `npm run build`. The second keeps only the built `dist` folders and the dependencies needed at run time, and runs the server as the unprivileged `node` user (user id 1000). Inside the container the server always uses `HOST=0.0.0.0`, `PORT=3000`, and `DATA_DIR=/data`. A health check calls `/api/health`.
+
+`compose.yaml` maps the host `PORT` to port 3000, mounts the host `DATA_DIR` folder as `/data` so the database survives rebuilds, and passes the rest of `.env` to the server. The data folder must be writable by user id 1000. Before opening the database, the server checks that its data folder is writable and stops with an error naming the folder if it is not. (PL-14, PL-15)
+
 ## Tooling
 
 | Tool | Use |
@@ -137,6 +143,7 @@ The Number Game play screen still calls the single rules (`applyMatch`, `applyAd
 | TypeBox | The shared request and answer schemas. They check server requests and give route handlers their types, and the browser app uses them to check server answers |
 | Vite | Builds the browser app and runs its dev server, which sends `/api` calls to the server on `PORT` |
 | svelte-check | Type checks the Svelte components with the same strict settings |
+| Docker | Packages the server and the built browser app into one image, run with docker compose |
 
 `npm run check` builds every part, then runs type checks, lint, the format check, and the tests.
 
@@ -144,4 +151,4 @@ The server and the browser app use the built `dist` folder of each package, not 
 
 ## Current State
 
-Phases 1 to 4 are done, and the fixes from `AUDIT.md` are applied. The rules package, the server, and the browser app are complete. The browser app's routing, server calls, saving, and game logic helpers have tests, but its Svelte components do not, and it still needs a playtest on a phone and a laptop (T-41). The next step is Phase 5 in `TASKS.md`.
+Phases 1 to 4 are done, the Docker packaging and setup steps of Phase 5 are done, and the fixes from `AUDIT.md` are applied. The rules package, the server, and the browser app are complete. The browser app's routing, server calls, saving, and game logic helpers have tests, but its Svelte components do not, and it still needs a playtest on a phone and a laptop (T-41). The next step is T-41 in `TASKS.md`.
