@@ -1,0 +1,45 @@
+# Players, Saves, and High Scores
+
+These requirements cover player IDs, save slots stored on the server, and high scores. Player IDs are shared by every game on the dashboard. Each game has its own save slots and high scores.
+
+## Player IDs
+
+- PS-01: A player creates their own player ID by typing a name. Player IDs must be unique.
+- PS-02: Player IDs have no password, because the site is meant for a trusted local network.
+- PS-03: Player IDs are stored on the server, so they are available on every device.
+
+## Starting a New Game
+
+- PS-04: New Game shows the list of save slots for the game. The player picks an empty slot.
+- PS-05: The player then picks their player ID from a list, or creates a new one, and chooses the width and difficulty.
+- PS-06: The game begins in that slot, and the slot is linked to that player ID.
+
+## Saving
+
+- PS-07: Saving is automatic. The game is saved on the server after every change, such as a match, Add Numbers, or a new stage. There is no manual save button.
+- PS-08: If a save fails, the game tells the player clearly and keeps retrying. It never fails silently.
+
+## Loading
+
+- PS-09: Load Game shows the list of save slots. Each used slot shows the player ID, stage, score, width, difficulty, and when it was last played.
+- PS-10: Any player can load any save slot.
+- PS-11: Loading a slot continues the game exactly where it was left.
+
+## Game Over and Slots
+
+- PS-12: When a game ends, the result is added to the high scores and the slot becomes empty again. A lost game cannot be loaded.
+
+## High Scores
+
+- PS-13: Each game result records the player ID, final score, stage reached, width, difficulty, and date.
+- PS-14: The high score screen shows the top results for the game, with a way to filter by difficulty.
+- PS-15: Each player ID has a personal best score per difficulty.
+
+## Configuration
+
+- PS-16: The number of save slots per game is a setting, with a default of 10.
+
+## Deleting and Locking
+
+- PS-17: A save slot can be deleted from the load list, which makes it empty. Player IDs cannot be deleted in the first version.
+- PS-18: A save is locked to the device that opened it most recently. If another device had it open, that device is told the game was opened elsewhere and stops saving to it.

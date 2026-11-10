@@ -1,0 +1,6 @@
+dist/
+coverage/
+data/
+package-lock.json
+# Markdown follows the documentation style guide in CLAUDE.md, which Prettier would rewrite.
+*.md
