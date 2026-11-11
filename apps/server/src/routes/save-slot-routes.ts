@@ -112,8 +112,10 @@ export function registerSaveSlotRoutes(
       const { game, save } = findGameSave(dependencies, request.params);
       // Opening takes the lock, so any other device that had this save open stops saving to it.
       const openedSave: StoredSave = { ...save, lockedDeviceId: request.headers['x-device-id'] };
+      // The answer is built first, so a save that cannot be read keeps its lock where it was.
+      const openedSaveAnswer = describeOpenSave(game, openedSave);
       saves.updateSave(save.saveId, openedSave);
-      return describeOpenSave(game, openedSave);
+      return openedSaveAnswer;
     },
   );
 

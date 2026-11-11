@@ -2,7 +2,7 @@ import { fewestMovesOf } from './fewest-moves.js';
 import type { GameState, Pegs } from './game-state.js';
 
 /** Disk 3 alone on the left peg and disks 2 and 1 in the middle. Sorting it takes 3 moves. */
-export const THREE_MOVE_PEGS: Pegs = [[3], [2, 1], []];
+const THREE_MOVE_PEGS: Pegs = [[3], [2, 1], []];
 
 /**
  * A first stage of 3 disks that has just started. The fewest moves and the move budget follow

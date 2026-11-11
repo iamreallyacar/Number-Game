@@ -53,10 +53,10 @@
     return error instanceof ApiError && error.errorCode === 'save-gone';
   }
 
-  // A move already on its way still reaches the server, but queued moves are dropped. The save
-  // status banner has already told the player about any failing save before they could leave.
+  // Leaving through a link inside the app does not unload the page, so there is no leave warning.
+  // The moves still queued are sent anyway, so they are not lost.
   onDestroy(() => {
-    currentSync?.stop();
+    currentSync?.finishPendingMoves();
   });
 
   function warnAboutUnsavedMoves(event: BeforeUnloadEvent): void {
@@ -79,7 +79,6 @@
       status={saveStatus}
       gameId={game.id}
       onReload={() => (openRequest = openGame())}
-      dashboardPath={routePath({ page: 'dashboard' })}
     />
     <div inert={savingStopped}>
       <PlayScreen

@@ -84,7 +84,12 @@ export function registerHighScoreRoutes(
     (request) => {
       const game = games.getGame(request.params.gameId);
       const playerId = findPlayerId(players, request.params.playerId);
-      const personalBests = highScores.listPersonalBests(game.id, playerId);
+      const personalBests = highScores
+        .listPersonalBests(game.id, playerId)
+        .sort(
+          (first, second) =>
+            game.categories.indexOf(first.category) - game.categories.indexOf(second.category),
+        );
       return { personalBests: personalBests.map((result) => describeResult(game, result)) };
     },
   );

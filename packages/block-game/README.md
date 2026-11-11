@@ -7,12 +7,12 @@ This package holds the Block Game rules as plain TypeScript, with no browser or 
 Everything is exported through `src/index.ts`. Every function is pure: it takes a game state and returns a new one without changing the old one. The package owns every fact about the game that the server and the browser must agree on:
 
 - `BLOCK_GAME_ID`, the id both apps register the game under.
-- `BlockGameMove` and `applyMove`, the moves a player can make and the one function that applies any of them. The server module should check its move schema against `BlockGameMove` when it compiles.
+- `BlockGameMove` and `applyMove`, the moves a player can make and the one function that applies any of them. The server module checks its move schema against `BlockGameMove` when it compiles.
 - `isGameOver`, which the server calls after every accepted move to end the game.
 - `summarizeGame` and `parseSummaryDetails`, which write and read back the summary shown next to save slots and high scores. `BOARD_SIZE_CATEGORIES` lists the high score categories.
 - `GAME_STATE_UPGRADES` and `SUMMARY_DETAILS_UPGRADES`, which upgrade stored states and summary details written by older versions of the game.
 
-For the browser, `applyPlacement` returns what `applyMove` leaves out: the placed cells, the cleared rows, columns, and cells, and the points earned. `shapeFitsAt`, `linesClearedByPlacement`, and `anySlotShapeFits` drive the drag preview, and `SHAPE_CATALOGUE` describes every shape.
+For the browser, `applyPlacement` returns what `applyMove` leaves out: the placed cells, the cleared rows, columns, and cells, and the points earned. `shapeFitsAt` and `linesClearedByPlacement` drive the drag preview, `shapeFitsAnywhere` marks the shapes that have no room left, and `getShape` describes a shape.
 
 Moves that a player can get wrong, such as a shape that sticks out of the board, return a result with `accepted: false` and a reason, so the server can tell the browser why a move was refused. Mistakes in the calling code, such as asking which lines a shape clears where it does not fit, throw an error.
 

@@ -6,7 +6,7 @@ A small self-hosted game dashboard that runs on a home server (such as a Proxmox
 
 - Primary: host the Number Game on a local Proxmox server and play it from a phone or laptop browser.
 - Secondary: publish the project as a git repository that anyone can clone and host on their own server with minimal setup.
-- Ongoing: grow the dashboard with more games. The Number Game was the first one, the Block Game is the second, and the Disk Game is the third.
+- Ongoing: keep the dashboard easy to grow with more games.
 
 ## The Number Game in Short
 
@@ -125,7 +125,7 @@ The server reads these settings from environment variables. Copy `.env.example` 
 | `HOST` | `0.0.0.0` | Network address the server listens on. `0.0.0.0` lets phones and laptops on the network connect |
 | `PORT` | `3000` | Port the server listens on |
 | `DATA_DIR` | `./data` | Folder where the SQLite database with players, saves, and high scores is stored |
-| `SAVE_SLOTS_PER_GAME` | `10` | Number of save slots each game has |
+| `SAVE_SLOTS_PER_GAME` | `10` | Number of save slots each game has. If it is lowered, saves in the slots above the new number are kept but cannot be reached until it is raised again |
 
 With Docker, `compose.yaml` reads the same `.env` file, but some settings mean something slightly different:
 
@@ -138,4 +138,4 @@ With Docker, `compose.yaml` reads the same `.env` file, but some settings mean s
 
 ## Status
 
-Phases 1 to 4 (project setup, game rules, server, and browser app) are done. In Phase 5, the Docker packaging and the setup steps are done, and the playtest on a phone and a laptop (T-41) is next. The Block Game (Phase 7) is built and needs its own playtest (T-55). The Disk Game (Phase 9) is built and needs its own playtest (T-61). The work plan is in `TASKS.md`.
+The project is finished and closed. The work plan and its close-out note are in `TASKS.md`.

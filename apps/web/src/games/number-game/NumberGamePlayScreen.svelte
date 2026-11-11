@@ -54,6 +54,12 @@
 
   const gameOver = $derived(isGameOver(gameState));
   const stuck = $derived(isStuck(gameState));
+  const STUCK_MESSAGE: Feedback = {
+    text: 'No pairs can see each other. Press Add Numbers.',
+    tone: 'info',
+  };
+  // The stuck warning stays until the player acts on it (NG-25). Other messages show over it.
+  const shownMessage = $derived(feedback ?? (stuck ? STUCK_MESSAGE : null));
   const hintsAllowed = $derived(DIFFICULTY_PRESETS[gameState.difficulty].hintsPerStage !== 0);
 
   let rejectedPairTimer: ReturnType<typeof setTimeout> | undefined;
@@ -185,15 +191,15 @@
       stage={gameState.stage}
       difficulty={gameState.difficulty}
     />
-    {#if feedback !== null}
-      <p class="feedback" class:error={feedback.tone === 'error'} role="status">
-        {feedback.text}
-      </p>
-    {/if}
-    {#if stuck}
-      <!-- NG-25 -->
-      <p class="feedback" role="status">No pairs can see each other. Press Add Numbers.</p>
-    {/if}
+    <!-- Always takes up its line, so a message coming and going does not move the board under a tap. -->
+    <p
+      class="feedback"
+      class:shown={shownMessage !== null}
+      class:error={shownMessage?.tone === 'error'}
+      role="status"
+    >
+      {shownMessage?.text ?? ''}
+    </p>
   </div>
 
   <NumberGameBoard
@@ -221,7 +227,6 @@
         hintsLeft={gameState.hintsLeft}
         {hintsAllowed}
         hintShown={hintPair !== null}
-        disabled={gameOver}
         onAddNumbers={handleAddNumbers}
         onHint={handleHint}
       />
@@ -253,14 +258,18 @@
   }
 
   .feedback {
+    min-height: 2.25rem;
     margin: 0.5rem 0 0;
     padding: 0.5rem;
     border-radius: 6px;
-    background: var(--color-hint);
     text-align: center;
   }
 
-  .feedback.error {
+  .feedback.shown {
+    background: var(--color-hint);
+  }
+
+  .feedback.shown.error {
     background: var(--color-error-surface);
     color: var(--color-error);
   }

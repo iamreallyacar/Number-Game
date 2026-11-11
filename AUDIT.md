@@ -1,140 +1,74 @@
 # Audit
 
-This audit checks whether the project will stay maintainable as more games are added to the dashboard. Cleanliness and readability are secondary goals. It covers every source file, config file, and document in the repository as of 2026-11-10, including the uncommitted Phase 4 browser app. `npm run check` passed at the time of the audit (25 test files, 156 tests).
+This file records the quality audits of the project. The final audit was made on 2026-11-11, when the project was closed. It covered every source file, config file, and document, split into four reviews: the packages, the server, the browser app, and the documents. `npm run check` passed before the audit (65 test files, 461 tests) and after its fixes (65 test files, 466 tests).
 
 ## Verdict
 
-The project will not explode in size as games are added. The shared code (dashboard, players, save slots, high scores, move saving) does not grow when a game is added, and the per-game code stays in its own folders. Adding a game today costs:
+The project is in good shape to close. The reviews found no high risk bug in the game rules, the server, or the browser app. Typing is strict everywhere, with no `any` types, and the few casts and lint exceptions each have a comment. No to-do notes are left in the code. Errors fail loudly, every query uses bound parameters, and every server answer is checked against the shared schemas.
 
-| Part | New files | Shared files touched |
-| --- | --- | --- |
-| Rules package | One new folder under `packages/` with `package.json`, two tsconfig files, and the rules | None |
-| Server | One module like `apps/server/src/games/number-game.ts` (about 80 lines) | One line in `create-game-registry.ts` and one dependency in `apps/server/package.json` |
-| Browser | One folder like `apps/web/src/games/number-game/` | One line in `create-browser-game-registry.ts` and one dependency in `apps/web/package.json` |
+What is left is small: a few edge cases around broken saves, code that is copied between the three games, and export lists that are wider than the apps need. None of it gets in the way of personal use. The open findings below are the places to start if work on the project picks up again.
 
-Files are small and do one job. The largest source file is `NumberGamePlayScreen.svelte` at 213 lines, and most files are under 100 lines. Typing is strict everywhere, errors fail loudly, and there are no `any` types or ignore comments.
+## Fixed in the Final Audit
 
-The real risks are not file count or length. They are contracts that are written twice and kept in sync only by comments, saved game states that cannot be upgraded, and shared tests that depend on the Number Game. These are listed below, most important first.
+| Id | Area | Finding | Fix |
+| --- | --- | --- | --- |
+| F-01 | Browser | Leaving the play page through a link inside the app dropped the moves still queued for saving, with no warning | `MoveSync.finishPendingMoves` still sends the queued moves after the play page closes. `stop` is kept for reloading a save |
+| F-02 | Browser | The Number Game message line appeared and vanished above the board, so the board moved under the player's next tap | The line always takes up its space, as in the other two games. The stuck warning shows on the same line |
+| F-03 | Server | Requests that Fastify refuses itself, such as a broken JSON body or a body that is too large, were answered as a 500 server error and logged as one | The error handler answers them with their own 4xx status and the error `invalid-request` |
+| F-04 | Server | Opening a save that cannot be read moved its device lock before failing | The answer is built before the lock moves |
+| F-05 | Server | Personal bests were sorted by category as text, so the Block Game showed 10, 8, 9 | They follow the order of the game's category list |
+| F-06 | Server | The migration runner repeated the code of `run-in-transaction.ts` | It calls `runInTransaction` |
+| F-07 | Browser | Dead props: `disabled` on the Number Game action bar and `dashboardPath` on the save status banner. A comment in `device-id.ts` described the server's rule, not the code | Removed the props and reworded the comment |
+| F-08 | Packages | An export used by one file only, a build exclude for a file that does not exist, and comments that named the open tuning task | Cleaned up |
+| F-09 | Documents | The Block Game package README named functions the browser does not use, the Number Game one left out `isGameOver`, and `ARCHITECTURE.md` left out the not found page | Corrected |
+| F-10 | Documents | The shared save and high score requirements (PS-05, PS-09, PS-13 to PS-15) only described the Number Game | Reworded to cover every game's own options, details, and category |
+| F-11 | Documents | The status sections in `README.md` and `ARCHITECTURE.md` repeated `TASKS.md` and were out of date. OQ-17 was out of date, and OQ-18 and OQ-19 were answered by the code but still listed as open | `TASKS.md` has a close-out note and is the only place for status. The open questions are updated |
 
-## Findings
+## Open Findings
 
-### A-01: Saved game states cannot be upgraded
+These were left as they are, because each one needs a decision or a larger change than a close-out should make.
 
-Priority: high
+| Id | Priority | Area | Finding | Suggested fix |
+| --- | --- | --- | --- | --- |
+| O-01 | Medium | Server | One save that cannot be read makes the whole slot list fail for that game, so New Game and Load Game stop working and the save cannot be deleted from the app. A high score row that cannot be read does the same to the high score table. See `save-slot-routes.ts` and `high-score-routes.ts` | List such a save as broken, with no summary, so it can still be deleted. This needs a change to the slot list schema |
+| O-02 | Medium | Packages | Tuning some values breaks saves in progress, though the stored format does not change. The Number Game state check refuses more Add Numbers uses or hints than the preset gives, and the Disk Game check refuses a stage below the reroll rule. Both package READMEs now warn about this | Loosen the two checks, or add a stored state upgrade with the tuning change |
+| O-03 | Medium | Browser | The Block Game can only be played with a pointer. Its slots are not buttons, so there is no keyboard or screen reader path | Add a tap a slot, then tap a cell mode |
+| O-04 | Low | Browser | Code copied between the three games: the game over panels, the wrong move sound and the bell helper, `BoardPosition`, the effect and status bar styles, and the feedback timer | Move them into `components/`, `audio/`, and `app.css` |
+| O-05 | Low | Packages | The stored value helpers (`fail`, `readRecord`, and the whole number checks) are written in all three `parse-game-state.ts` and `summary.ts` files, with different names | Share them from one small package, as `seeded-random` is shared |
+| O-06 | Low | Packages | Each package index exports many names that no app imports, such as the scoring constants and single rule helpers. The server also keeps its own copy of the `StoredFormatUpgrade` type | Trim each index to what the apps use, or keep the lists on purpose as the public contract |
+| O-07 | Low | Packages | `rowOf` and `columnOf` take their arguments in opposite orders in the Number Game and the Block Game. File names for the same job differ too, such as `find-pair.ts` and `game-over.ts` for `isGameOver` | Pick one order and one set of names |
+| O-08 | Low | Server | Naming: `findPlayerId` in `request-lookups.ts` throws while the store method of the same name returns null, and the store's `GameResult` shares its name with the API type. The Number Game move schema sets a minimum of 0 and the other two games set none. `layout.ts` in the Disk Game skips an impossible peg index quietly | Rename, and make the three schemas alike |
+| O-09 | Low | Tests | No tests for `router.ts`, the Svelte components, the Disk Game undo and hint screen state, or the Block Game pointer handling. The three server game test files do not cover the same cases, and two of them copy the server setup | Move screen logic into plain helpers such as `tap-peg.ts`, and let `startTestServer` take a game registry |
+| O-10 | Low | Browser | The sound button label can be read as the current state or as the action. The Number Game has no game over sound, and the other two games do | Add `aria-pressed` and a fixed label. Decide on the sound |
+| O-11 | Low | Documents | Facts kept in two places: the game summaries in `README.md` and the rules files, the fixed container values in `README.md` and `ARCHITECTURE.md`, the high score categories in `ARCHITECTURE.md` and the rules files, and the tech stack in `open-questions.md` and `ARCHITECTURE.md`. `README.md` also holds setup guides, which is more than the purpose and scope that `CLAUDE.md` asks of it | Keep each fact in one place and point to it from the other |
+| O-12 | Low | Documents | `CLAUDE.md` still says the dashboard is starting with the Number Game, and its directory list leaves out `AUDIT.md`, `apps/`, and `packages/` | Update the two sections |
+| O-13 | Low | Tooling | `npm audit` reports 12 low and moderate warnings, all in lint and build tools. `npm audit --omit=dev` reports none, so nothing in the Docker image is affected. See OQ-17 | Update the tools when fixed versions are released |
 
-Database tables have migrations (`apps/server/src/database/migrations.ts`), but the game states stored as JSON inside `save_slots.state_json` do not. `parseGameState` in `packages/number-game/src/parse-game-state.ts` rejects any unknown field and requires every known field. So the first time a rules change adds, renames, or removes a field in `GameState`, every existing save becomes a `broken-save` error and cannot be loaded. The same applies to every future game, and to the `details_json` stored with high scores.
+The three playtest and tuning tasks (T-41, T-55, T-61) were not carried out. See the close-out note in `TASKS.md`.
 
-Suggested fix: add a state version number to each game's state and an `upgradeState(stored: unknown): unknown` step to `ServerGameDefinition` in `apps/server/src/games/game-registry.ts`, run before `parseState`. Each game keeps its own list of state upgrades, the same way the database keeps its list of migrations. This is cheapest to add now, while no real saves exist yet.
+## What Is Good
 
-### A-02: The server API shapes are written twice
-
-Priority: high
-
-The server routes return plain object literals with no response schemas, and the browser keeps its own copy of every answer shape in `apps/web/src/api/game-server-api.ts`. `ARCHITECTURE.md` says both must be updated together, but nothing checks it. A field renamed on the server only fails at run time in the browser.
-
-Suggested fix: move the request and response TypeBox schemas into a small shared package, for example `packages/game-server-api`. The server uses them as Fastify `response` schemas, which also checks its own answers, and the browser imports the same schemas to check answers. This is shared code, so it is written once no matter how many games are added.
-
-### A-03: Each game's moves, options, summary details, and id are written in several places
-
-Priority: high
-
-For the Number Game, the same facts live in separate files that only point at each other with comments:
-
-| Fact | Places it is written |
-| --- | --- |
-| Game id `number-game` | `NUMBER_GAME_ID` in `apps/server/src/games/number-game.ts` and the literal in `apps/web/src/games/number-game/number-game-module.ts` |
-| Move shape | TypeBox `moveSchema` in the server module and the hand-written `NumberGameMove` type in `apps/web/src/games/number-game/number-game-move.ts` |
-| Summary details (`stage`, `width`, `difficulty`) | Built in the server module's `summarize`, read back by hand in `describe-number-game-details.ts` |
-| Which move calls which rule | `applyNumberGameMove` in the server module, and again by hand in `NumberGamePlayScreen.svelte` |
-
-Every new game will repeat this pattern, so the number of hand-synced pairs grows with each game.
-
-Suggested fix: let each rules package own its own contract. The Number Game package would export `NUMBER_GAME_ID`, the `NumberGameMove` type, a single `applyMove(state, move)` that dispatches to `applyMatch`, `applyAddNumbers`, and `applyHint`, and a `summarizeGame` function with a typed summary. The server module then only adds the TypeBox schema, with a type check that its `Static` type equals `NumberGameMove`, and the browser imports the type and the id. The browser and server would then share one dispatcher, which also keeps their moves from drifting apart.
-
-### A-04: Shared server tests depend on the Number Game
-
-Priority: medium
-
-`apps/server/src/test-support.ts` builds saves from a Number Game `GameState`, and the save slot, move, high score, web app, and registry tests all use the real Number Game. A change to the Number Game rules can break tests of shared code that has not changed, and testing the shared routes with a second game means copying test helpers.
-
-Suggested fix: add a tiny fake game (for example a counter whose only move adds 1 and ends at 3) to the test helpers, and use it for the shared route tests. Keep Number Game specific server tests next to `apps/server/src/games/number-game.ts`.
-
-### A-05: Documents will grow with every game
-
-Priority: medium
-
-`ARCHITECTURE.md` holds a file-by-file table of the Number Game rules package, and the Number Game requirements sit loose in `REQUIREMENTS/` next to platform requirements. With five games, `ARCHITECTURE.md` would hold five rules tables and `REQUIREMENTS/` would mix five games' files.
-
-Suggested fix: keep `ARCHITECTURE.md` about the platform and the "Adding a Game" contract. Move each game's file table into a `README.md` inside its own package, and move per-game requirements into a folder per game, such as `REQUIREMENTS/number-game/rules.md` and `REQUIREMENTS/number-game/difficulty.md`.
-
-### A-06: Every game is in the first browser download
-
-Priority: low
-
-`apps/web/src/games/create-browser-game-registry.ts` imports every game's play screen directly, so the dashboard downloads the code of every game before showing anything. On a local network this is fine for a few games, but it grows with each one.
-
-Suggested fix, when there are three or more games: keep the name, description, and categories in the registry, and load `PlayScreen` and `NewGameOptionsForm` with a dynamic `import()` the first time they are needed.
-
-### A-07: Repeated checks in the server routes
-
-Priority: low
-
-Four route handlers repeat the same opening steps: find the game, check the slot number, and require a save. The "unknown player" 404 error is also written twice, in `save-slot-routes.ts` and `high-score-routes.ts`.
-
-Suggested fix: add a `requirePlayerId` helper next to `requireSave` in `apps/server/src/routes/slot-access.ts` (renamed to fit), and one helper that returns the game and the save for a slot request.
-
-### A-08: Move answers carry data that nothing reads
-
-Priority: low
-
-The move route returns `state` and `details` (such as `removedRowCount` and `addedCount`), and the server module builds `details` for every move type. The browser ignores both, since it has already applied the move itself. This is extra contract that every game must fill in and keep in sync.
-
-Suggested fix: drop `details` from `GameMoveOutcome` and the move answer until something uses it. Keep `gameOver` and `result`, which the browser could use to confirm the final score.
-
-### A-09: The high scores page does two jobs
-
-Priority: low
-
-`apps/web/src/pages/HighScoresPage.svelte` (163 lines) shows both the top results table and the personal bests list, each with its own loading and error states.
-
-Suggested fix: split it into a `TopResultsTable` and a `PersonalBestsList` component, with the page only holding the category filter and player picker.
-
-### A-10: Phase 4 is not committed
-
-Priority: low, but easy to lose
-
-The whole browser app (Phase 4) is uncommitted in the working tree. It passes `npm run check`, so it is ready to commit before any of the changes above start.
-
-## What Is Already Good
-
-- The game registries on both sides keep every game behind one interface, and shared pages never look inside a game state, as PL-04 to PL-06 require.
-- Routes are generic over the game id in the URL, so a new game needs no new routes.
-- The server applies every move itself with the same rules package, so the browser cannot save a fake state.
-- Strict TypeScript settings, type-aware ESLint, and checked server answers make mistakes show up early.
-- Tests sit next to the code they test, and `npm run check` runs every check with one command.
+- The game registries on both sides keep every game behind one interface, and routes are generic over the game id, so a new game needs no new routes and one line in each registry.
+- The server applies every move itself with the same rules package as the browser, so the browser cannot save a fake state.
+- Each rules package owns its id, move type, `applyMove`, and summary. The server checks its move schema against the move type when it compiles.
+- The stored state checks compare the parts of a save against each other, and stored formats carry a version with upgrade lists.
+- The save id check comes before the lock check, so a stale page can never open, change, or take the lock of a newer game.
+- Rules are kept out of the Svelte files in small tested helpers, every timer is cleared when a screen closes, and reduced motion is respected.
 - Settings are read from the environment and documented in `README.md` and `.env.example`.
 
-## Suggested Order
+## Earlier Audit
 
-1. Commit Phase 4 (A-10).
-2. Add state versions and upgrades (A-01), before any real saves exist.
-3. Move each game's contract into its rules package (A-03) and share the server API schemas (A-02).
-4. Add the fake test game (A-04) and reorganise the documents (A-05).
-5. Handle A-06 to A-09 when the second game is added.
+The first audit was made on 2026-11-10, before the Block Game and the Disk Game, and asked whether the project would stay maintainable as games were added. Every finding was fixed, most on the same day (T-42 and T-43 in `TASKS.md`).
 
-## Resolution
-
-Applied on 2026-11-10, with `npm run check` passing afterwards.
-
-| Finding | Outcome |
-| --- | --- |
-| A-01 | Done. Saves and high scores store a format version, and each game gives upgrade lists that run before its check. The Number Game lists live in `packages/number-game/src/stored-format-upgrades.ts` |
-| A-02 | Done. `packages/game-server-api` holds the request and answer schemas. Server routes use them as response schemas, and the browser checks answers with them |
-| A-03 | Done. The rules package owns the id, the move type, `applyMove`, and the summary. The server checks its move schema against the move type when it compiles. The play screen still calls the single rules because it needs their extra results |
-| A-04 | Done. Shared route tests use `apps/server/src/counter-test-game.ts`. Number Game server tests are in `apps/server/src/games/number-game.test.ts` |
-| A-05 | Done. The rules file table is in `packages/number-game/README.md`, and the Number Game requirements are in `REQUIREMENTS/number-game/` |
-| A-06 | Done on 2026-11-11 after the Block Game was added (T-43). Each browser module gives `loadNewGameOptionsForm` and `loadPlayScreen`, which use a dynamic `import()`. The first download fell from 183.75 kB to 160.29 kB, and each game's play screen and form are now separate files |
-| A-07 | Done. `apps/server/src/routes/request-lookups.ts` replaces `slot-access.ts` |
-| A-08 | Done. The move answer no longer carries `details` or `state` |
-| A-09 | Done. Split into `TopResultsTable.svelte` and `PersonalBestsList.svelte` |
-| A-10 | Done. Phase 4 was committed before the other changes |
+| Id | Finding | Outcome |
+| --- | --- | --- |
+| A-01 | Saved game states could not be upgraded | Saves and high scores store a format version, and each game gives upgrade lists in its `stored-format-upgrades.ts` |
+| A-02 | The server API shapes were written twice | `packages/game-server-api` holds the schemas for both the server and the browser |
+| A-03 | Each game's id, moves, and summary were written in several places | The rules package owns them |
+| A-04 | Shared server tests depended on the Number Game | They use `apps/server/src/counter-test-game.ts` |
+| A-05 | Documents would grow with every game | Each rules package has a `README.md`, and each game has its own folder in `REQUIREMENTS/` |
+| A-06 | Every game was in the first browser download | Play screens and option forms load with a dynamic `import()` when first needed |
+| A-07 | Repeated checks in the server routes | Shared in `apps/server/src/routes/request-lookups.ts` |
+| A-08 | Move answers carried data that nothing read | The move answer no longer carries `details` or `state` |
+| A-09 | The high scores page did two jobs | Split into `TopResultsTable.svelte` and `PersonalBestsList.svelte` |
+| A-10 | Phase 4 was not committed | Committed |

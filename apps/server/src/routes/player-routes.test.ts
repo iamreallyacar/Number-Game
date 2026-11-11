@@ -35,6 +35,30 @@ describe('player routes', () => {
       expect(response.json()).toMatchObject({ error: 'invalid-request' });
     },
   );
+
+  it('answers a body that is not valid JSON as a bad request, not a server error', async () => {
+    const { app } = await startTestServer();
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/players',
+      headers: { 'content-type': 'application/json' },
+      body: '{"playerId": ',
+    });
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toMatchObject({ error: 'invalid-request' });
+  });
+
+  it('answers a body type the server does not read as unsupported', async () => {
+    const { app } = await startTestServer();
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/players',
+      headers: { 'content-type': 'text/xml' },
+      body: '<playerId>Sam</playerId>',
+    });
+    expect(response.statusCode).toBe(415);
+    expect(response.json()).toMatchObject({ error: 'invalid-request' });
+  });
 });
 
 describe('health route', () => {

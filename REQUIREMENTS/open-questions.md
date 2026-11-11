@@ -6,10 +6,8 @@ This file tracks decisions about the project. New questions go in the Open secti
 
 | Id | Question | Current assumption |
 | --- | --- | --- |
-| OQ-17 | `npm audit` reports moderate warnings from `minimatch` inside ESLint 10. The only offered fix moves ESLint back to version 9. Should it be downgraded? | No. The warnings only affect lint tooling, not the shipped game. Keep ESLint 10 and update when a fixed version is released |
-| OQ-18 | What may a player ID contain? | 1 to 24 letters, digits, or the characters _ . -, in any language, with single spaces between words. Letter case does not make an ID different, so Sam and sam cannot both exist |
-| OQ-19 | What happens to saves in slots above `SAVE_SLOTS_PER_GAME` if the setting is lowered? | They stay in the database but are not listed or reachable until the setting is raised again |
-| OQ-20 | In the Disk Game, a player who always plays a shortest path never runs out of moves, so a game can last as long as they want. Should the move budget tighten in later stages? | No. Stages of 10 disks take hundreds of moves, so games end in practice. Check this in the playtest (T-61) |
+| OQ-17 | `npm audit` reports low and moderate warnings from `minimatch` inside ESLint 10 and from `deepmerge` inside the Svelte build plugin. The only offered fix moves ESLint back to version 9. Should the tools be downgraded? | No. The warnings only affect lint and build tooling. The Docker image installs run time dependencies only, and `npm audit --omit=dev` reports nothing. Update the tools when fixed versions are released |
+| OQ-20 | In the Disk Game, a player who always plays a shortest path never runs out of moves, so a game can last as long as they want. Should the move budget tighten in later stages? | No. Stages of 10 disks take hundreds of moves, so games end in practice. The playtest that would check this (T-61) was not carried out before the project closed |
 
 ## Tech Stack
 
@@ -42,3 +40,5 @@ This file tracks decisions about the project. New questions go in the Open secti
 | OQ-14 | What happens if the same save is open on two devices at once? | The save is locked to the device that opened it most recently. The other device is told the game was opened elsewhere |
 | OQ-15 | Should saving be built in the first version? | Yes, saves go straight to the server. There is no browser saving step, so the save code is only written once |
 | OQ-16 | Should high scores be split by width as well as difficulty? | No, width is shown next to each score but not used to filter |
+| OQ-18 | What may a player ID contain? | 1 to 24 letters, digits, or the characters _ . -, in any language, with single spaces between words. Letter case does not make an ID different, so Sam and sam cannot both exist |
+| OQ-19 | What happens to saves in slots above `SAVE_SLOTS_PER_GAME` if the setting is lowered? | They stay in the database but are not listed or reachable until the setting is raised again |

@@ -118,7 +118,7 @@ Paths outside `/api/` serve the built browser app from `apps/web/dist`, and unkn
 | `games/` | The browser game registry and each game's browser module |
 | `audio/` | The shared sound player. It makes short tones in the browser, so games need no audio files, and keeps the mute choice from the header button in local storage (PL-18, PL-19) |
 | `test-support/` | Helpers for the tests, such as a local storage kept in memory. Only tests use them |
-| `pages/` | One Svelte component per page: dashboard, game menu, new game, load game, play, outdated play link, and high scores |
+| `pages/` | One Svelte component per page: dashboard, game menu, new game, load game, play, outdated play link, not found, and high scores |
 | `components/` | Pieces of pages: the sound mute button, the save slot list, the player ID picker, the save status banner, the save gone notice, the top results table, and the personal bests list |
 
 Pages and their paths:
@@ -132,8 +132,9 @@ Pages and their paths:
 | `/games/:gameId/slots/:slotNumber/saves/:saveId` | Opens the save and shows the game's play screen |
 | `/games/:gameId/slots/:slotNumber` | An older play link without a save id. It opens no game and links to Load Game, New Game, and the dashboard (PS-20) |
 | `/games/:gameId/high-scores` | Top results with a category filter, and personal bests |
+| Any other path | Not found page with a link to the dashboard |
 
-The play page loads the save and hands its state to the game's play screen. The play screen applies each move with the rules package, then hands the move to the move sync. Network errors and server errors are retried with growing waits, and the save status banner tells the player while that happens. A move the server refuses, or a save that was opened on another device, stops saving and offers to reload the game from the server. A save that is gone, because the game ended, was deleted, or a new game took the slot, stops saving too. Then the page offers Load Game, New Game, and the dashboard, never a reload, and reloading the page shows the same message. A finished game still shows its game over panel, since the last move was saved before the slot was emptied. Leaving the page while moves are still unsaved shows the browser's leave warning. (PS-07, PS-08, PS-18, PS-19)
+The play page loads the save and hands its state to the game's play screen. The play screen applies each move with the rules package, then hands the move to the move sync. Network errors and server errors are retried with growing waits, and the save status banner tells the player while that happens. A move the server refuses, or a save that was opened on another device, stops saving and offers to reload the game from the server. A save that is gone, because the game ended, was deleted, or a new game took the slot, stops saving too. Then the page offers Load Game, New Game, and the dashboard, never a reload, and reloading the page shows the same message. A finished game still shows its game over panel, since the last move was saved before the slot was emptied. Leaving the page while moves are still unsaved shows the browser's leave warning. Leaving through a link inside the app shows no warning, so the move sync still sends the moves that are queued, without retrying a send that fails. (PS-07, PS-08, PS-18, PS-19)
 
 The Number Game play screen still calls the single rules (`applyMatch`, `applyAddNumbers`, `applyHint`) instead of `applyMove`, because it needs what only they return, such as whether a stage was cleared and which pair a hint shows. The moves it sends use the `NumberGameMove` type from the rules package.
 
@@ -164,6 +165,6 @@ The `Dockerfile` builds the image in two stages. The first installs every depend
 
 The server and the browser app use the built `dist` folder of each package, not its source. After changing a package, run `npm run build` before type checking the apps, or just run `npm run check`.
 
-## Current State
+## Test Coverage
 
-Phases 1 to 4 are done, the Docker packaging and setup steps of Phase 5 are done, and the fixes from `AUDIT.md` are applied. The Number Game, the Block Game (Phase 7), and the Disk Game (Phase 9) each have a rules package, a server module, and a browser module. The browser app's routing, server calls, saving, and game logic helpers have tests, but its Svelte components do not, and it still needs a playtest on a phone and a laptop (T-41), and so do the Block Game (T-55) and the Disk Game (T-61). The next steps are T-41, T-55, and T-61 in `TASKS.md`.
+The rules packages, the server, and the browser app's routing, server calls, saving, and game logic helpers have tests. The Svelte components do not.

@@ -14,7 +14,8 @@ export interface DifficultyPreset {
   readonly startingPairChance: number;
 }
 
-// Starting values from REQUIREMENTS/number-game/difficulty.md, to be tuned after playtesting (T-41).
+// The values from REQUIREMENTS/number-game/difficulty.md. Lowering one needs a stored state upgrade,
+// see Changing the Stored Format in the package README.
 export const DIFFICULTY_PRESETS: Readonly<Record<DifficultyId, DifficultyPreset>> = {
   easy: { addNumbersUsesPerStage: 8, hintsPerStage: 'unlimited', startingPairChance: 0.4 },
   normal: { addNumbersUsesPerStage: 5, hintsPerStage: 3, startingPairChance: 0 },

@@ -1,4 +1,5 @@
 import type { DatabaseSync } from 'node:sqlite';
+import { runInTransaction } from './run-in-transaction.js';
 
 // Each entry upgrades the schema by one version. Never edit an entry that has shipped; add a new
 // one instead, because existing databases have already run the old ones. Exported so the tests
@@ -91,13 +92,12 @@ export function runMigrations(database: DatabaseSync): void {
     if (targetVersion <= currentVersion) {
       continue;
     }
-    database.exec('BEGIN');
     try {
-      database.exec(migration);
-      database.exec(`PRAGMA user_version = ${String(targetVersion)}`);
-      database.exec('COMMIT');
+      runInTransaction(database, () => {
+        database.exec(migration);
+        database.exec(`PRAGMA user_version = ${String(targetVersion)}`);
+      });
     } catch (error) {
-      database.exec('ROLLBACK');
       throw new Error(`Database migration to version ${String(targetVersion)} failed`, {
         cause: error,
       });

@@ -36,6 +36,7 @@ export class MoveSync {
   private readonly pendingMoves: unknown[] = [];
   private isSending = false;
   private isStopped = false;
+  private isFinishingUnwatched = false;
   private failedAttempts = 0;
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
   private status: SaveStatus = { kind: 'saved' };
@@ -51,7 +52,7 @@ export class MoveSync {
   }
 
   saveMove(move: unknown): void {
-    if (this.isStopped) {
+    if (this.isStopped || this.isFinishingUnwatched) {
       return;
     }
     this.pendingMoves.push(move);
@@ -60,7 +61,21 @@ export class MoveSync {
     }
   }
 
-  /** Stops sending, for example when the game screen closes or the save must be reloaded. */
+  /**
+   * For when the game screen closes with moves still queued. The queued moves are still sent, so
+   * leaving the page does not lose them, but nobody is left to read a status, so nothing more is
+   * reported and the first failed send ends the sync instead of being retried.
+   */
+  finishPendingMoves(): void {
+    this.isFinishingUnwatched = true;
+    if (this.retryTimer !== null) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = null;
+      void this.sendNextMove();
+    }
+  }
+
+  /** Stops sending and drops the queued moves, for when the save must be reloaded. */
   stop(): void {
     this.isStopped = true;
     if (this.retryTimer !== null) {
@@ -79,7 +94,7 @@ export class MoveSync {
     const isRepeat =
       status.kind === this.status.kind && (status.kind === 'saving' || status.kind === 'saved');
     this.status = status;
-    if (!isRepeat) {
+    if (!isRepeat && !this.isFinishingUnwatched) {
       this.onStatusChange(status);
     }
   }
@@ -115,6 +130,10 @@ export class MoveSync {
 
   private handleFailedSave(error: unknown): void {
     if (this.isStopped) {
+      return;
+    }
+    if (this.isFinishingUnwatched) {
+      this.stop();
       return;
     }
     if (isWorthRetrying(error)) {

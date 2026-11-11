@@ -28,7 +28,7 @@ The summary details leave out the moves left once the game is over, because high
 
 ## Changing the Stored Format
 
-Saved games keep a `GameState` as JSON, and high scores keep the summary details as JSON. When a change adds, renames, or removes a field in either one, add an upgrade to the end of the matching list in `stored-format-upgrades.ts` that turns the old shape into the new one. Never edit an upgrade that has shipped. Without an upgrade, every existing save would be rejected as broken.
+Saved games keep a `GameState` as JSON, and high scores keep the summary details as JSON. When a change adds, renames, or removes a field in either one, add an upgrade to the end of the matching list in `stored-format-upgrades.ts` that turns the old shape into the new one. Never edit an upgrade that has shipped. Without an upgrade, every existing save would be rejected as broken. The same goes for raising the reroll rule in `layout.ts` (DK-07): the stored state check refuses a save whose stage needs fewer moves than the rule allows, so a raised rule needs the check loosened or an upgrade.
 
 ## Files
 

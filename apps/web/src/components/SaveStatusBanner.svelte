@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { routePath } from '../routing/routes.js';
   import type { SaveStatus } from '../saving/move-sync.js';
   import SaveGoneNotice from './SaveGoneNotice.svelte';
 
@@ -7,10 +8,10 @@
     readonly gameId: string;
     /** Loads the save from the server again, which also takes the lock back to this device. */
     readonly onReload: () => void;
-    readonly dashboardPath: string;
   }
 
-  const { status, gameId, onReload, dashboardPath }: Props = $props();
+  const { status, gameId, onReload }: Props = $props();
+  const dashboardPath = routePath({ page: 'dashboard' });
 </script>
 
 <!-- Saving problems are always shown and never hidden away (PS-08, PS-18). -->

@@ -29,6 +29,11 @@ export function registerErrorHandler(app: FastifyInstance): void {
       const body: ApiErrorBody = { error: 'invalid-request', message: error.message };
       return reply.code(400).send(body);
     }
+    const clientErrorStatusCode = readClientErrorStatusCode(error);
+    if (clientErrorStatusCode !== null && error instanceof Error) {
+      const body: ApiErrorBody = { error: 'invalid-request', message: error.message };
+      return reply.code(clientErrorStatusCode).send(body);
+    }
     request.log.error(error, 'Unexpected error while handling a request');
     const body: ApiErrorBody = {
       error: 'internal-error',
@@ -36,4 +41,15 @@ export function registerErrorHandler(app: FastifyInstance): void {
     };
     return reply.code(500).send(body);
   });
+}
+
+/** Fastify marks requests it refuses itself, such as a broken JSON body, with a 4xx status code. */
+function readClientErrorStatusCode(error: unknown): number | null {
+  if (typeof error !== 'object' || error === null || !('statusCode' in error)) {
+    return null;
+  }
+  const { statusCode } = error;
+  return typeof statusCode === 'number' && statusCode >= 400 && statusCode < 500
+    ? statusCode
+    : null;
 }

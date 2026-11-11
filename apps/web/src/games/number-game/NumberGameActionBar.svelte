@@ -8,20 +8,12 @@
     readonly hintsAllowed: boolean;
     /** True while a hint is on screen, so a second press does not use up another hint. */
     readonly hintShown: boolean;
-    readonly disabled: boolean;
     readonly onAddNumbers: () => void;
     readonly onHint: () => void;
   }
 
-  const {
-    addNumbersLeft,
-    hintsLeft,
-    hintsAllowed,
-    hintShown,
-    disabled,
-    onAddNumbers,
-    onHint,
-  }: Props = $props();
+  const { addNumbersLeft, hintsLeft, hintsAllowed, hintShown, onAddNumbers, onHint }: Props =
+    $props();
 
   const hintsLeftText = $derived(
     hintsLeft === 'unlimited' ? 'unlimited' : `${String(hintsLeft)} left`,
@@ -33,18 +25,13 @@
   <button
     type="button"
     class="button primary"
-    disabled={disabled || addNumbersLeft <= 0}
+    disabled={addNumbersLeft <= 0}
     onclick={onAddNumbers}
   >
     Add Numbers ({addNumbersLeft} left)
   </button>
   {#if hintsAllowed}
-    <button
-      type="button"
-      class="button"
-      disabled={disabled || hintShown || hintsLeft === 0}
-      onclick={onHint}
-    >
+    <button type="button" class="button" disabled={hintShown || hintsLeft === 0} onclick={onHint}>
       Hint ({hintsLeftText})
     </button>
   {/if}

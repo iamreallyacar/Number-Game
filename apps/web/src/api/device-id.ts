@@ -1,6 +1,7 @@
 const DEVICE_ID_STORAGE_KEY = 'game-dashboard.device-id';
 const DEVICE_ID_BYTE_COUNT = 16;
-// The server accepts 8 to 64 letters, digits, and dashes. A stored ID that does not fit is replaced.
+// The format this browser makes, which the server accepts. A stored ID in any other format is
+// replaced.
 const DEVICE_ID_PATTERN = /^[0-9a-f]{32}$/;
 
 /**

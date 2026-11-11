@@ -112,4 +112,45 @@ describe('MoveSync', () => {
     expect(statuses.at(-1)).toEqual({ kind: 'out-of-sync', message: 'Move refused' });
     expect(sends).toHaveLength(1);
   });
+
+  it('still sends the queued moves after the game screen closes, without reporting', async () => {
+    const { sends, sendMove } = createFakeSender();
+    const sync = new MoveSync(sendMove, (status) => statuses.push(status));
+    sync.saveMove('first');
+    sync.saveMove('second');
+    sync.finishPendingMoves();
+    sync.saveMove('made after closing');
+    lastSend(sends).succeed();
+    await vi.runAllTimersAsync();
+    lastSend(sends).succeed();
+    await vi.runAllTimersAsync();
+    expect(sends.map((send) => send.move)).toEqual(['first', 'second']);
+    expect(sync.hasUnsavedMoves).toBe(false);
+    expect(statuses).toEqual([{ kind: 'saving' }]);
+  });
+
+  it('tries a waiting retry once more when the game screen closes, then gives up', async () => {
+    const { sends, sendMove } = createFakeSender();
+    const sync = new MoveSync(sendMove, (status) => statuses.push(status));
+    sync.saveMove('first');
+    lastSend(sends).fail(new NetworkError('Offline'));
+    await vi.advanceTimersByTimeAsync(0);
+    sync.finishPendingMoves();
+    expect(sends).toHaveLength(2);
+    lastSend(sends).fail(new NetworkError('Offline'));
+    await vi.runAllTimersAsync();
+    expect(sends).toHaveLength(2);
+    expect(statuses.map((status) => status.kind)).toEqual(['saving', 'retrying']);
+  });
+
+  it('drops the queued moves when it is stopped', async () => {
+    const { sends, sendMove } = createFakeSender();
+    const sync = new MoveSync(sendMove, (status) => statuses.push(status));
+    sync.saveMove('first');
+    sync.saveMove('second');
+    sync.stop();
+    lastSend(sends).succeed();
+    await vi.runAllTimersAsync();
+    expect(sends.map((send) => send.move)).toEqual(['first']);
+  });
 });

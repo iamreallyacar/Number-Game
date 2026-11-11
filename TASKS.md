@@ -1,6 +1,6 @@
 # Tasks
 
-The work plan for the first version. Tasks are grouped into phases that build on each other. Each task lists the requirement IDs it covers from the `REQUIREMENTS/` folder. A task is done when its code is written, its tests pass, and any docs it affects are updated.
+The work plan for the project. Tasks are grouped into phases that build on each other. Each task lists the requirement IDs it covers from the `REQUIREMENTS/` folder. A task is done when its code is written, its tests pass, and any docs it affects are updated.
 
 ## Phase 1: Project Setup
 
@@ -102,3 +102,7 @@ The third game. Its requirements are in `REQUIREMENTS/disk-game/rules.md`.
 - [x] T-59: Server module that registers the Disk Game with its new game options and move schemas. (DK-04, DK-08, DK-12, DK-13, DK-21)
 - [x] T-60: Browser module: dashboard entry, starting disk count form, play screen with tap to pick up and drop, refused drop feedback, undo and hint buttons, score and moves left, stage clear effect, sounds, and the game over screen. (DK-03, DK-09, DK-10, DK-14, DK-18, DK-20, DK-22, DK-23)
 - [ ] T-61: Playtest the Disk Game on a phone and a laptop, then tune the reroll rule, the move budget factor, the hint cost, and the scoring values. (DK-07, DK-13, DK-16, DK-17, OQ-20)
+
+## Close-out
+
+The project was closed on 2026-11-11 after it was deployed and used on a home server. The three playtest and tuning tasks (T-41, T-55, T-61) stay unticked, because no tuning pass was made. The scoring values, difficulty presets, shape weights, and move budget values are kept as shipped. The final audit is in `AUDIT.md`.

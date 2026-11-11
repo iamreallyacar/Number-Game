@@ -11,7 +11,7 @@ These requirements cover player IDs, save slots stored on the server, and high s
 ## Starting a New Game
 
 - PS-04: New Game shows the list of save slots for the game. The player picks an empty slot.
-- PS-05: The player then picks their player ID from a list, or creates a new one, and chooses the width and difficulty.
+- PS-05: The player then picks their player ID from a list, or creates a new one, and chooses the game's options, such as the width and difficulty in the Number Game.
 - PS-06: The game begins in that slot, and the slot is linked to that player ID.
 
 ## Saving
@@ -21,7 +21,7 @@ These requirements cover player IDs, save slots stored on the server, and high s
 
 ## Loading
 
-- PS-09: Load Game shows the list of save slots. Each used slot shows the player ID, stage, score, width, difficulty, and when it was last played.
+- PS-09: Load Game shows the list of save slots. Each used slot shows the player ID, the score, the game's own details, such as the stage, width, and difficulty in the Number Game, and when it was last played.
 - PS-10: Any player can load any save slot.
 - PS-11: Loading a slot continues the game exactly where it was left.
 
@@ -31,9 +31,9 @@ These requirements cover player IDs, save slots stored on the server, and high s
 
 ## High Scores
 
-- PS-13: Each game result records the player ID, final score, stage reached, width, difficulty, and date.
-- PS-14: The high score screen shows the top results for the game, with a way to filter by difficulty.
-- PS-15: Each player ID has a personal best score per difficulty.
+- PS-13: Each game result records the player ID, final score, date, and the game's own details and category. Each game's rules file says what these are.
+- PS-14: The high score screen shows the top results for the game, with a way to filter by the game's category, such as the difficulty in the Number Game.
+- PS-15: Each player ID has a personal best score per category.
 
 ## Configuration
 
