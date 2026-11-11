@@ -1,12 +1,12 @@
 # Number Game
 
-A small self-hosted game dashboard that runs on a home server (such as a Proxmox VM or container) and is played from a phone or laptop browser on the local network. The dashboard has two games: the Number Game, a grid puzzle where you clear pairs of numbers, and the Block Game, a grid puzzle where you place shapes to fill and clear rows and columns.
+A small self-hosted game dashboard that runs on a home server (such as a Proxmox VM or container) and is played from a phone or laptop browser on the local network. The dashboard has three games: the Number Game, a grid puzzle where you clear pairs of numbers, the Block Game, a grid puzzle where you place shapes to fill and clear rows and columns, and the Disk Game, a puzzle where you move disks between three pegs until they all sit on one.
 
 ## Goals
 
 - Primary: host the Number Game on a local Proxmox server and play it from a phone or laptop browser.
 - Secondary: publish the project as a git repository that anyone can clone and host on their own server with minimal setup.
-- Ongoing: grow the dashboard with more games. The Number Game was the first one and the Block Game is the second.
+- Ongoing: grow the dashboard with more games. The Number Game was the first one, the Block Game is the second, and the Disk Game is the third.
 
 ## The Number Game in Short
 
@@ -33,12 +33,23 @@ The full rules are in `REQUIREMENTS/number-game/rules.md`.
 
 The full rules are in `REQUIREMENTS/block-game/rules.md`.
 
+## The Disk Game in Short
+
+- There are 3 pegs, and the disks start spread out across them at random. A bigger disk is never on top of a smaller one, at the start or during play.
+- You move one top disk at a time to another peg. A stage is cleared when every disk is on any one peg.
+- You pick a starting disk count of 3, 4, or 5, and each stage adds one more disk, up to 10.
+- Each stage adds moves to a shared budget based on the fewest moves needed, and unused moves carry over. Undo and hints are allowed but cost moves.
+- Clearing a stage earns points, with a bonus for a perfect solve. The game ends when you no longer have enough moves left to finish the stage.
+- Saves, player IDs, and high scores work the same way as in the other games. High scores are filtered by starting disk count.
+
+The full rules are in `REQUIREMENTS/disk-game/rules.md`.
+
 ## Scope
 
 In scope:
 
 - A web dashboard that lists the available games.
-- The Number Game and the Block Game, playable with touch and mouse.
+- The Number Game, the Block Game, and the Disk Game, playable with touch and mouse.
 - Hosting on a single local server, packaged so others can self-host it.
 
 Out of scope for now:
@@ -56,6 +67,7 @@ The `REQUIREMENTS/` folder holds the detailed requirements. Platform requirement
 | `REQUIREMENTS/number-game/rules.md` | Board, matching, line of sight, row removal, adding numbers, stages, scoring, and game over |
 | `REQUIREMENTS/number-game/difficulty.md` | Difficulty presets and ideas for later |
 | `REQUIREMENTS/block-game/rules.md` | Board, slots, shapes, placing, line clearing, scoring, and game over |
+| `REQUIREMENTS/disk-game/rules.md` | Pegs, disks, random layouts, moves, undo and hints, stages, move budget, scoring, and game over |
 | `REQUIREMENTS/players-saves-scores.md` | Player IDs, server save slots, and high scores |
 | `REQUIREMENTS/open-questions.md` | Open decisions, the chosen tech stack, and answered questions |
 
@@ -126,4 +138,4 @@ With Docker, `compose.yaml` reads the same `.env` file, but some settings mean s
 
 ## Status
 
-Phases 1 to 4 (project setup, game rules, server, and browser app) are done. In Phase 5, the Docker packaging and the setup steps are done, and the playtest on a phone and a laptop (T-41) is next. The Block Game (Phase 7) is built and needs its own playtest (T-55). The work plan is in `TASKS.md`.
+Phases 1 to 4 (project setup, game rules, server, and browser app) are done. In Phase 5, the Docker packaging and the setup steps are done, and the playtest on a phone and a laptop (T-41) is next. The Block Game (Phase 7) is built and needs its own playtest (T-55). The Disk Game (Phase 9) is built and needs its own playtest (T-61). The work plan is in `TASKS.md`.

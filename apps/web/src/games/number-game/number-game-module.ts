@@ -2,8 +2,6 @@ import { DIFFICULTY_IDS, NUMBER_GAME_ID } from '@local/number-game';
 import type { BrowserGame } from '../browser-game.js';
 import { describeNumberGameDetails } from './describe-number-game-details.js';
 import { DIFFICULTY_LABELS } from './difficulty-labels.js';
-import NumberGameOptionsForm from './NumberGameOptionsForm.svelte';
-import NumberGamePlayScreen from './NumberGamePlayScreen.svelte';
 
 export const numberGameBrowserModule: BrowserGame = {
   id: NUMBER_GAME_ID,
@@ -16,6 +14,6 @@ export const numberGameBrowserModule: BrowserGame = {
     label: DIFFICULTY_LABELS[difficulty],
   })),
   describeDetails: describeNumberGameDetails,
-  NewGameOptionsForm: NumberGameOptionsForm,
-  PlayScreen: NumberGamePlayScreen,
+  loadNewGameOptionsForm: async () => (await import('./NumberGameOptionsForm.svelte')).default,
+  loadPlayScreen: async () => (await import('./NumberGamePlayScreen.svelte')).default,
 };

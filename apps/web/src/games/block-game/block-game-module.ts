@@ -1,8 +1,6 @@
 import { BLOCK_GAME_ID, BOARD_SIZES, boardSizeCategory } from '@local/block-game';
 import type { BrowserGame } from '../browser-game.js';
 import { boardSizeLabel } from './board-size-labels.js';
-import BlockGameOptionsForm from './BlockGameOptionsForm.svelte';
-import BlockGamePlayScreen from './BlockGamePlayScreen.svelte';
 import { describeBlockGameDetails } from './describe-block-game-details.js';
 
 export const blockGameBrowserModule: BrowserGame = {
@@ -16,6 +14,6 @@ export const blockGameBrowserModule: BrowserGame = {
     label: boardSizeLabel(size),
   })),
   describeDetails: describeBlockGameDetails,
-  NewGameOptionsForm: BlockGameOptionsForm,
-  PlayScreen: BlockGamePlayScreen,
+  loadNewGameOptionsForm: async () => (await import('./BlockGameOptionsForm.svelte')).default,
+  loadPlayScreen: async () => (await import('./BlockGamePlayScreen.svelte')).default,
 };

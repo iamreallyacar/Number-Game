@@ -67,7 +67,7 @@ The server is the source of truth. The browser sends moves, the server applies t
 Findings from `AUDIT.md`.
 
 - [x] T-42: Version stored game states and summary details, share the server API schemas, move each game's contract into its rules package, test shared server code with a fake game, and split the documents per game. (AUDIT.md A-01 to A-05, A-07 to A-10)
-- [ ] T-43: Once there are three or more games, load each game's play screen and new game options form only when they are first needed. (AUDIT.md A-06)
+- [x] T-43: Load each game's play screen and new game options form only when they are first needed. (AUDIT.md A-06)
 
 ## Phase 6: Playtest Improvements
 
@@ -92,3 +92,13 @@ The second game. Its requirements are in `REQUIREMENTS/block-game/rules.md`.
 ## Phase 8: Fixes
 
 - [x] T-56: Give every save its own save id and put it in the play page link, so an old link or an open tab for an ended or deleted game cannot open or change a newer game in the same slot, or move its device lock. Old links without a save id open no game. (PS-19, PS-20, PS-21)
+
+## Phase 9: Disk Game
+
+The third game. Its requirements are in `REQUIREMENTS/disk-game/rules.md`.
+
+- [x] T-57: Write the Disk Game requirements. (DK-01 to DK-23)
+- [x] T-58: Rules package `packages/disk-game`: layouts, random layout with the reroll rule, fewest moves to the closest peg, moves, undo, hints, stage clear, move budget, scoring, game over, summary, and stored state checks. (DK-01, DK-02, DK-04 to DK-08, DK-10 to DK-17, DK-19, DK-21)
+- [x] T-59: Server module that registers the Disk Game with its new game options and move schemas. (DK-04, DK-08, DK-12, DK-13, DK-21)
+- [x] T-60: Browser module: dashboard entry, starting disk count form, play screen with tap to pick up and drop, refused drop feedback, undo and hint buttons, score and moves left, stage clear effect, sounds, and the game over screen. (DK-03, DK-09, DK-10, DK-14, DK-18, DK-20, DK-22, DK-23)
+- [ ] T-61: Playtest the Disk Game on a phone and a laptop, then tune the reroll rule, the move budget factor, the hint cost, and the scoring values. (DK-07, DK-13, DK-16, DK-17, OQ-20)

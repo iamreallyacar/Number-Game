@@ -4,7 +4,8 @@
   import { startGame } from '../api/game-server-api.js';
   import PlayerPicker from '../components/PlayerPicker.svelte';
   import SaveSlotList from '../components/SaveSlotList.svelte';
-  import type { BrowserGame } from '../games/browser-game.js';
+  import type { Component } from 'svelte';
+  import type { BrowserGame, NewGameOptionsFormProps } from '../games/browser-game.js';
   import { navigate } from '../routing/router.js';
   import { routePath } from '../routing/routes.js';
 
@@ -22,6 +23,12 @@
     | { readonly kind: 'starting'; readonly slotNumber: number; readonly playerId: string };
 
   let step: Step = $state({ kind: 'slot' });
+  function loadOptionsForm(): Promise<Component<NewGameOptionsFormProps>> {
+    return game.loadNewGameOptionsForm();
+  }
+
+  // Starts the download early, so the form is usually ready by the time the options step opens.
+  let optionsFormRequest = $state(loadOptionsForm());
   let startError: string | null = $state(null);
 
   async function handleOptions(slotNumber: number, playerId: string, options: unknown) {
@@ -69,11 +76,24 @@
 {:else if step.kind === 'options'}
   {@const { slotNumber, playerId } = step}
   <h2>Slot {slotNumber} for {playerId}</h2>
-  <game.NewGameOptionsForm
-    onSubmit={(options: unknown) => {
-      void handleOptions(slotNumber, playerId, options);
-    }}
-  />
+  {#await optionsFormRequest}
+    <p>Loading the options…</p>
+  {:then NewGameOptionsForm}
+    <NewGameOptionsForm
+      onSubmit={(options: unknown) => {
+        void handleOptions(slotNumber, playerId, options);
+      }}
+    />
+  {:catch error}
+    <p class="error-text" role="alert">Could not load the options: {describeError(error)}</p>
+    <button
+      type="button"
+      class="button primary"
+      onclick={() => (optionsFormRequest = loadOptionsForm())}
+    >
+      Try again
+    </button>
+  {/await}
   <button type="button" class="button" onclick={() => (step = { kind: 'player', slotNumber })}>
     Pick another player
   </button>

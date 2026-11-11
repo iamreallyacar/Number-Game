@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { onDestroy } from 'svelte';
+  import { onDestroy, type Component } from 'svelte';
   import { ApiError, describeError } from '../api/api-request.js';
   import type { OpenedSave } from '@local/game-server-api';
   import { openSave, sendMove, type SaveAddress } from '../api/game-server-api.js';
   import SaveGoneNotice from '../components/SaveGoneNotice.svelte';
   import SaveStatusBanner from '../components/SaveStatusBanner.svelte';
-  import type { BrowserGame } from '../games/browser-game.js';
+  import type { BrowserGame, PlayScreenProps } from '../games/browser-game.js';
   import { routePath } from '../routing/routes.js';
   import { MoveSync, type SaveStatus } from '../saving/move-sync.js';
 
@@ -21,6 +21,7 @@
   interface OpenedGame {
     readonly save: OpenedSave;
     readonly sync: MoveSync;
+    readonly PlayScreen: Component<PlayScreenProps>;
   }
 
   let saveStatus = $state<SaveStatus>({ kind: 'saved' });
@@ -37,8 +38,8 @@
       },
     );
     currentSync = sync;
-    const save = await openSave(saveAddress);
-    return { save, sync };
+    const [save, PlayScreen] = await Promise.all([openSave(saveAddress), game.loadPlayScreen()]);
+    return { save, sync, PlayScreen };
   }
 
   let openRequest = $state(openGame());
@@ -69,7 +70,7 @@
 
 {#await openRequest}
   <p>Loading slot {slotNumber}…</p>
-{:then { save, sync }}
+{:then { save, sync, PlayScreen }}
   <div class="stack">
     <p class="muted">
       {game.name}, slot {save.slotNumber}, played by {save.playerId}
@@ -81,7 +82,7 @@
       dashboardPath={routePath({ page: 'dashboard' })}
     />
     <div inert={savingStopped}>
-      <game.PlayScreen
+      <PlayScreen
         storedState={save.state}
         saveMove={(move) => {
           sync.saveMove(move);

@@ -12,6 +12,7 @@ The repository is one npm workspace with these parts:
 | `packages/game-server-api` | `@local/game-server-api` | TypeBox schemas of every server request body and answer, shared by the server and the browser app |
 | `packages/number-game` | `@local/number-game` | The Number Game rules as plain TypeScript. No browser or server code. Its files are listed in `packages/number-game/README.md` |
 | `packages/block-game` | `@local/block-game` | The Block Game rules as plain TypeScript. No browser or server code. Its files are listed in `packages/block-game/README.md` |
+| `packages/disk-game` | `@local/disk-game` | The Disk Game rules as plain TypeScript. No browser or server code. Its files are listed in `packages/disk-game/README.md` |
 | `apps/server` | `@local/server` | Fastify server. Stores players, saves, and high scores in SQLite, applies moves, and serves the built browser app |
 | `apps/web` | `@local/web` | Svelte app built with Vite. Shows the dashboard and the games |
 
@@ -22,8 +23,8 @@ Dependencies only point one way: `apps/server` and `apps/web` both use the packa
 Each game provides its own rules package plus one module for each app:
 
 - Rules package: a folder under `packages/` with a `README.md` that lists its files. It owns every fact the two apps must agree on: the game id, the game state type, the move type, one function that applies any move, the summary of a state for save slots and high scores, a check that reads stored states and summary details back, and the upgrade lists for older stored formats.
-- Server module: registers the game with the server game registry. It adds the TypeBox schemas of the new game options and the moves, and checks when it compiles that the move schema matches the rules package move type. Everything else it passes on from the rules package. The shared save slot and move routes call it for the game named in the URL, so a game does not need routes of its own. The modules are `apps/server/src/games/number-game.ts` and `apps/server/src/games/block-game.ts`, and every game is listed in `apps/server/src/games/create-game-registry.ts`.
-- Browser module: registers the game with the browser game registry under the id from the rules package. It gives the dashboard a name and a description, the high score categories, a way to label the summary details, a new game options form, and the play screen. The modules are `apps/web/src/games/number-game/number-game-module.ts` and `apps/web/src/games/block-game/block-game-module.ts`, and every game is listed in `apps/web/src/games/create-browser-game-registry.ts`.
+- Server module: registers the game with the server game registry. It adds the TypeBox schemas of the new game options and the moves, and checks when it compiles that the move schema matches the rules package move type. Everything else it passes on from the rules package. The shared save slot and move routes call it for the game named in the URL, so a game does not need routes of its own. The modules are `apps/server/src/games/number-game.ts`, `apps/server/src/games/block-game.ts`, and `apps/server/src/games/disk-game.ts`, and every game is listed in `apps/server/src/games/create-game-registry.ts`.
+- Browser module: registers the game with the browser game registry under the id from the rules package. It gives the dashboard a name and a description, the high score categories, a way to label the summary details, and loaders for the new game options form and the play screen. The loaders use a dynamic `import()`, so a game's form and play screen are only downloaded the first time they are needed and the dashboard stays small as games are added. The modules are `apps/web/src/games/number-game/number-game-module.ts`, `apps/web/src/games/block-game/block-game-module.ts`, and `apps/web/src/games/disk-game/disk-game-module.ts`, and every game is listed in `apps/web/src/games/create-browser-game-registry.ts`.
 - Requirements: a folder under `REQUIREMENTS/` named after the game.
 - Registrations: the new package is added to the workspace list in the root `package.json`, which must stay in build order with dependencies first, and to the `Dockerfile`.
 
@@ -43,7 +44,7 @@ Because the server applies every move itself, a changed browser cannot save an i
 
 ## Randomness
 
-New boards and Add Numbers use a seeded random number generator whose state is part of the game state. The server picks a random seed when it starts a new game, so the rules package itself has no hidden randomness. Since the browser and the server start from the same state, they produce the same numbers for the same move. A save loaded on another device continues with exactly the same upcoming numbers.
+New boards, Add Numbers, Block Game shapes, and Disk Game layouts use a seeded random number generator whose state is part of the game state. The server picks a random seed when it starts a new game, so the rules package itself has no hidden randomness. Since the browser and the server start from the same state, they produce the same numbers for the same move. A save loaded on another device continues with exactly the same upcoming numbers.
 
 ## Storage
 
@@ -91,14 +92,14 @@ Every error response has the shape `{ "error": "<code>", "message": "<text>" }`.
 | `POST /api/games/:gameId/slots/:slotNumber/saves/:saveId/open` | Loads a save and locks it to this device |
 | `DELETE /api/games/:gameId/slots/:slotNumber/saves/:saveId` | Deletes a save, which empties its slot |
 | `POST /api/games/:gameId/slots/:slotNumber/saves/:saveId/moves` | Applies one move and saves it. Ends the game when no moves are left, and then answers with the result |
-| `GET /api/games/:gameId/high-scores` | Top results. Optional `category` (the difficulty) and `limit` |
-| `GET /api/games/:gameId/personal-bests/:playerId` | A player's best result per difficulty |
+| `GET /api/games/:gameId/high-scores` | Top results. Optional `category` (such as the difficulty) and `limit` |
+| `GET /api/games/:gameId/personal-bests/:playerId` | A player's best result per category |
 
 The slot list, the start answer, and the open answer all carry the save id. Open, move, and delete name the save in the URL. If the slot is empty or holds a different save, they are refused with status 410 and the error `save-gone`, and nothing changes. This check comes before the lock check, so a stale page is never offered to take the lock of a newer game. (PS-19, PS-21)
 
 Requests that start, open, or change a save must send an `x-device-id` header. The browser makes up a random device ID once and keeps it. Opening a save moves its lock to that device, and moves from any other device are refused with the error `opened-elsewhere`. (PS-18)
 
-High scores store a `category` used for filtering and a `details` object shown next to the score. For the Number Game, the category is the difficulty, and the details are the stage, width, and difficulty. For the Block Game, the category is the board size, and the details are the board size and the lines cleared.
+High scores store a `category` used for filtering and a `details` object shown next to the score. For the Number Game, the category is the difficulty, and the details are the stage, width, and difficulty. For the Block Game, the category is the board size, and the details are the board size and the lines cleared. For the Disk Game, the category is the starting disk count, and the details are the stage, the starting disk count, and, for a save only, the moves left.
 
 Paths outside `/api/` serve the built browser app from `apps/web/dist`, and unknown pages get its `index.html` so the browser app can handle its own page routing. If the browser app has not been built, the server logs a warning and serves only the API.
 
@@ -138,6 +139,8 @@ The Number Game play screen still calls the single rules (`applyMatch`, `applyAd
 
 Sounds and effects only show what happened and never change the game state. The play screen picks the Number Game sound for each event from `number-game-sounds.ts` and plays it with the shared sound player. After a match it also hands the board a short-lived match effect: a burst on both cleared cells and the points earned, placed with the cell positions from before the move. (NG-30, NG-31)
 
+The Disk Game play screen also calls the single rules (`applyDiskMove`, `applyUndo`, `applyHint`), because it needs the stage clear, and the move a hint shows. When a move clears a stage, the rules already hold the next stage's layout, so the play screen keeps showing the sorted pegs from the stage clear for a moment, with the points floating up, before it shows the new layout. Which peg a tap picks up from or drops onto is decided in `tap-peg.ts`. (DK-09, DK-23)
+
 ## Packaging
 
 The `Dockerfile` builds the image in two stages. The first installs every dependency and runs `npm run build`. The second keeps only the built `dist` folders and the dependencies needed at run time, and runs the server as the unprivileged `node` user (user id 1000). Inside the container the server always uses `HOST=0.0.0.0`, `PORT=3000`, and `DATA_DIR=/data`. A health check calls `/api/health`.
@@ -163,4 +166,4 @@ The server and the browser app use the built `dist` folder of each package, not 
 
 ## Current State
 
-Phases 1 to 4 are done, the Docker packaging and setup steps of Phase 5 are done, and the fixes from `AUDIT.md` are applied. The Number Game and the Block Game (Phase 7) each have a rules package, a server module, and a browser module. The browser app's routing, server calls, saving, and game logic helpers have tests, but its Svelte components do not, and it still needs a playtest on a phone and a laptop (T-41), and so does the Block Game (T-55). The next steps are T-41 and T-55 in `TASKS.md`.
+Phases 1 to 4 are done, the Docker packaging and setup steps of Phase 5 are done, and the fixes from `AUDIT.md` are applied. The Number Game, the Block Game (Phase 7), and the Disk Game (Phase 9) each have a rules package, a server module, and a browser module. The browser app's routing, server calls, saving, and game logic helpers have tests, but its Svelte components do not, and it still needs a playtest on a phone and a laptop (T-41), and so do the Block Game (T-55) and the Disk Game (T-61). The next steps are T-41, T-55, and T-61 in `TASKS.md`.

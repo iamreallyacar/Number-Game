@@ -38,6 +38,8 @@ export interface BrowserGame {
   readonly categories: readonly CategoryOption[];
   /** Turns the details of a save slot or high score into labelled values. */
   describeDetails(details: SummaryDetails): readonly DetailField[];
-  readonly NewGameOptionsForm: Component<NewGameOptionsFormProps>;
-  readonly PlayScreen: Component<PlayScreenProps>;
+  /** Downloads the form only when it is first needed, so the dashboard loads fast. */
+  loadNewGameOptionsForm(): Promise<Component<NewGameOptionsFormProps>>;
+  /** Downloads the play screen only when it is first needed, so the dashboard loads fast. */
+  loadPlayScreen(): Promise<Component<PlayScreenProps>>;
 }

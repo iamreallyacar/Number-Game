@@ -133,7 +133,7 @@ Applied on 2026-11-10, with `npm run check` passing afterwards.
 | A-03 | Done. The rules package owns the id, the move type, `applyMove`, and the summary. The server checks its move schema against the move type when it compiles. The play screen still calls the single rules because it needs their extra results |
 | A-04 | Done. Shared route tests use `apps/server/src/counter-test-game.ts`. Number Game server tests are in `apps/server/src/games/number-game.test.ts` |
 | A-05 | Done. The rules file table is in `packages/number-game/README.md`, and the Number Game requirements are in `REQUIREMENTS/number-game/` |
-| A-06 | Not done yet, as the finding suggests. Tracked as T-43 in `TASKS.md` |
+| A-06 | Done on 2026-11-11 after the Block Game was added (T-43). Each browser module gives `loadNewGameOptionsForm` and `loadPlayScreen`, which use a dynamic `import()`. The first download fell from 183.75 kB to 160.29 kB, and each game's play screen and form are now separate files |
 | A-07 | Done. `apps/server/src/routes/request-lookups.ts` replaces `slot-access.ts` |
 | A-08 | Done. The move answer no longer carries `details` or `state` |
 | A-09 | Done. Split into `TopResultsTable.svelte` and `PersonalBestsList.svelte` |

@@ -9,6 +9,7 @@ This file tracks decisions about the project. New questions go in the Open secti
 | OQ-17 | `npm audit` reports moderate warnings from `minimatch` inside ESLint 10. The only offered fix moves ESLint back to version 9. Should it be downgraded? | No. The warnings only affect lint tooling, not the shipped game. Keep ESLint 10 and update when a fixed version is released |
 | OQ-18 | What may a player ID contain? | 1 to 24 letters, digits, or the characters _ . -, in any language, with single spaces between words. Letter case does not make an ID different, so Sam and sam cannot both exist |
 | OQ-19 | What happens to saves in slots above `SAVE_SLOTS_PER_GAME` if the setting is lowered? | They stay in the database but are not listed or reachable until the setting is raised again |
+| OQ-20 | In the Disk Game, a player who always plays a shortest path never runs out of moves, so a game can last as long as they want. Should the move budget tighten in later stages? | No. Stages of 10 disks take hundreds of moves, so games end in practice. Check this in the playtest (T-61) |
 
 ## Tech Stack
 
