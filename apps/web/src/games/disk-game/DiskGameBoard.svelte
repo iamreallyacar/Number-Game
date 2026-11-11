@@ -154,7 +154,7 @@
     border: 1px solid rgb(0 0 0 / 25%);
     border-radius: 0.6rem;
     background: var(--disk-colour);
-    /* The disk colours are light in both colour schemes, so the number is always dark. */
+    /* The disk colours are light, so the number is always dark. */
     color: #1d2330;
     font-size: 0.85rem;
     font-weight: 700;

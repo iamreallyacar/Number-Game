@@ -1,41 +1,23 @@
 /* Shared look of every page. Phone portrait screens come first, wider screens get more room (PL-08). */
 :root {
-  --color-background: #f6f7f9;
-  --color-surface: #ffffff;
-  --color-text: #1d2330;
-  --color-muted: #5b6475;
-  --color-border: #cfd5df;
-  --color-accent: #2f5fd0;
+  --color-background: #f4f0e8;
+  --color-surface: #fcfaf5;
+  --color-text: #2e3338;
+  --color-muted: #636a66;
+  --color-border: #d8d1c2;
+  --color-accent: #2f6f62;
   --color-on-accent: #ffffff;
-  --color-hint: #fff1b8;
-  --color-hint-border: #d9a400;
-  --color-warning: #b77900;
-  --color-warning-surface: #fff6dc;
-  --color-error: #b3261e;
-  --color-error-surface: #fde7e5;
+  --color-hint: #fbeab0;
+  --color-hint-border: #c99a1a;
+  --color-warning: #8a5d06;
+  --color-warning-surface: #fbf0d3;
+  --color-error: #a5362c;
+  --color-error-surface: #f9e4e0;
 
   font-family: system-ui, sans-serif;
   line-height: 1.4;
   color: var(--color-text);
   background: var(--color-background);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: #14171d;
-    --color-surface: #1f242d;
-    --color-text: #e8ebf1;
-    --color-muted: #a3acbd;
-    --color-border: #3a4250;
-    --color-accent: #6c95f5;
-    --color-on-accent: #0d1220;
-    --color-hint: #4d4115;
-    --color-hint-border: #d9a400;
-    --color-warning: #e0a92e;
-    --color-warning-surface: #3a2f12;
-    --color-error: #ff8a80;
-    --color-error-surface: #3d1b19;
-  }
 }
 
 * {
