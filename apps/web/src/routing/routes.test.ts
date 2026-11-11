@@ -6,25 +6,23 @@ const SAVE_ID = '0f8fad5b-d9cb-469f-a165-70867728950e';
 describe('parseRoute', () => {
   it('reads every page from its path', () => {
     expect(parseRoute('/')).toEqual({ page: 'dashboard' });
-    expect(parseRoute('/games/number-game')).toEqual({ page: 'game-menu', gameId: 'number-game' });
-    expect(parseRoute('/games/number-game/new')).toEqual({
-      page: 'new-game',
-      gameId: 'number-game',
-    });
-    expect(parseRoute('/games/number-game/load/')).toEqual({
-      page: 'load-game',
-      gameId: 'number-game',
-    });
-    expect(parseRoute('/games/number-game/high-scores')).toEqual({
-      page: 'high-scores',
-      gameId: 'number-game',
-    });
+    expect(parseRoute('/games/number-game')).toEqual({ page: 'game', gameId: 'number-game' });
     expect(parseRoute(`/games/number-game/slots/3/saves/${SAVE_ID}`)).toEqual({
       page: 'play',
       gameId: 'number-game',
       slotNumber: 3,
       saveId: SAVE_ID,
     });
+  });
+
+  it('opens the game page for the paths of the former new game, load game, and high score pages', () => {
+    for (const path of [
+      '/games/number-game/new',
+      '/games/number-game/load/',
+      '/games/number-game/high-scores',
+    ]) {
+      expect(parseRoute(path)).toEqual({ page: 'game', gameId: 'number-game' });
+    }
   });
 
   it('reads a play link without a save id as outdated, so it opens no game', () => {
@@ -58,10 +56,7 @@ describe('routePath', () => {
   it('builds paths that parse back to the same route', () => {
     const routes: PageRoute[] = [
       { page: 'dashboard' },
-      { page: 'game-menu', gameId: 'a game/with slash' },
-      { page: 'new-game', gameId: 'number-game' },
-      { page: 'load-game', gameId: 'number-game' },
-      { page: 'high-scores', gameId: 'number-game' },
+      { page: 'game', gameId: 'a game/with slash' },
       { page: 'play', gameId: 'number-game', slotNumber: 12, saveId: SAVE_ID },
     ];
     for (const route of routes) {

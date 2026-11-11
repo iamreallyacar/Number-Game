@@ -4,10 +4,7 @@
   import SoundToggle from './components/SoundToggle.svelte';
   import { createBrowserGameRegistry } from './games/create-browser-game-registry.js';
   import DashboardPage from './pages/DashboardPage.svelte';
-  import GameMenuPage from './pages/GameMenuPage.svelte';
-  import HighScoresPage from './pages/HighScoresPage.svelte';
-  import LoadGamePage from './pages/LoadGamePage.svelte';
-  import NewGamePage from './pages/NewGamePage.svelte';
+  import GamePage from './pages/GamePage.svelte';
   import NotFoundPage from './pages/NotFoundPage.svelte';
   import OutdatedPlayLinkPage from './pages/OutdatedPlayLinkPage.svelte';
   import PlayPage from './pages/PlayPage.svelte';
@@ -40,18 +37,12 @@
         <DashboardPage games={games.listGames()} />
       {:else if route.page === 'not-found' || game === null}
         <NotFoundPage />
-      {:else if route.page === 'game-menu'}
-        <GameMenuPage {game} />
-      {:else if route.page === 'new-game'}
-        <NewGamePage {game} />
-      {:else if route.page === 'load-game'}
-        <LoadGamePage {game} />
+      {:else if route.page === 'game'}
+        <GamePage {game} />
       {:else if route.page === 'play'}
         <PlayPage {game} slotNumber={route.slotNumber} saveId={route.saveId} />
-      {:else if route.page === 'outdated-play-link'}
-        <OutdatedPlayLinkPage {game} />
       {:else}
-        <HighScoresPage {game} />
+        <OutdatedPlayLinkPage {game} />
       {/if}
 
       {#snippet failed(error, reset)}

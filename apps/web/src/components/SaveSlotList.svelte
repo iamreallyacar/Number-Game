@@ -4,21 +4,15 @@
   import { deleteSave, listSlots } from '../api/game-server-api.js';
   import type { BrowserGame } from '../games/browser-game.js';
 
-  /** New Game picks an empty slot (PS-04). Load Game picks a used one by its save id (PS-09). */
-  type Props =
-    | {
-        readonly game: BrowserGame;
-        readonly mode: 'new';
-        readonly onPickEmptySlot: (slotNumber: number) => void;
-      }
-    | {
-        readonly game: BrowserGame;
-        readonly mode: 'load';
-        readonly onPickSave: (slotNumber: number, saveId: string) => void;
-      };
+  interface Props {
+    readonly game: BrowserGame;
+    /** An empty slot starts a new game (PS-04). */
+    readonly onPickEmptySlot: (slotNumber: number) => void;
+    /** A used slot continues its game, named by its save id (PS-09). */
+    readonly onPickSave: (slotNumber: number, saveId: string) => void;
+  }
 
-  const props: Props = $props();
-  const game = $derived(props.game);
+  const { game, onPickEmptySlot, onPickSave }: Props = $props();
 
   function loadSlots(): Promise<readonly SlotListing[]> {
     return listSlots(game.id);
@@ -58,18 +52,15 @@
         <h3>Slot {slot.slotNumber}</h3>
         {#if slot.save === null}
           <p class="muted">Empty</p>
-          {#if props.mode === 'new'}
-            {@const onPickEmptySlot = props.onPickEmptySlot}
-            <button
-              type="button"
-              class="button primary"
-              onclick={() => {
-                onPickEmptySlot(slot.slotNumber);
-              }}
-            >
-              Use this slot
-            </button>
-          {/if}
+          <button
+            type="button"
+            class="button"
+            onclick={() => {
+              onPickEmptySlot(slot.slotNumber);
+            }}
+          >
+            New Game
+          </button>
         {:else}
           {@const saveId = slot.save.saveId}
           <dl class="slot-details">
@@ -85,18 +76,15 @@
             <dd>{formatPlayedAt(slot.save.lastPlayedAt)}</dd>
           </dl>
           <div class="button-row">
-            {#if props.mode === 'load'}
-              {@const onPickSave = props.onPickSave}
-              <button
-                type="button"
-                class="button primary"
-                onclick={() => {
-                  onPickSave(slot.slotNumber, saveId);
-                }}
-              >
-                Continue
-              </button>
-            {/if}
+            <button
+              type="button"
+              class="button primary"
+              onclick={() => {
+                onPickSave(slot.slotNumber, saveId);
+              }}
+            >
+              Continue
+            </button>
             <button
               type="button"
               class="button danger"

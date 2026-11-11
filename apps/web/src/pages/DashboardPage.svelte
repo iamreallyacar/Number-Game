@@ -14,7 +14,7 @@
 <ul class="game-list">
   {#each games as game (game.id)}
     <li>
-      <a class="panel game-card" href={routePath({ page: 'game-menu', gameId: game.id })}>
+      <a class="panel game-card" href={routePath({ page: 'game', gameId: game.id })}>
         <h2>{game.name}</h2>
         <p>{game.description}</p>
       </a>

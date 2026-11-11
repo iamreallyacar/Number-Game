@@ -86,7 +86,7 @@
         saveMove={(move) => {
           sync.saveMove(move);
         }}
-        newGamePath={routePath({ page: 'new-game', gameId: game.id })}
+        newGamePath={routePath({ page: 'game', gameId: game.id })}
         dashboardPath={routePath({ page: 'dashboard' })}
       />
     </div>
@@ -106,7 +106,7 @@
       <button type="button" class="button primary" onclick={() => (openRequest = openGame())}>
         Try again
       </button>
-      <a class="button" href={routePath({ page: 'load-game', gameId: game.id })}>Load Game</a>
+      <a class="button" href={routePath({ page: 'game', gameId: game.id })}>Save Slots</a>
     </div>
   {/if}
 {/await}

@@ -5,7 +5,7 @@ These requirements cover everything around the games: the dashboard, how games p
 ## Dashboard
 
 - PL-01: The home page is a dashboard that lists every installed game with its name and a short description.
-- PL-02: Selecting a game on the dashboard opens that game.
+- PL-02: Selecting a game on the dashboard opens that game's page, described in `players-saves-scores.md`.
 - PL-03: Every game page has a way to return to the dashboard.
 
 ## Multiple Games

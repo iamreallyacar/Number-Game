@@ -138,4 +138,4 @@ With Docker, `compose.yaml` reads the same `.env` file, but some settings mean s
 
 ## Status
 
-The project is finished and closed. The work plan and its close-out note are in `TASKS.md`.
+The project is finished and closed, apart from small polishing work. The work plan, its close-out note, and the polishing tasks are in `TASKS.md`.

@@ -36,7 +36,7 @@ This file tracks decisions about the project. New questions go in the Open secti
 | OQ-10 | Is 5 and 5 a valid pair? | Yes, with normal match points |
 | OQ-11 | Which tech stack should be used? | See the Tech Stack section above |
 | OQ-12 | Which license? | MIT |
-| OQ-13 | Can a player delete their own save slot or player ID? | Save slots can be deleted from the load list. Player IDs cannot be deleted in the first version |
+| OQ-13 | Can a player delete their own save slot or player ID? | Save slots can be deleted from the save slot list. Player IDs cannot be deleted in the first version |
 | OQ-14 | What happens if the same save is open on two devices at once? | The save is locked to the device that opened it most recently. The other device is told the game was opened elsewhere |
 | OQ-15 | Should saving be built in the first version? | Yes, saves go straight to the server. There is no browser saving step, so the save code is only written once |
 | OQ-16 | Should high scores be split by width as well as difficulty? | No, width is shown next to each score but not used to filter |

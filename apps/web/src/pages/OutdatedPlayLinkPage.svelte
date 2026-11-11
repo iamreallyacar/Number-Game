@@ -14,6 +14,6 @@
   <h1>This link no longer opens a game</h1>
   <SaveGoneNotice
     gameId={game.id}
-    message="This is an older {game.name} link that does not say which game it belongs to. Pick your game on the Load Game page, or start a new one."
+    message="This is an older {game.name} link that does not say which game it belongs to. Pick your game from the save slots, or start a new one in an empty slot."
   />
 </div>

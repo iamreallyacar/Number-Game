@@ -23,6 +23,7 @@ export interface PlayScreenProps {
   readonly storedState: unknown;
   /** Applies nothing itself. It only sends a move the game has already applied to the server. */
   readonly saveMove: (move: unknown) => void;
+  /** The game page, where an empty save slot starts a new game. */
   readonly newGamePath: string;
   readonly dashboardPath: string;
 }

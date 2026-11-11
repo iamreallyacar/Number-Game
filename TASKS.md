@@ -106,3 +106,9 @@ The third game. Its requirements are in `REQUIREMENTS/disk-game/rules.md`.
 ## Close-out
 
 The project was closed on 2026-11-11 after it was deployed and used on a home server. The three playtest and tuning tasks (T-41, T-55, T-61) stay unticked, because no tuning pass was made. The scoring values, difficulty presets, shape weights, and move budget values are kept as shipped. The final audit is in `AUDIT.md`.
+
+## Phase 10: Polishing
+
+Small improvements made after the close-out.
+
+- [x] T-62: Cut the clicks needed to start playing. Replace the game menu, New Game, Load Game, and High Scores pages with one game page that shows the leaderboard and the save slots. An empty slot starts a new game and a used slot continues its game. (PS-04, PS-09, PS-14, PS-22)
