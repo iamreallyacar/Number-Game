@@ -1,13 +1,12 @@
-import { cellIndexAt, countFullLines, findFullLines } from './board.js';
-import type { BoardCell } from './board-cell.js';
-import { drawShapeId } from './deal-shapes.js';
+import { countFullLines } from './board.js';
+import { dealHand } from './deal-shapes.js';
 import { isGameOver } from './game-over.js';
 import type { CellIndex, GameState, ShapeSlots } from './game-state.js';
 import { lineClearPoints, placementPoints } from './scoring.js';
-import type { ShapeId } from './shape-catalogue.js';
-import { coveredCellIndexes, fillShape, findFitProblem, type FitRefusal } from './shape-fit.js';
+import { placeAndClearLines } from './place-and-clear.js';
+import { coveredCellIndexes, findFitProblem, type FitRefusal } from './shape-fit.js';
 
-export type PlacementRefusal = 'game-over' | 'slot-out-of-range' | FitRefusal;
+export type PlacementRefusal = 'game-over' | 'slot-out-of-range' | 'slot-empty' | FitRefusal;
 
 export type PlacementResult =
   | {
@@ -26,19 +25,23 @@ export type PlacementResult =
     }
   | { readonly accepted: false; readonly reason: PlacementRefusal };
 
-function replaceSlot(slots: ShapeSlots, slotIndex: number, shapeId: ShapeId): ShapeSlots {
+function emptySlot(slots: ShapeSlots, slotIndex: number): ShapeSlots {
   const [first, second, third] = slots;
   return [
-    slotIndex === 0 ? shapeId : first,
-    slotIndex === 1 ? shapeId : second,
-    slotIndex === 2 ? shapeId : third,
+    slotIndex === 0 ? null : first,
+    slotIndex === 1 ? null : second,
+    slotIndex === 2 ? null : third,
   ];
+}
+
+function isHandUsedUp(slots: ShapeSlots): boolean {
+  return slots.every((shapeId) => shapeId === null);
 }
 
 /**
  * Places the shape from one slot with the top-left of its bounding box at the given row and
- * column, clears every full row and column, adds the points, and refills the slot (BG-05, BG-06,
- * BG-11 to BG-16).
+ * column, clears every full row and column, and adds the points. The slot is left empty, and a new
+ * hand is dealt once all three are empty (BG-04, BG-05, BG-06, BG-11 to BG-16).
  */
 export function applyPlacement(
   state: GameState,
@@ -53,48 +56,47 @@ export function applyPlacement(
   if (shapeId === undefined) {
     return { accepted: false, reason: 'slot-out-of-range' };
   }
+  if (shapeId === null) {
+    return { accepted: false, reason: 'slot-empty' };
+  }
   const fitProblem = findFitProblem(state, shapeId, topRow, leftColumn);
   if (fitProblem !== null) {
     return { accepted: false, reason: fitProblem };
   }
 
   const placedCellIndexes = coveredCellIndexes(state, shapeId, topRow, leftColumn);
-  const filledCells = fillShape(state, shapeId, topRow, leftColumn);
-  const fullLines = findFullLines({ size: state.size, cells: filledCells });
-  const clearedLineCount = countFullLines(fullLines);
-  const clearedCellIndexSet = new Set<CellIndex>();
-  for (let line = 0; line < state.size; line++) {
-    for (const row of fullLines.rows) {
-      clearedCellIndexSet.add(cellIndexAt(state.size, row, line));
-    }
-    for (const column of fullLines.columns) {
-      clearedCellIndexSet.add(cellIndexAt(state.size, line, column));
-    }
-  }
-  const clearedCells = filledCells.map((cell, index): BoardCell =>
-    clearedCellIndexSet.has(index) ? null : cell,
+  const { cells, fullLines, clearedCellIndexes } = placeAndClearLines(
+    state,
+    shapeId,
+    topRow,
+    leftColumn,
   );
+  const clearedLineCount = countFullLines(fullLines);
 
   const streak = clearedLineCount > 0 ? state.streak + 1 : 0;
   const pointsEarned =
     placementPoints(placedCellIndexes.length) + lineClearPoints(clearedLineCount, streak);
-  const refill = drawShapeId(state.randomState);
+  const slotsAfterPlacement = emptySlot(state.slots, slotIndex);
+  const shapesPlaced = state.shapesPlaced + 1;
+  const nextHand = isHandUsedUp(slotsAfterPlacement)
+    ? dealHand(state.randomState, shapesPlaced, { cells })
+    : null;
   return {
     accepted: true,
     state: {
       ...state,
-      cells: clearedCells,
-      slots: replaceSlot(state.slots, slotIndex, refill.value),
+      cells,
+      slots: nextHand === null ? slotsAfterPlacement : nextHand.value,
       score: state.score + pointsEarned,
       streak,
       linesCleared: state.linesCleared + clearedLineCount,
-      shapesPlaced: state.shapesPlaced + 1,
-      randomState: refill.randomState,
+      shapesPlaced,
+      randomState: nextHand === null ? state.randomState : nextHand.randomState,
     },
     placedCellIndexes,
     clearedRows: fullLines.rows,
     clearedColumns: fullLines.columns,
-    clearedCellIndexes: [...clearedCellIndexSet].sort((first, second) => first - second),
+    clearedCellIndexes,
     pointsEarned,
   };
 }

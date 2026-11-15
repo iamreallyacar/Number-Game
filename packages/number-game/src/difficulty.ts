@@ -7,19 +7,46 @@ export type HintAllowance = number | 'unlimited';
 export interface DifficultyPreset {
   readonly addNumbersUsesPerStage: number;
   readonly hintsPerStage: HintAllowance;
+  /** The count of pairs with line of sight a starting board aims for (NG-35, DF-04). */
+  readonly startingOpenPairsRange: { readonly min: number; readonly max: number };
   /**
-   * Chance that each starting cell is made to pair with the cell before it in reading order,
-   * which guarantees that pair can see each other. 0 gives a fully random board.
+   * Chance that each step of a planned solution prefers a match that is blocked on the starting
+   * board. A higher chance gives fewer opening pairs and longer chains.
    */
-  readonly startingPairChance: number;
+  readonly startingBoardChainChance: number;
+  /** Chance that each number added by Add Numbers is aimed at a number it will see (NG-36). */
+  readonly addNumbersAimChance: number;
+  /** How many sets of added numbers are built and played ahead before one is kept (NG-36). */
+  readonly addNumbersCandidateCount: number;
 }
 
 // The values from REQUIREMENTS/number-game/difficulty.md. Lowering one needs a stored state upgrade,
 // see Changing the Stored Format in the package README.
 export const DIFFICULTY_PRESETS: Readonly<Record<DifficultyId, DifficultyPreset>> = {
-  easy: { addNumbersUsesPerStage: 8, hintsPerStage: 'unlimited', startingPairChance: 0.4 },
-  normal: { addNumbersUsesPerStage: 5, hintsPerStage: 3, startingPairChance: 0 },
-  hard: { addNumbersUsesPerStage: 3, hintsPerStage: 0, startingPairChance: 0 },
+  easy: {
+    addNumbersUsesPerStage: 8,
+    hintsPerStage: 'unlimited',
+    startingOpenPairsRange: { min: 18, max: 28 },
+    startingBoardChainChance: 0.75,
+    addNumbersAimChance: 0.8,
+    addNumbersCandidateCount: 12,
+  },
+  normal: {
+    addNumbersUsesPerStage: 5,
+    hintsPerStage: 3,
+    startingOpenPairsRange: { min: 8, max: 14 },
+    startingBoardChainChance: 0.93,
+    addNumbersAimChance: 0.5,
+    addNumbersCandidateCount: 1,
+  },
+  hard: {
+    addNumbersUsesPerStage: 3,
+    hintsPerStage: 0,
+    startingOpenPairsRange: { min: 2, max: 6 },
+    startingBoardChainChance: 1,
+    addNumbersAimChance: 0.35,
+    addNumbersCandidateCount: 1,
+  },
 };
 
 export function isDifficultyId(value: unknown): value is DifficultyId {

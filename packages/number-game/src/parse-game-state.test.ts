@@ -13,7 +13,7 @@ const validState = makeTestState({ cells: cellsFromRows(['1111111111', '11......
 
 describe('parseGameState', () => {
   it('gives back a new game unchanged after a trip through JSON', () => {
-    const state = createGame({ width: 11, difficulty: 'easy', seed: 5 });
+    const state = createGame({ difficulty: 'easy', seed: 5 });
     expect(parseGameState(roundTripThroughJson(state))).toEqual(state);
   });
 
@@ -30,7 +30,7 @@ describe('parseGameState', () => {
     { problem: 'null', value: null, message: 'expected an object' },
     { problem: 'an unknown field', value: { ...validState, cheat: true }, message: "'cheat'" },
     { problem: 'a missing field', value: { ...validState, score: undefined }, message: 'score' },
-    { problem: 'a bad width', value: { ...validState, width: 9 }, message: 'width' },
+    { problem: 'a leftover width', value: { ...validState, width: 10 }, message: "'width'" },
     {
       problem: 'cells that are not an array',
       value: { ...validState, cells: 'x' },

@@ -29,6 +29,19 @@ export interface RowRemovalResult {
   readonly removedRowCount: number;
 }
 
+/** Clears two cells and removes rows that became empty. Scoring and stage changes are left to the caller. */
+export function clearPair(
+  cells: readonly Cell[],
+  width: number,
+  firstIndex: CellIndex,
+  secondIndex: CellIndex,
+): RowRemovalResult {
+  const clearedCells = cells.map((cell, index) =>
+    index === firstIndex || index === secondIndex ? null : cell,
+  );
+  return removeEmptyRows(clearedCells, width);
+}
+
 /** Removes every fully empty row. Rows below move up, and cells never slide sideways. */
 export function removeEmptyRows(cells: readonly Cell[], width: number): RowRemovalResult {
   const keptCells: Cell[] = [];

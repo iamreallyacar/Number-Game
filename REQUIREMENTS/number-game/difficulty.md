@@ -11,7 +11,14 @@ The player picks a difficulty preset when starting a new game. Each preset chang
 | --- | --- | --- | --- |
 | Add Numbers uses per stage | 8 | 5 | 3 |
 | Hints per stage | Unlimited | 3 | None |
-| Starting board | Built to contain many pairs | Fully random | Fully random |
+| Pairs with line of sight on a starting board | 18 to 28 | 8 to 14 | 2 to 6 |
+| Chance that an added number is aimed | 80 percent | 50 percent | 35 percent |
+| Sets of added numbers tried | 12 | 1 | 1 |
+
+## Number Generation
+
+- DF-04: A starting board aims for the count of pairs with line of sight shown in the table (see NG-35). The game builds a few boards and keeps the one closest to that range, so a board can sometimes fall just outside it.
+- DF-05: Add Numbers uses the aim chance and the count of sets tried shown in the table (see NG-36). More sets give clearly more helpful numbers. In simulated play the aim chance changed the result much less.
 
 ## Hints
 

@@ -8,7 +8,6 @@ describe('advanceStage', () => {
   it('adds the bonus, moves up a stage, fills a new board, and resets uses', () => {
     const state = makeTestState({
       cells: [],
-      width: 11,
       stage: 3,
       score: 40,
       difficulty: 'hard',
@@ -18,8 +17,8 @@ describe('advanceStage', () => {
     const nextState = advanceStage(state);
     expect(nextState.score).toBe(40 + stageClearBonus(3));
     expect(nextState.stage).toBe(4);
-    expect(nextState.cells).toHaveLength(121);
-    expect(nextState.cells.filter((cell) => cell !== null)).toHaveLength(120);
+    expect(nextState.cells).toHaveLength(100);
+    expect(nextState.cells.filter((cell) => cell !== null)).toHaveLength(100);
     expect(nextState.addNumbersLeft).toBe(DIFFICULTY_PRESETS.hard.addNumbersUsesPerStage);
     expect(nextState.hintsLeft).toBe(DIFFICULTY_PRESETS.hard.hintsPerStage);
     expect(nextState.randomState).not.toBe(state.randomState);

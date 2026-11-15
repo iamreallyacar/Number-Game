@@ -1,6 +1,6 @@
 import { countNumbers } from './board.js';
 import { DIFFICULTY_PRESETS } from './difficulty.js';
-import type { GameState } from './game-state.js';
+import { BOARD_WIDTH, type GameState } from './game-state.js';
 import { stageClearBonus } from './scoring.js';
 import { generateStageBoard } from './stage-board.js';
 
@@ -14,7 +14,7 @@ export function advanceStage(clearedState: GameState): GameState {
     throw new Error(`Cannot advance the stage while ${String(numbersLeft)} numbers are left`);
   }
   const preset = DIFFICULTY_PRESETS[clearedState.difficulty];
-  const board = generateStageBoard(clearedState.width, preset, clearedState.randomState);
+  const board = generateStageBoard(BOARD_WIDTH, preset, clearedState.randomState);
   return {
     ...clearedState,
     cells: board.value,

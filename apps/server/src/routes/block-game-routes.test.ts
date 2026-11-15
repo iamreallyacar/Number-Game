@@ -23,7 +23,7 @@ async function startServerWithBlockGameInSlot() {
     method: 'POST',
     url: SLOT_URL,
     headers: DEVICE_A,
-    body: { playerId: 'Sam', options: { size: 8 } },
+    body: { playerId: 'Sam', options: {} },
   });
   expect(started.statusCode).toBe(201);
   const saveUrl = `${SLOT_URL}/saves/${started.json<{ saveId: string }>().saveId}`;
@@ -55,5 +55,31 @@ describe('Block Game through the routes', () => {
     });
     expect(moved.statusCode).toBe(422);
     expect(moved.json()).toMatchObject({ error: 'move-refused', reason: 'out-of-bounds' });
+  });
+
+  it('refuses a move on an empty slot, gives the reason, and saves nothing', async () => {
+    const { app, saveUrl } = await startServerWithBlockGameInSlot();
+    const first = await app.inject({
+      method: 'POST',
+      url: `${saveUrl}/moves`,
+      headers: DEVICE_A,
+      body: PLACE_FIRST_SHAPE_AT_CORNER,
+    });
+    expect(first.statusCode).toBe(200);
+    const again = await app.inject({
+      method: 'POST',
+      url: `${saveUrl}/moves`,
+      headers: DEVICE_A,
+      body: PLACE_FIRST_SHAPE_AT_CORNER,
+    });
+    expect(again.statusCode).toBe(422);
+    expect(again.json()).toMatchObject({ error: 'move-refused', reason: 'slot-empty' });
+    const opened = await app.inject({ method: 'POST', url: `${saveUrl}/open`, headers: DEVICE_A });
+    expect(opened.json()).toMatchObject({
+      state: {
+        shapesPlaced: 1,
+        slots: [null, expect.any(String) as unknown, expect.any(String) as unknown],
+      },
+    });
   });
 });

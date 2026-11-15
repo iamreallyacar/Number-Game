@@ -1,80 +1,66 @@
-import { padToFullRows } from './board.js';
-import { DIGITS, type Cell, type Digit } from './cell.js';
+import type { Cell } from './cell.js';
 import type { DifficultyPreset } from './difficulty.js';
-import { pairGroupsWithOddCount, pairPartners } from './pair.js';
-import {
-  drawRandomFraction,
-  drawRandomItem,
-  type RandomDraw,
-  type RandomState,
-} from '@local/seeded-random';
+import { findAllValidPairs } from './find-pair.js';
+import { assignPlannedPairDigits } from './planned-pair-digits.js';
+import { planSolution, type SolutionPlan } from './solution-plan.js';
+import type { RandomDraw, RandomState } from '@local/seeded-random';
 
-function drawStartingDigit(
-  randomState: RandomState,
-  previousDigit: Digit | undefined,
-  startingPairChance: number,
-): RandomDraw<Digit> {
-  if (previousDigit === undefined || startingPairChance === 0) {
-    return drawRandomItem(randomState, DIGITS);
-  }
-  const chanceDraw = drawRandomFraction(randomState);
-  if (chanceDraw.value < startingPairChance) {
-    return drawRandomItem(chanceDraw.randomState, pairPartners(previousDigit));
-  }
-  return drawRandomItem(chanceDraw.randomState, DIGITS);
+const MAX_BOARD_ATTEMPTS = 8;
+
+export interface PlannedStageBoard {
+  readonly cells: Cell[];
+  readonly plan: SolutionPlan;
+}
+
+function distanceFromRange(
+  value: number,
+  range: DifficultyPreset['startingOpenPairsRange'],
+): number {
+  return Math.max(range.min - value, value - range.max, 0);
 }
 
 /**
- * Changes a few random numbers so every pair group has an even count (NG-34). The count of numbers
- * is even, so the odd groups come in twos, and moving one number from the first group of each two
- * into the second makes both even.
+ * Builds a stage board together with the solution it was built from (NG-35). Boards are built up
+ * to a fixed number of times, and the first one with a count of pairs with line of sight inside the
+ * difficulty range is kept, otherwise the one closest to it (DF-04).
  */
-function evenOutPairGroups(
-  digits: readonly Digit[],
+export function generateStageBoardWithPlan(
+  width: number,
+  preset: DifficultyPreset,
   randomState: RandomState,
-): RandomDraw<Digit[]> {
-  if (digits.length % 2 === 1) {
-    throw new Error('Pair groups can only be evened out for an even count of numbers');
-  }
-  const evenedDigits = [...digits];
+): RandomDraw<PlannedStageBoard> {
   let currentState = randomState;
-  const oddGroups = pairGroupsWithOddCount(digits);
-  for (let groupIndex = 0; groupIndex < oddGroups.length; groupIndex += 2) {
-    const fromGroup = oddGroups[groupIndex];
-    const toGroup = oddGroups[groupIndex + 1];
-    if (fromGroup === undefined || toGroup === undefined) {
-      throw new Error('Odd pair groups did not come in twos');
-    }
-    const fromGroupIndexes = evenedDigits.flatMap((digit, cellIndex) =>
-      fromGroup.includes(digit) ? [cellIndex] : [],
+  let closest: { board: PlannedStageBoard; distance: number } | null = null;
+  for (let attempt = 0; attempt < MAX_BOARD_ATTEMPTS; attempt++) {
+    const planDraw = planSolution(width, preset.startingBoardChainChance, currentState);
+    const digitsDraw = assignPlannedPairDigits(width, planDraw.value, planDraw.randomState);
+    currentState = digitsDraw.randomState;
+    const distance = distanceFromRange(
+      findAllValidPairs(digitsDraw.value, width).length,
+      preset.startingOpenPairsRange,
     );
-    const cellDraw = drawRandomItem(currentState, fromGroupIndexes);
-    const digitDraw = drawRandomItem(cellDraw.randomState, toGroup);
-    evenedDigits[cellDraw.value] = digitDraw.value;
-    currentState = digitDraw.randomState;
+    if (closest === null || distance < closest.distance) {
+      closest = { board: { cells: digitsDraw.value, plan: planDraw.value }, distance };
+    }
+    if (distance === 0) {
+      break;
+    }
   }
-  return { value: evenedDigits, randomState: currentState };
+  if (closest === null) {
+    throw new Error('No starting board was built');
+  }
+  return { value: closest.board, randomState: currentState };
 }
 
 /**
- * Fills a new stage board of width x width cells (NG-02), shaped by the difficulty preset, so that
- * every number can be paired off (NG-34).
+ * Fills a new stage board of width x width cells (NG-02), built so it can always be cleared
+ * (NG-34, NG-35) and opens with the count of pairs the difficulty asks for.
  */
 export function generateStageBoard(
   width: number,
   preset: DifficultyPreset,
   randomState: RandomState,
 ): RandomDraw<Cell[]> {
-  const cellCount = width * width;
-  // An odd count of numbers can never all be paired off, so such a board leaves its last cell empty.
-  const numberCount = cellCount - (cellCount % 2);
-  const digits: Digit[] = [];
-  let currentState = randomState;
-  while (digits.length < numberCount) {
-    const draw = drawStartingDigit(currentState, digits.at(-1), preset.startingPairChance);
-    digits.push(draw.value);
-    currentState = draw.randomState;
-  }
-  const evened = evenOutPairGroups(digits, currentState);
-  return { value: padToFullRows(evened.value, width), randomState: evened.randomState };
+  const draw = generateStageBoardWithPlan(width, preset, randomState);
+  return { value: draw.value.cells, randomState: draw.randomState };
 }

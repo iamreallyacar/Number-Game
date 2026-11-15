@@ -10,7 +10,7 @@ A small self-hosted game dashboard that runs on a home server (such as a Proxmox
 
 ## The Number Game in Short
 
-- You pick a board width of 10, 11, or 12 and a difficulty when starting a new game. The board starts with width x width random numbers from 1 to 9.
+- You pick a difficulty when starting a new game. The board is always 10 by 10 and starts with numbers from 1 to 9 that are built so the board can always be cleared.
 - Tap two numbers that are equal or add up to 10. If they can see each other, both are cleared and you earn points.
 - Two numbers can see each other when only empty cells lie between them horizontally, vertically, diagonally, or along the reading order that wraps from the end of one row to the start of the next.
 - When a row becomes fully empty, it is removed and the rows below move up.
@@ -23,13 +23,14 @@ The full rules are in `REQUIREMENTS/number-game/rules.md`.
 
 ## The Block Game in Short
 
-- You pick a board size of 8 x 8, 9 x 9, or 10 x 10 when starting a new game. The board starts empty.
-- You always have 3 slots, each holding a random shape that fits inside a 3 x 3 box, such as a square, a line, an L, or a diagonal. Shapes cannot be rotated.
-- Drag a shape from a slot onto empty cells of the board. The used slot is filled again with a new random shape right away.
+- The board is 10 x 10 and starts empty.
+- You are dealt a hand of 3 random shapes, such as a square, a line, an L, or a diagonal. Shapes cannot be rotated.
+- Drag a shape from a slot onto empty cells of the board. A new hand arrives once all 3 shapes are placed.
+- Big and awkward shapes become more common the longer a game lasts. Every new hand can be placed in full in at least one way, so a game only ends through your own placements.
 - When a row or a column is completely filled, it is cleared. Only the cells inside the full line are cleared, so the rest of a shape stays on the board.
 - You earn 1 point for each block you place and more for clearing lines. Clearing several lines at once, or on back-to-back placements, earns extra.
-- The game ends when none of the 3 shapes fits anywhere on the board.
-- Saves, player IDs, and high scores work the same way as in the Number Game. High scores are filtered by board size.
+- The game ends when none of the shapes left in your hand fits anywhere on the board.
+- Saves, player IDs, and high scores work the same way as in the Number Game.
 
 The full rules are in `REQUIREMENTS/block-game/rules.md`.
 
@@ -66,7 +67,7 @@ The `REQUIREMENTS/` folder holds the detailed requirements. Platform requirement
 | `REQUIREMENTS/platform.md` | Dashboard, multi-game support, hosting, and self-hosting |
 | `REQUIREMENTS/number-game/rules.md` | Board, matching, line of sight, row removal, adding numbers, stages, scoring, and game over |
 | `REQUIREMENTS/number-game/difficulty.md` | Difficulty presets and ideas for later |
-| `REQUIREMENTS/block-game/rules.md` | Board, slots, shapes, placing, line clearing, scoring, and game over |
+| `REQUIREMENTS/block-game/rules.md` | Board, hands, shapes, the fair deal, placing, line clearing, scoring, and game over |
 | `REQUIREMENTS/disk-game/rules.md` | Pegs, disks, random layouts, moves, undo and hints, stages, move budget, scoring, and game over |
 | `REQUIREMENTS/players-saves-scores.md` | Player IDs, server save slots, and high scores |
 | `REQUIREMENTS/open-questions.md` | Open decisions, the chosen tech stack, and answered questions |

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { padToFullRows, removeEmptyRows } from './board.js';
+import { clearPair, padToFullRows, removeEmptyRows } from './board.js';
 import { cellsFromRows } from './test-support.js';
 
 describe('removeEmptyRows', () => {
@@ -25,5 +25,23 @@ describe('padToFullRows', () => {
   it('leaves full rows alone', () => {
     const cells = cellsFromRows(['123']);
     expect(padToFullRows(cells, 3)).toEqual(cells);
+  });
+});
+
+describe('clearPair', () => {
+  it('clears both cells and keeps the rest', () => {
+    const cells = cellsFromRows(['1234', '5678']);
+    expect(clearPair(cells, 4, 0, 7)).toEqual({
+      cells: cellsFromRows(['.234', '567.']),
+      removedRowCount: 0,
+    });
+  });
+
+  it('removes rows that became empty and moves the rows below up', () => {
+    const cells = cellsFromRows(['1.', '.9', '34']);
+    expect(clearPair(cells, 2, 0, 3)).toEqual({
+      cells: cellsFromRows(['34']),
+      removedRowCount: 2,
+    });
   });
 });

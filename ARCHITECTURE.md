@@ -99,7 +99,7 @@ The slot list, the start answer, and the open answer all carry the save id. Open
 
 Requests that start, open, or change a save must send an `x-device-id` header. The browser makes up a random device ID once and keeps it. Opening a save moves its lock to that device, and moves from any other device are refused with the error `opened-elsewhere`. (PS-18)
 
-High scores store a `category` used for filtering and a `details` object shown next to the score. For the Number Game, the category is the difficulty, and the details are the stage, width, and difficulty. For the Block Game, the category is the board size, and the details are the board size and the lines cleared. For the Disk Game, the category is the starting disk count, and the details are the stage, the starting disk count, and, for a save only, the moves left.
+High scores store a `category` used for filtering and a `details` object shown next to the score. For the Number Game, the category is the difficulty, and the details are the stage and difficulty. For the Block Game, every result is in one category, and the details are the lines cleared. For the Disk Game, the category is the starting disk count, and the details are the stage, the starting disk count, and, for a save only, the moves left.
 
 Paths outside `/api/` serve the built browser app from `apps/web/dist`, and unknown pages get its `index.html` so the browser app can handle its own page routing. If the browser app has not been built, the server logs a warning and serves only the API.
 

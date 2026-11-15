@@ -6,7 +6,6 @@ import { tapCell } from './tap-cell.js';
 const ROW: readonly Cell[] = [3, 7, 1, null, 2, 1, 1, 1, 1, 1];
 
 const STATE: GameState = {
-  width: 10,
   cells: [...ROW, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
   score: 0,
   stage: 1,

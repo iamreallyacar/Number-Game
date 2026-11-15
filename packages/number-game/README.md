@@ -23,20 +23,24 @@ Saved games keep a `GameState` as JSON, and high scores keep the summary details
 | File | Job |
 | --- | --- |
 | `game-id.ts` | The game id |
-| `game-state.ts` | The `GameState` type. Cells are a flat list in reading order, padded with empty cells to whole rows |
+| `game-state.ts` | The `GameState` type and `BOARD_WIDTH`, the fixed board width of 10. Cells are a flat list in reading order, padded with empty cells to whole rows |
 | `cell.ts` | The `Digit` and `Cell` types |
-| `board.ts` | Row and column math, counting numbers, finding which numbers are on the board, and removing empty rows |
+| `board.ts` | Row and column math, counting numbers, finding which numbers are on the board, clearing a pair, and removing empty rows |
 | `difficulty.ts` | Easy, Normal, and Hard presets |
-| `stage-board.ts` | Fills a new stage board. On Easy, many cells are made to pair with the cell before them |
-| `new-game.ts` | Starts a game from a width, a difficulty, and a seed chosen by the caller |
+| `stage-board.ts` | Builds a new stage board from a planned solution, up to a fixed number of times, and keeps the board closest to the opening pair range of the difficulty |
+| `solution-plan.ts` | Plans an order of matches that clears a starting board of placeholders, preferring matches that are blocked at the start as much as the difficulty asks |
+| `planned-pair-digits.ts` | Gives each planned match a pair group, so few unplanned pairs see each other at the start, and draws the numbers |
+| `new-game.ts` | Starts a game from a difficulty and a seed chosen by the caller |
 | `scoring.ts` | Points for matches, empty rows, and stage clears |
-| `pair.ts` and `line-of-sight.ts` | Whether two numbers are a pair and whether they can see each other |
+| `pair.ts` and `line-of-sight.ts` | Whether two numbers are a pair, pair groups, and which numbers a cell can see looking forward or backward |
 | `match.ts` | Applies a match, removes empty rows, adds points, and moves to the next stage when the board is cleared |
-| `add-numbers.ts` | Applies Add Numbers, drawing only numbers still on the board |
+| `add-numbers.ts` | Applies Add Numbers: counts the numbers to add, builds several sets, and keeps the one that clears the most when played ahead |
+| `added-numbers-candidate.ts` | Builds one set of numbers to add, aimed at numbers they will see, leaving every pair group even |
+| `play-ahead.ts` | Plays a board ahead with simple matching, up to a match budget, and counts the numbers cleared |
 | `stage-clear.ts` | Adds the stage bonus and fills a new board |
-| `find-pair.ts` and `hint.ts` | Finds a valid pair for hints, the stuck warning, and game over |
+| `find-pair.ts` and `hint.ts` | Finds the first or every valid pair, for hints, the stuck warning, and game over |
 | `move.ts` | The move type and `applyMove`, which sends each move to its rule |
 | `summary.ts` | The summary of a state for save slots and high scores, and the check that reads its details back |
 | `parse-game-state.ts` | Checks a stored game state and throws `InvalidGameStateError` if it is broken |
-| `stored-format-upgrades.ts` | Upgrades for stored states and summary details |
+| `stored-format-upgrades.ts` | Upgrades for stored states and summary details. Version 2 of both removed the stored width |
 | `test-support.ts` | Board builders for the tests. Left out of the build |

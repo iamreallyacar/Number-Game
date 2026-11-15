@@ -1,11 +1,10 @@
-import { BLOCK_GAME_ID, type GameState } from '@local/block-game';
+import { BLOCK_GAME_ID, BOARD_SIZE, type GameState } from '@local/block-game';
 import { describe, expect, it } from 'vitest';
 import { blockGameServerModule } from './block-game.js';
 import type { StoredGameState } from './game-registry.js';
 
 const EMPTY_BOARD_STATE: GameState = {
-  size: 8,
-  cells: Array.from({ length: 64 }, () => null),
+  cells: Array.from({ length: BOARD_SIZE * BOARD_SIZE }, () => null),
   slots: ['single', 'square-2', 'single'],
   score: 0,
   streak: 0,
@@ -21,23 +20,23 @@ function store(state: GameState): StoredGameState {
 }
 
 describe('Block Game server module', () => {
-  it('is registered under the Block Game id with one category per board size', () => {
+  it('is registered under the Block Game id with one category', () => {
     expect(blockGameServerModule.id).toBe(BLOCK_GAME_ID);
-    expect(blockGameServerModule.categories).toEqual(['8', '9', '10']);
+    expect(blockGameServerModule.categories).toEqual(['standard']);
   });
 
-  it('starts a game with the chosen size and sums it up for the save slot list', () => {
-    const started = blockGameServerModule.startGame({ size: 9 }, 42);
-    expect(started.state).toMatchObject({ size: 9, score: 0, shapesPlaced: 0 });
+  it('starts a game and sums it up for the save slot list', () => {
+    const started = blockGameServerModule.startGame({}, 42);
+    expect(started.state).toMatchObject({ score: 0, shapesPlaced: 0 });
     expect(blockGameServerModule.summarize(started.storedState)).toEqual({
       score: 0,
-      category: '9',
-      details: { size: 9, linesCleared: 0 },
+      category: 'standard',
+      details: { linesCleared: 0 },
     });
   });
 
-  it('refuses a board size the game does not offer', () => {
-    expect(() => blockGameServerModule.startGame({ size: 7 }, 1)).toThrow(
+  it('refuses a board size option, since the board is always the same size', () => {
+    expect(() => blockGameServerModule.startGame({ size: 10 }, 1)).toThrow(
       'New game options are invalid',
     );
   });
@@ -60,9 +59,19 @@ describe('Block Game server module', () => {
     expect(
       blockGameServerModule.applyMove(store(EMPTY_BOARD_STATE), {
         ...PLACE_SINGLE_AT_CORNER,
-        topRow: 8,
+        topRow: 10,
       }),
     ).toEqual({ accepted: false, reason: 'out-of-bounds' });
+  });
+
+  it('passes on the refusal of a move on an empty slot', () => {
+    const emptiedSlotState: GameState = {
+      ...EMPTY_BOARD_STATE,
+      slots: [null, 'square-2', 'single'],
+    };
+    expect(
+      blockGameServerModule.applyMove(store(emptiedSlotState), PLACE_SINGLE_AT_CORNER),
+    ).toEqual({ accepted: false, reason: 'slot-empty' });
   });
 
   it('rejects a move with the wrong shape', () => {
@@ -78,7 +87,7 @@ describe('Block Game server module', () => {
 
   it('rejects a broken save with a clear error', () => {
     expect(() =>
-      blockGameServerModule.readState({ stateJson: '{"size": 9}', stateVersion: 1 }),
+      blockGameServerModule.readState({ stateJson: '{"size": 10}', stateVersion: 1 }),
     ).toThrow('This save is broken');
   });
 });

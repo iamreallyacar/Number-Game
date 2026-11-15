@@ -5,4 +5,5 @@ export const PLACEMENT_REFUSAL_MESSAGES: Readonly<Record<PlacementRefusal, strin
   'out-of-bounds': 'That shape would stick out of the board',
   'game-over': 'The game is over',
   'slot-out-of-range': 'That slot does not exist',
+  'slot-empty': 'That slot is empty',
 };

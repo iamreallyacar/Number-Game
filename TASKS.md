@@ -112,3 +112,28 @@ The project was closed on 2026-11-11 after it was deployed and used on a home se
 Small improvements made after the close-out.
 
 - [x] T-62: Cut the clicks needed to start playing. Replace the game menu, New Game, Load Game, and High Scores pages with one game page that shows the leaderboard and the save slots. An empty slot starts a new game and a used slot continues its game. (PS-04, PS-09, PS-14, PS-22)
+
+## Phase 11: Number Generation
+
+Replaces the random starting board and the random Add Numbers with generators that shape how hard the game is.
+
+- [x] T-63: Add the shared board helpers the generators need: list every pair with line of sight, find the numbers a cell sees looking backward, and clear a pair with row removal but without scoring. (NG-09, NG-10, NG-11, NG-12, NG-14)
+- [x] T-64: Add Numbers aims each new number at a number it will see, tries several sets, and keeps the set that clears the most in a played-ahead check. (NG-17, NG-33, NG-34, NG-36, DF-05)
+- [x] T-65: Build each starting board from a planned solution, so it can always be cleared and starts with the count of pairs its difficulty asks for. (NG-02, NG-34, NG-35, DF-04)
+- [x] T-66: Measure the generators with simulated play on every width and preset, and tune the preset values and `difficulty.md` to match. (DF-04, DF-05)
+- [x] T-67: Review the number generation work with a fresh reviewer and fix what it finds.
+- [x] T-68: Remove board widths 11 and 12 so the board is always 10 wide: drop the width option, the width in the game state and summary, and delete the saves and high scores made on the removed widths. (NG-01, NG-02, PS-05, PS-09)
+
+
+## Phase 12: Block Game Challenge
+
+Makes the Block Game harder without ever dealing a hand that cannot be placed. The tasks are done in order, and `npm run check` passes after each one.
+
+- [x] T-69: Rewrite the Block Game requirements for one board size, hands of 3, the weight ramp, fair hands, and the new shapes. (BG-01, BG-04, BG-08 to BG-10, BG-13, BG-19, BG-21 to BG-23)
+- [x] T-70: Delete every Block Game save and high score with a database migration, so no old format or old result is left. (OQ-23)
+- [x] T-71: Make the board always 10 x 10: drop the size option, the size in the game state and summary, and the size high score categories, and use one category. (BG-01, BG-21)
+- [x] T-72: Add the 4 and 5 cell lines, the 4 x 4 square, the big T, and the U shape to the catalogue, and make the slots and the drag show shapes up to 5 cells long. (BG-08, BG-09)
+- [x] T-73: Deal hands of 3: a slot empties when its shape is placed, a new hand comes when all 3 are empty, a move on an empty slot is refused, and the game ends when no shape left in the hand fits. (BG-04, BG-05, BG-13, BG-19)
+- [x] T-74: Give every shape a starting and a late weight, and move the deal weights from one to the other over the first 200 placements. (BG-09, BG-10)
+- [x] T-75: Only deal fair hands: check that all 3 shapes can be placed in some order, pick a new hand up to 30 times, and fall back to 3 single cells. (BG-22, BG-23)
+- [ ] T-76: Review the Block Game challenge work with a fresh reviewer, measure it with simulated play, and fix what is found. (OQ-24)

@@ -1,5 +1,5 @@
-import { countNumbers, removeEmptyRows } from './board.js';
-import type { CellIndex, GameState } from './game-state.js';
+import { clearPair, countNumbers } from './board.js';
+import { BOARD_WIDTH, type CellIndex, type GameState } from './game-state.js';
 import { hasLineOfSight } from './line-of-sight.js';
 import { isPair } from './pair.js';
 import { EMPTY_ROW_POINTS, MATCH_POINTS } from './scoring.js';
@@ -43,14 +43,11 @@ export function applyMatch(
   if (!isPair(firstCell, secondCell)) {
     return { accepted: false, reason: 'not-a-pair' };
   }
-  if (!hasLineOfSight(state.cells, state.width, firstIndex, secondIndex)) {
+  if (!hasLineOfSight(state.cells, BOARD_WIDTH, firstIndex, secondIndex)) {
     return { accepted: false, reason: 'no-line-of-sight' };
   }
 
-  const clearedCells = state.cells.map((cell, index) =>
-    index === firstIndex || index === secondIndex ? null : cell,
-  );
-  const rowRemoval = removeEmptyRows(clearedCells, state.width);
+  const rowRemoval = clearPair(state.cells, BOARD_WIDTH, firstIndex, secondIndex);
   const matchedState: GameState = {
     ...state,
     cells: rowRemoval.cells,

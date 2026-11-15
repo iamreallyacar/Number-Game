@@ -20,7 +20,6 @@ export function cellsFromRows(rows: readonly string[]): Cell[] {
 
 export function makeTestState(overrides: Partial<GameState> & Pick<GameState, 'cells'>): GameState {
   return {
-    width: 10,
     score: 0,
     stage: 1,
     difficulty: 'normal',

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { BoardCell, BoardSize, CellIndex, ShapeColour } from '@local/block-game';
+  import { BOARD_SIZE, type BoardCell, type CellIndex, type ShapeColour } from '@local/block-game';
   import { BLOCK_COLOURS } from './block-colours.js';
   import BlockGameClearEffect from './BlockGameClearEffect.svelte';
   import type { ClearEffect } from './clear-effect.js';
@@ -7,7 +7,6 @@
 
   interface Props {
     readonly cells: readonly BoardCell[];
-    readonly size: BoardSize;
     /** Where the dragged shape would land, or null when no shape is over the board (BG-07). */
     readonly preview: PlacementPreview | null;
     /** The colour of the dragged shape, used for its preview. */
@@ -17,14 +16,7 @@
     boardElement?: HTMLElement | undefined;
   }
 
-  let {
-    cells,
-    size,
-    preview,
-    previewColour,
-    clearEffects,
-    boardElement = $bindable(),
-  }: Props = $props();
+  let { cells, preview, previewColour, clearEffects, boardElement = $bindable() }: Props = $props();
 
   const coveredCells: ReadonlySet<CellIndex> = $derived(new Set(preview?.coveredCellIndexes));
   const clearingCells: ReadonlySet<CellIndex> = $derived(new Set(preview?.clearingCellIndexes));
@@ -37,10 +29,10 @@
      is one labelled image for screen readers. -->
 <div
   class="board"
-  style:--board-size={size}
+  style:--board-size={BOARD_SIZE}
   bind:this={boardElement}
   role="img"
-  aria-label={`Board, ${String(size)} by ${String(size)}, ${String(filledCount)} cells filled`}
+  aria-label={`Board, ${String(BOARD_SIZE)} by ${String(BOARD_SIZE)}, ${String(filledCount)} cells filled`}
 >
   {#each cells as cell, index (index)}
     <span

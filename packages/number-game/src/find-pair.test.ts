@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findValidPair, isGameOver, isStuck } from './find-pair.js';
+import { findAllValidPairs, findValidPair, isGameOver, isStuck } from './find-pair.js';
 import { applyHint } from './hint.js';
 import { cellsFromRows, makeTestState } from './test-support.js';
 
@@ -72,5 +72,26 @@ describe('applyHint', () => {
   it('keeps the hint when no pair exists', () => {
     const state = makeTestState({ cells: NO_PAIR_BOARD, hintsLeft: 1 });
     expect(applyHint(state)).toEqual({ accepted: false, reason: 'no-pair-available' });
+  });
+});
+
+describe('findAllValidPairs', () => {
+  it('lists every pair with line of sight in reading order of its earlier cell', () => {
+    const cells = cellsFromRows(['123', '4.8', '7..']);
+    expect(findAllValidPairs(cells, 3)).toEqual([
+      { firstIndex: 1, secondIndex: 5 },
+      { firstIndex: 2, secondIndex: 6 },
+    ]);
+  });
+
+  it('finds pairs across the wrap from the end of one row to the start of the next', () => {
+    const cells = cellsFromRows(['1212121219', '1.........']);
+    expect(findAllValidPairs(cells, 10)).toContainEqual({ firstIndex: 9, secondIndex: 10 });
+  });
+
+  it('returns nothing when no pair can see each other, and starts with the pair findValidPair gives', () => {
+    expect(findAllValidPairs(NO_PAIR_BOARD, 10)).toEqual([]);
+    const cells = cellsFromRows(['1212121212', '343434343.', '.........8']);
+    expect(findAllValidPairs(cells, 10)[0]).toEqual(findValidPair(cells, 10));
   });
 });

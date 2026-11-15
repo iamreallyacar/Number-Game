@@ -9,10 +9,10 @@
   const { score, linesCleared, newGamePath, dashboardPath }: Props = $props();
 </script>
 
-<!-- Shown when none of the three shapes fits on the board (BG-19, BG-20). -->
+<!-- Shown when none of the shapes left in the hand fits on the board (BG-19, BG-20). -->
 <section class="panel stack" aria-live="polite">
   <h2>Game over</h2>
-  <p>None of your shapes fits on the board.</p>
+  <p>None of your remaining shapes fits on the board.</p>
   <p class="final-result">Final score {score} with {linesCleared} lines cleared</p>
   <p>The result is added to the high scores.</p>
   <div class="button-row">

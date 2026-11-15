@@ -1,5 +1,5 @@
 import { findValidPair, type CellPair } from './find-pair.js';
-import type { GameState } from './game-state.js';
+import { BOARD_WIDTH, type GameState } from './game-state.js';
 
 export type HintRefusal = 'no-hints-left' | 'no-pair-available';
 
@@ -12,7 +12,7 @@ export function applyHint(state: GameState): HintResult {
   if (state.hintsLeft !== 'unlimited' && state.hintsLeft <= 0) {
     return { accepted: false, reason: 'no-hints-left' };
   }
-  const pair = findValidPair(state.cells, state.width);
+  const pair = findValidPair(state.cells, BOARD_WIDTH);
   if (pair === null) {
     return { accepted: false, reason: 'no-pair-available' };
   }

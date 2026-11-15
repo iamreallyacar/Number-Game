@@ -17,19 +17,30 @@
   let selectedCategory = $state(ALL_CATEGORIES);
   let selectedPlayerId = $state(NO_PLAYER);
 
+  const hasCategoryChoice = $derived(game.categories.length > 1);
+  const onlyCategoryId = $derived(
+    game.categories.length === 1 ? game.categories[0]?.id : undefined,
+  );
+
+  const shownCategory = $derived(
+    onlyCategoryId ?? (selectedCategory === ALL_CATEGORIES ? null : selectedCategory),
+  );
+
   const playersRequest = listPlayerIds();
 </script>
 
-<label class="field">
-  <span>Show</span>
-  <select bind:value={selectedCategory}>
-    <option value={ALL_CATEGORIES}>All</option>
-    {#each game.categories as category (category.id)}
-      <option value={category.id}>{category.label}</option>
-    {/each}
-  </select>
-</label>
-<TopResultsTable {game} category={selectedCategory === ALL_CATEGORIES ? null : selectedCategory} />
+{#if hasCategoryChoice}
+  <label class="field">
+    <span>Show</span>
+    <select bind:value={selectedCategory}>
+      <option value={ALL_CATEGORIES}>All</option>
+      {#each game.categories as category (category.id)}
+        <option value={category.id}>{category.label}</option>
+      {/each}
+    </select>
+  </label>
+{/if}
+<TopResultsTable {game} category={shownCategory} />
 
 {#await playersRequest}
   <p>Loading player IDs…</p>

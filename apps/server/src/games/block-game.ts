@@ -1,8 +1,7 @@
 import {
   applyMove,
   BLOCK_GAME_ID,
-  BOARD_SIZE_CATEGORIES,
-  BOARD_SIZES,
+  BLOCK_GAME_CATEGORIES,
   createGame,
   GAME_STATE_UPGRADES,
   isGameOver,
@@ -16,10 +15,7 @@ import { Type, type Static } from 'typebox';
 import { expectSameType } from './expect-same-type.js';
 import { defineServerGame } from './game-registry.js';
 
-const newGameOptionsSchema = Type.Object(
-  { size: Type.Union(BOARD_SIZES.map((size) => Type.Literal(size))) },
-  { additionalProperties: false },
-);
+const newGameOptionsSchema = Type.Object({}, { additionalProperties: false });
 
 const moveSchema = Type.Object(
   {
@@ -36,10 +32,10 @@ expectSameType<Static<typeof moveSchema>, BlockGameMove>(true);
 
 export const blockGameServerModule = defineServerGame({
   id: BLOCK_GAME_ID,
-  categories: BOARD_SIZE_CATEGORIES,
+  categories: BLOCK_GAME_CATEGORIES,
   newGameOptionsSchema,
   moveSchema,
-  createGame: (options, seed) => createGame({ ...options, seed }),
+  createGame: (_options, seed) => createGame({ seed }),
   stateUpgrades: GAME_STATE_UPGRADES,
   parseState: parseGameState,
   applyMove,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { GameState } from './game-state.js';
+import type { GameState, ShapeSlots } from './game-state.js';
 import { createGame } from './new-game.js';
 import { InvalidGameStateError, parseGameState } from './parse-game-state.js';
 import { applyPlacement } from './place-shape.js';
@@ -11,14 +11,16 @@ function roundTripThroughJson(state: GameState): unknown {
 
 const validState = makeTestState({
   cells: cellsFromRows([
-    '0.......',
-    '12......',
-    '........',
-    '........',
-    '........',
-    '........',
-    '........',
-    '7777777.',
+    '0.........',
+    '12........',
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    '777777777.',
   ]),
   score: 30,
   streak: 1,
@@ -28,7 +30,7 @@ const validState = makeTestState({
 
 describe('parseGameState', () => {
   it('gives back a new game unchanged after a trip through JSON', () => {
-    const state = createGame({ size: 10, seed: 5 });
+    const state = createGame({ seed: 5 });
     expect(parseGameState(roundTripThroughJson(state))).toEqual(state);
   });
 
@@ -40,12 +42,20 @@ describe('parseGameState', () => {
     expect(parseGameState(roundTripThroughJson(result.state))).toEqual(result.state);
   });
 
+  it.each<{ problem: string; slots: ShapeSlots }>([
+    { problem: 'one empty slot', slots: ['single', null, 'square-2'] },
+    { problem: 'two empty slots', slots: [null, null, 'square-2'] },
+  ])('accepts a hand with $problem', ({ slots }) => {
+    const value = { ...validState, slots };
+    expect(parseGameState(roundTripThroughJson(value))).toEqual(value);
+  });
+
   it.each([
     { problem: 'not an object', value: [], message: 'expected an object' },
     { problem: 'null', value: null, message: 'expected an object' },
     { problem: 'an unknown field', value: { ...validState, cheat: true }, message: "'cheat'" },
     { problem: 'a missing field', value: { ...validState, score: undefined }, message: 'score' },
-    { problem: 'a bad size', value: { ...validState, size: 7 }, message: 'size' },
+    { problem: 'a size field', value: { ...validState, size: 10 }, message: "'size'" },
     {
       problem: 'cells that are not an array',
       value: { ...validState, cells: 'x' },
@@ -54,7 +64,7 @@ describe('parseGameState', () => {
     {
       problem: 'too few cells',
       value: { ...validState, cells: validState.cells.slice(1) },
-      message: 'must hold 64 cells',
+      message: 'must hold 100 cells',
     },
     {
       problem: 'an unknown colour',
@@ -63,7 +73,7 @@ describe('parseGameState', () => {
     },
     {
       problem: 'a full row',
-      value: { ...validState, cells: [...validState.cells.slice(0, 63), 7] },
+      value: { ...validState, cells: [...validState.cells.slice(0, 99), 7] },
       message: 'full row or column',
     },
     {
@@ -80,6 +90,11 @@ describe('parseGameState', () => {
       problem: 'an unknown shape',
       value: { ...validState, slots: ['single', 'hexagon', 'single'] },
       message: 'known shape id',
+    },
+    {
+      problem: 'a hand with every slot empty',
+      value: { ...validState, slots: [null, null, null] },
+      message: 'at least one slot',
     },
     { problem: 'a negative score', value: { ...validState, score: -1 }, message: 'score' },
     { problem: 'a decimal streak', value: { ...validState, streak: 0.5 }, message: 'streak' },

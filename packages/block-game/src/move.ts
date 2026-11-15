@@ -4,7 +4,7 @@ import { applyPlacement, type PlacementRefusal } from './place-shape.js';
 /** Every move a player can make. The server receives these and applies them with `applyMove`. */
 export interface BlockGameMove {
   readonly type: 'place-shape';
-  /** Which slot to take the shape from, from 0 to 2. */
+  /** Which slot to take the shape from, from 0 to 2. A slot that is already empty is refused. */
   readonly slotIndex: number;
   /** Board row of the top of the shape's bounding box, counted from 0. */
   readonly topRow: number;

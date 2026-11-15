@@ -1,17 +1,10 @@
 <script lang="ts">
-  import {
-    BOARD_WIDTHS,
-    DIFFICULTY_IDS,
-    DIFFICULTY_PRESETS,
-    type BoardWidth,
-    type DifficultyId,
-  } from '@local/number-game';
+  import { DIFFICULTY_IDS, DIFFICULTY_PRESETS, type DifficultyId } from '@local/number-game';
   import type { NewGameOptionsFormProps } from '../browser-game.js';
   import { DIFFICULTY_LABELS } from './difficulty-labels.js';
 
   const { onSubmit }: NewGameOptionsFormProps = $props();
 
-  let width: BoardWidth = $state(BOARD_WIDTHS[0]);
   let difficulty: DifficultyId = $state('normal');
 
   function describeHints(difficultyId: DifficultyId): string {
@@ -29,21 +22,11 @@
 
   function handleSubmit(event: SubmitEvent): void {
     event.preventDefault();
-    onSubmit({ width, difficulty });
+    onSubmit({ difficulty });
   }
 </script>
 
 <form class="stack" onsubmit={handleSubmit}>
-  <fieldset class="choice-group">
-    <legend>Board width</legend>
-    {#each BOARD_WIDTHS as widthOption (widthOption)}
-      <label class="choice">
-        <input type="radio" name="width" value={widthOption} bind:group={width} />
-        <span class="choice-label">{widthOption} columns</span>
-      </label>
-    {/each}
-  </fieldset>
-
   <fieldset class="choice-group">
     <legend>Difficulty</legend>
     {#each DIFFICULTY_IDS as difficultyOption (difficultyOption)}

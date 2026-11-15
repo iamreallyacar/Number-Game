@@ -1,6 +1,5 @@
 import {
   applyMove,
-  BOARD_WIDTHS,
   createGame,
   DIFFICULTY_IDS,
   GAME_STATE_UPGRADES,
@@ -18,7 +17,6 @@ import { defineServerGame } from './game-registry.js';
 
 const newGameOptionsSchema = Type.Object(
   {
-    width: Type.Union(BOARD_WIDTHS.map((width) => Type.Literal(width))),
     difficulty: Type.Union(DIFFICULTY_IDS.map((difficulty) => Type.Literal(difficulty))),
   },
   { additionalProperties: false },

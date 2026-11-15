@@ -8,6 +8,8 @@ This file tracks decisions about the project. New questions go in the Open secti
 | --- | --- | --- |
 | OQ-17 | `npm audit` reports low and moderate warnings from `minimatch` inside ESLint 10 and from `deepmerge` inside the Svelte build plugin. The only offered fix moves ESLint back to version 9. Should the tools be downgraded? | No. The warnings only affect lint and build tooling. The Docker image installs run time dependencies only, and `npm audit --omit=dev` reports nothing. Update the tools when fixed versions are released |
 | OQ-20 | In the Disk Game, a player who always plays a shortest path never runs out of moves, so a game can last as long as they want. Should the move budget tighten in later stages? | No. Stages of 10 disks take hundreds of moves, so games end in practice. The playtest that would check this (T-61) was not carried out before the project closed |
+| OQ-21 | Are the number generation values in `number-game/difficulty.md` (pairs at the start, aim chance, sets tried) right for each preset? | They were set from simulated play only. Tune them after playing on each preset |
+| OQ-24 | Are the Block Game deal values (starting and late weights, 200 placements to reach the late weights, 30 tries for a fair hand) right? In simulated play a player who places one shape at a time without planning lasts about 130 placements, but a player who plans every whole hand can still last over 1000. | They were set from simulated play only. Tune them after playtesting (T-55). If careful players can still play without end, make the deal look at the board and prefer tighter hands |
 
 ## Tech Stack
 
@@ -24,8 +26,8 @@ This file tracks decisions about the project. New questions go in the Open secti
 
 | Id | Question | Answer |
 | --- | --- | --- |
-| OQ-01 | What widths can the player choose? | 10, 11, or 12 |
-| OQ-02 | Are added numbers random or copies? | Random numbers from 1 to 9 |
+| OQ-01 | What widths can the player choose? | None. The board is always 10 wide. Widths 11 and 12 were removed because players kept to the default, and saves and high scores made on them were deleted |
+| OQ-02 | Are added numbers random or copies? | New numbers from 1 to 9, chosen to help the player as described in NG-36 |
 | OQ-03 | Where do added numbers go? | Right after the last number, in reading order |
 | OQ-04 | How does scoring work? | See Scoring in `number-game/rules.md` |
 | OQ-05 | Should a game in progress be saved? | Yes, automatically on the server, in save slots |
@@ -39,6 +41,8 @@ This file tracks decisions about the project. New questions go in the Open secti
 | OQ-13 | Can a player delete their own save slot or player ID? | Save slots can be deleted from the save slot list. Player IDs cannot be deleted in the first version |
 | OQ-14 | What happens if the same save is open on two devices at once? | The save is locked to the device that opened it most recently. The other device is told the game was opened elsewhere |
 | OQ-15 | Should saving be built in the first version? | Yes, saves go straight to the server. There is no browser saving step, so the save code is only written once |
-| OQ-16 | Should high scores be split by width as well as difficulty? | No, width is shown next to each score but not used to filter |
+| OQ-16 | Should high scores be split by width as well as difficulty? | No longer applies, because the width is always 10 (see OQ-01) |
 | OQ-18 | What may a player ID contain? | 1 to 24 letters, digits, or the characters _ . -, in any language, with single spaces between words. Letter case does not make an ID different, so Sam and sam cannot both exist |
 | OQ-19 | What happens to saves in slots above `SAVE_SLOTS_PER_GAME` if the setting is lowered? | They stay in the database but are not listed or reachable until the setting is raised again |
+| OQ-22 | What board sizes can the Block Game player choose? | None. The board is always 10 x 10. Sizes 8 and 9 were removed because players kept to one size, and 10 x 10 leaves room for the bigger shapes |
+| OQ-23 | What happens to Block Game saves and high scores made before hands of 3, the weight ramp, and fair hands? | They were all deleted when the server was updated, because the old rules were much easier and the old saves used three always-full slots |

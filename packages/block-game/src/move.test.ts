@@ -3,7 +3,7 @@ import { createEmptyCells } from './board.js';
 import { applyMove } from './move.js';
 import { makeTestState } from './test-support.js';
 
-const STATE = makeTestState({ cells: createEmptyCells(8), score: 40, shapesPlaced: 3 });
+const STATE = makeTestState({ cells: createEmptyCells(), score: 40, shapesPlaced: 3 });
 
 describe('applyMove', () => {
   it('applies a placement', () => {
@@ -18,7 +18,7 @@ describe('applyMove', () => {
 
   it('passes on the reason a move was refused', () => {
     expect(
-      applyMove(STATE, { type: 'place-shape', slotIndex: 2, topRow: 7, leftColumn: 7 }),
+      applyMove(STATE, { type: 'place-shape', slotIndex: 2, topRow: 9, leftColumn: 9 }),
     ).toEqual({ accepted: false, reason: 'out-of-bounds' });
   });
 });

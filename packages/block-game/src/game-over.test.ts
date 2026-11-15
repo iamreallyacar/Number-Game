@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { createEmptyCells } from './board.js';
 import { anySlotShapeFits, isGameOver } from './game-over.js';
+import { shapeFitsAnywhere } from './shape-fit.js';
 import { CHECKERBOARD_ROWS, cellsFromRows, makeTestState } from './test-support.js';
 
 describe('isGameOver', () => {
   it('is not over while the board is empty', () => {
-    const state = makeTestState({ cells: createEmptyCells(8) });
+    const state = makeTestState({ cells: createEmptyCells() });
     expect(anySlotShapeFits(state)).toBe(true);
     expect(isGameOver(state)).toBe(false);
   });
@@ -25,5 +26,27 @@ describe('isGameOver', () => {
     });
     expect(anySlotShapeFits(state)).toBe(false);
     expect(isGameOver(state)).toBe(true);
+  });
+
+  it('is over when the shapes left do not fit, even though a used slot shape would have', () => {
+    const state = makeTestState({
+      cells: cellsFromRows(CHECKERBOARD_ROWS),
+      slots: [null, 'square-2', 'line-2-vertical'],
+    });
+    expect(shapeFitsAnywhere(state, 'single')).toBe(true);
+    expect(isGameOver(state)).toBe(true);
+  });
+
+  it('does not count empty slots as shapes that fit', () => {
+    const state = makeTestState({
+      cells: createEmptyCells(),
+      slots: [null, null, 'single'],
+    });
+    expect(anySlotShapeFits(state)).toBe(true);
+    const fullState = makeTestState({
+      cells: cellsFromRows(CHECKERBOARD_ROWS),
+      slots: [null, null, 'square-2'],
+    });
+    expect(anySlotShapeFits(fullState)).toBe(false);
   });
 });

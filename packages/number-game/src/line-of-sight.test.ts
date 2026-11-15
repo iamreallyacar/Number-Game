@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hasLineOfSight } from './line-of-sight.js';
+import { findBackwardVisibleCells, hasLineOfSight } from './line-of-sight.js';
 import { cellsFromRows } from './test-support.js';
 
 // Width 10 board where every cell is filled unless a test clears a path.
@@ -68,5 +68,30 @@ describe('hasLineOfSight', () => {
   it('refuses the same cell twice', () => {
     const cells = cellsFromRows([FULL_ROW]);
     expect(() => hasLineOfSight(cells, 10, 0, 0)).toThrow(RangeError);
+  });
+});
+
+describe('findBackwardVisibleCells', () => {
+  it('sees the nearest number before an empty cell in reading order, across a row wrap', () => {
+    expect(findBackwardVisibleCells(cellsFromRows(['....4', '.....']), 5, 7)).toEqual([4]);
+  });
+
+  it('sees straight up and up both diagonals, stopping at the first number in each', () => {
+    const cells = cellsFromRows(['12345', '.6.7.', '.....', '.....']);
+    // Reading order sees the 7, up crosses an empty cell to the 2, then up-right and up-left.
+    expect(findBackwardVisibleCells(cells, 5, 12)).toEqual([8, 2, 8, 6]);
+  });
+
+  it('stops vertical and diagonal lines at the board edge instead of wrapping', () => {
+    const cells = cellsFromRows(['3...4', '.....', '5....']);
+    expect(findBackwardVisibleCells(cells, 5, 10)).toEqual([4, 0]);
+  });
+
+  it('works for a cell past the end of the cells', () => {
+    expect(findBackwardVisibleCells(cellsFromRows(['12345', '67']), 5, 7)).toEqual([6, 2, 3, 1]);
+  });
+
+  it('sees nothing from the first cell', () => {
+    expect(findBackwardVisibleCells(cellsFromRows(['.1']), 2, 0)).toEqual([]);
   });
 });

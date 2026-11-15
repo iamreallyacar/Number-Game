@@ -16,6 +16,13 @@ const FORWARD_GRID_DIRECTIONS: readonly GridDirection[] = [
   { rowStep: 1, columnStep: -1 },
 ];
 
+// Backward directions that stop at the board edge: vertical, and the two diagonals going up.
+const BACKWARD_GRID_DIRECTIONS: readonly GridDirection[] = [
+  { rowStep: -1, columnStep: 0 },
+  { rowStep: -1, columnStep: 1 },
+  { rowStep: -1, columnStep: -1 },
+];
+
 function firstNumberInReadingOrder(cells: readonly Cell[], index: CellIndex): CellIndex | null {
   for (let candidate = index + 1; candidate < cells.length; candidate++) {
     if (cells[candidate] !== null) {
@@ -33,7 +40,7 @@ function firstNumberInGridDirection(
 ): CellIndex | null {
   let row = rowOf(index, width) + direction.rowStep;
   let column = columnOf(index, width) + direction.columnStep;
-  while (column >= 0 && column < width) {
+  while (row >= 0 && column >= 0 && column < width) {
     const candidate = row * width + column;
     if (candidate >= cells.length) {
       return null;
@@ -48,7 +55,8 @@ function firstNumberInGridDirection(
 }
 
 /**
- * The numbers this cell can see looking forward (right, down, and down the diagonals). Any cell
+ * The numbers this cell can see looking forward (right, down, and down the diagonals), each once
+ * even when reading order and a diagonal reach the same number. Any cell
  * it can see looking backward also sees it looking forward, so forward is enough to find every
  * visible pair once.
  */
@@ -60,6 +68,36 @@ export function findForwardVisibleCells(
   const visibleCells = [
     firstNumberInReadingOrder(cells, index),
     ...FORWARD_GRID_DIRECTIONS.map((direction) =>
+      firstNumberInGridDirection(cells, width, index, direction),
+    ),
+  ];
+  return [...new Set(visibleCells.filter((visibleCell) => visibleCell !== null))];
+}
+
+function lastNumberInReadingOrderBefore(
+  cells: readonly Cell[],
+  index: CellIndex,
+): CellIndex | null {
+  for (let candidate = Math.min(index, cells.length) - 1; candidate >= 0; candidate--) {
+    if (cells[candidate] !== null) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+/**
+ * The numbers this cell can see looking backward (left, up, and up the diagonals). The cell itself
+ * may be empty, or past the end of the cells, to ask what a number placed there would see.
+ */
+export function findBackwardVisibleCells(
+  cells: readonly Cell[],
+  width: number,
+  index: CellIndex,
+): CellIndex[] {
+  const visibleCells = [
+    lastNumberInReadingOrderBefore(cells, index),
+    ...BACKWARD_GRID_DIRECTIONS.map((direction) =>
       firstNumberInGridDirection(cells, width, index, direction),
     ),
   ];

@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { applyAddNumbers, countNumbersToAdd } from './add-numbers.js';
+import { clearPair, countNumbers, padToFullRows } from './board.js';
+import type { Cell } from './cell.js';
+import { findValidPair } from './find-pair.js';
+import { BOARD_WIDTH, type GameState } from './game-state.js';
 import { pairGroupsWithOddCount } from './pair.js';
 import { cellsFromRows, makeTestState } from './test-support.js';
 
@@ -95,8 +99,117 @@ describe('applyAddNumbers', () => {
     }
   });
 
+  it.each([
+    [['3.........'], 1],
+    [['34........'], 2],
+    [['555.......'], 3],
+    [['.........4'], 1],
+  ])('adds the right count to a small board %j', (rows: string[], expectedCount: number) => {
+    for (let seed = 0; seed < 30; seed++) {
+      const state = makeTestState({ cells: cellsFromRows(rows), randomState: seed });
+      const result = applyAddNumbers(state);
+      expect(result.accepted && result.addedCount).toBe(expectedCount);
+      expect(result.accepted && pairGroupsWithOddCount(result.state.cells)).toEqual([]);
+    }
+  });
+
+  it('adds half of a very large board without stalling', () => {
+    const rows = Array<string>(100).fill('1234567891');
+    const state = makeTestState({ cells: cellsFromRows(rows), difficulty: 'easy' });
+    const result = applyAddNumbers(state);
+    expect(result.accepted && result.addedCount).toBe(500);
+  });
+
   it('throws on a board with no numbers, since clearing the last one starts a new stage', () => {
     const state = makeTestState({ cells: cellsFromRows(['..........']) });
     expect(() => applyAddNumbers(state)).toThrow('at least one number');
+  });
+});
+
+const DIFFICULTIES = ['easy', 'normal', 'hard'] as const;
+const SEED_COUNT = 40;
+
+// A board with a few gaps and a stranded number, so Add Numbers has something to aim at.
+function randomBoardRows(width: number, seed: number): string[] {
+  const digits = Array.from({ length: width * 3 }, (_, index) => {
+    const value = (Math.imul(index + 1, 2654435761) ^ Math.imul(seed + 1, 40503)) >>> 0;
+    return value % 7 === 0 ? '.' : String(((value >>> 8) % 9) + 1);
+  });
+  return Array.from({ length: 3 }, (_, row) =>
+    digits.slice(row * width, (row + 1) * width).join(''),
+  );
+}
+
+function pressAddNumbers(state: GameState): {
+  cells: readonly Cell[];
+  addedCount: number;
+  state: GameState;
+} {
+  const result = applyAddNumbers(state);
+  if (!result.accepted) {
+    throw new Error(`Expected Add Numbers to be accepted, got ${result.reason}`);
+  }
+  return { cells: result.state.cells, addedCount: result.addedCount, state: result.state };
+}
+
+describe('applyAddNumbers on many boards', () => {
+  it.each(DIFFICULTIES)('follows the rules on %s', (difficulty) => {
+    const width = BOARD_WIDTH;
+    for (let seed = 0; seed < SEED_COUNT; seed++) {
+      const cells = padToFullRows(cellsFromRows(randomBoardRows(width, seed)), width);
+      if (countNumbers(cells) === 0) {
+        continue;
+      }
+      const state = makeTestState({ cells, difficulty, randomState: seed });
+      const result = pressAddNumbers(state);
+      const lastNumberIndex = cells.findLastIndex((cell) => cell !== null);
+      const added = result.cells.slice(lastNumberIndex + 1).filter((cell) => cell !== null);
+
+      expect(result.addedCount).toBe(countNumbersToAdd(cells));
+      expect(added).toHaveLength(result.addedCount);
+      expect(result.cells.slice(0, lastNumberIndex + 1)).toEqual(
+        cells.slice(0, lastNumberIndex + 1),
+      );
+      expect(result.cells.slice(lastNumberIndex + 1, lastNumberIndex + 1 + added.length)).toEqual(
+        added,
+      );
+      expect(pairGroupsWithOddCount(result.cells)).toEqual([]);
+      const digitsBefore = new Set(cells.filter((cell) => cell !== null));
+      expect(added.every((digit) => digitsBefore.has(digit))).toBe(true);
+      expect(pressAddNumbers(state)).toEqual(result);
+      if (result.addedCount > pairGroupsWithOddCount(cells).length) {
+        expect(findValidPair(result.cells, width)).not.toBeNull();
+      }
+    }
+  });
+});
+
+describe('applyAddNumbers aiming', () => {
+  function averageNumbersCleared(difficulty: 'easy' | 'hard'): number {
+    let totalCleared = 0;
+    const seedCount = 150;
+    for (let seed = 0; seed < seedCount; seed++) {
+      const cells = padToFullRows(cellsFromRows(randomBoardRows(BOARD_WIDTH, seed)), BOARD_WIDTH);
+      const result = pressAddNumbers(makeTestState({ cells, difficulty, randomState: seed }));
+      totalCleared +=
+        countNumbers(result.cells) - countNumbers(playOutGreedily(result.cells, BOARD_WIDTH));
+    }
+    return totalCleared / seedCount;
+  }
+
+  function playOutGreedily(startCells: readonly Cell[], width: number): Cell[] {
+    let cells = [...startCells];
+    for (
+      let pair = findValidPair(cells, width);
+      pair !== null;
+      pair = findValidPair(cells, width)
+    ) {
+      cells = clearPair(cells, width, pair.firstIndex, pair.secondIndex).cells;
+    }
+    return cells;
+  }
+
+  it('clears clearly more numbers with a greedy play-ahead on easy than on hard', () => {
+    expect(averageNumbersCleared('easy')).toBeGreaterThan(averageNumbersCleared('hard') + 2);
   });
 });

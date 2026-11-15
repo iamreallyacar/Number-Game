@@ -2,12 +2,8 @@ import type { Cell } from './cell.js';
 import type { DifficultyId, HintAllowance } from './difficulty.js';
 import type { RandomState } from '@local/seeded-random';
 
-export const BOARD_WIDTHS = [10, 11, 12] as const;
-export type BoardWidth = (typeof BOARD_WIDTHS)[number];
-
-export function isBoardWidth(value: unknown): value is BoardWidth {
-  return BOARD_WIDTHS.some((width) => width === value);
-}
+/** The board is always this many cells wide and starts this many rows tall (NG-01, NG-02). */
+export const BOARD_WIDTH = 10;
 
 /** Position of a cell in reading order, starting at 0 for row 1 column 1. */
 export type CellIndex = number;
@@ -17,7 +13,6 @@ export type CellIndex = number;
  * JSON.parse(JSON.stringify(state)) gives back an identical state.
  */
 export interface GameState {
-  readonly width: BoardWidth;
   /**
    * Every cell in reading order. The length is always a whole number of rows, so the last row is
    * padded with empty cells after Add Numbers. The board always holds at least one number.

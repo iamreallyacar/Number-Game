@@ -2,26 +2,25 @@ import type { RandomState } from '@local/seeded-random';
 import type { BoardCell } from './board-cell.js';
 import type { ShapeId } from './shape-catalogue.js';
 
-export const BOARD_SIZES = [8, 9, 10] as const;
-export type BoardSize = (typeof BOARD_SIZES)[number];
+/** The board is always this many rows and columns (BG-01). */
+export const BOARD_SIZE = 10;
 
-export function isBoardSize(value: unknown): value is BoardSize {
-  return BOARD_SIZES.some((size) => size === value);
-}
-
-/** The player always holds exactly this many shapes (BG-04). */
+/** Every hand has exactly this many shapes (BG-04). */
 export const SLOT_COUNT = 3;
 
-/** The shape in each slot, in slot order. A slot is never empty. */
-export type ShapeSlots = readonly [ShapeId, ShapeId, ShapeId];
+/**
+ * The shape in each slot, in slot order. A slot is null once its shape is placed, until the next
+ * hand. A state always has at least one filled slot, because the next hand is dealt as soon as the
+ * last shape of a hand is placed (BG-13).
+ */
+export type ShapeSlots = readonly [ShapeId | null, ShapeId | null, ShapeId | null];
 
 /** Position of a cell in reading order, starting at 0 for the top-left cell. */
 export type CellIndex = number;
 
-/** A square board. Rows and columns are counted from 0 at the top-left. */
+/** A square board of BOARD_SIZE rows and columns, counted from 0 at the top-left. */
 export interface BoardGrid {
-  readonly size: BoardSize;
-  /** Every cell in reading order, size times size cells. */
+  /** Every cell in reading order, BOARD_SIZE times BOARD_SIZE cells. */
   readonly cells: readonly BoardCell[];
 }
 

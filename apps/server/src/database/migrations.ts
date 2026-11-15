@@ -67,6 +67,22 @@ export const MIGRATIONS: readonly string[] = [
   DROP TABLE save_slots;
   ALTER TABLE save_slots_with_save_ids RENAME TO save_slots;
   `,
+  // The Number Game board is always 10 wide now, and its stored format version 2 no longer holds
+  // the width. Saves and high scores made on width 11 or 12 cannot be loaded any more, so they are
+  // deleted. Rows with no width field, or width 10, stay.
+  `
+  DELETE FROM save_slots
+  WHERE game_id = 'number-game' AND json_extract(state_json, '$.width') <> 10;
+
+  DELETE FROM high_scores
+  WHERE game_id = 'number-game' AND json_extract(details_json, '$.width') <> 10;
+  `,
+  // The Block Game rules changed a lot (hands of 3, a weight ramp, fair hands), and old results
+  // were earned under much easier rules, so every Block Game save and high score is deleted.
+  `
+  DELETE FROM save_slots WHERE game_id = 'block-game';
+  DELETE FROM high_scores WHERE game_id = 'block-game';
+  `,
 ];
 
 function readSchemaVersion(database: DatabaseSync): number {

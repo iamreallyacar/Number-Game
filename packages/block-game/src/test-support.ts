@@ -1,6 +1,6 @@
 // Builders shared by the test files. Excluded from the build in tsconfig.build.json.
 import { isShapeColour, type BoardCell } from './board-cell.js';
-import type { GameState } from './game-state.js';
+import { BOARD_SIZE, type GameState } from './game-state.js';
 
 /** Builds cells from rows written as text, where '.' is empty and '0' to '7' is a colour. */
 export function cellsFromRows(rows: readonly string[]): BoardCell[] {
@@ -18,14 +18,13 @@ export function cellsFromRows(rows: readonly string[]): BoardCell[] {
   );
 }
 
-/** An 8 x 8 board where filled and empty cells alternate, so no two empty cells touch sideways. */
-export const CHECKERBOARD_ROWS: readonly string[] = Array.from({ length: 8 }, (_, row) =>
-  row % 2 === 0 ? '0.0.0.0.' : '.0.0.0.0',
+/** A full size board where filled and empty cells alternate, so no two empty cells touch sideways. */
+export const CHECKERBOARD_ROWS: readonly string[] = Array.from({ length: BOARD_SIZE }, (_, row) =>
+  row % 2 === 0 ? '0.0.0.0.0.' : '.0.0.0.0.0',
 );
 
 export function makeTestState(overrides: Partial<GameState> & Pick<GameState, 'cells'>): GameState {
   return {
-    size: 8,
     slots: ['single', 'square-2', 'line-3-horizontal'],
     score: 0,
     streak: 0,

@@ -2,6 +2,7 @@
   import {
     applyAddNumbers,
     applyHint,
+    BOARD_WIDTH,
     columnOf,
     DIFFICULTY_PRESETS,
     isGameOver,
@@ -91,7 +92,7 @@
   }
 
   function positionOf(index: CellIndex): BoardPosition {
-    return { row: rowOf(index, gameState.width), column: columnOf(index, gameState.width) };
+    return { row: rowOf(index, BOARD_WIDTH), column: columnOf(index, BOARD_WIDTH) };
   }
 
   /** Must be called before the match is shown, while the cells are still where they were tapped. */
@@ -204,7 +205,7 @@
 
   <NumberGameBoard
     cells={gameState.cells}
-    width={gameState.width}
+    width={BOARD_WIDTH}
     {selectedIndex}
     {hintPair}
     {rejectedPair}

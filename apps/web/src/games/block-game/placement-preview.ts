@@ -1,4 +1,5 @@
 import {
+  BOARD_SIZE,
   cellIndexAt,
   getShape,
   linesClearedByPlacement,
@@ -28,24 +29,24 @@ export function buildPlacementPreview(
   const coveredCellIndexes = shape.cells.map((cell) => {
     const row = target.topRow + cell.rowOffset;
     const column = target.leftColumn + cell.columnOffset;
-    if (row < 0 || row >= board.size || column < 0 || column >= board.size) {
+    if (row < 0 || row >= BOARD_SIZE || column < 0 || column >= BOARD_SIZE) {
       throw new RangeError(
         `Shape '${shapeId}' at row ${String(target.topRow)}, column ${String(target.leftColumn)} sticks out of the board`,
       );
     }
-    return cellIndexAt(board.size, row, column);
+    return cellIndexAt(row, column);
   });
   if (!shapeFitsAt(board, shapeId, target.topRow, target.leftColumn)) {
     return { coveredCellIndexes, fits: false, clearingCellIndexes: [] };
   }
   const lines = linesClearedByPlacement(board, shapeId, target.topRow, target.leftColumn);
   const clearingCellIndexes = new Set<CellIndex>();
-  for (let line = 0; line < board.size; line++) {
+  for (let line = 0; line < BOARD_SIZE; line++) {
     for (const row of lines.rows) {
-      clearingCellIndexes.add(cellIndexAt(board.size, row, line));
+      clearingCellIndexes.add(cellIndexAt(row, line));
     }
     for (const column of lines.columns) {
-      clearingCellIndexes.add(cellIndexAt(board.size, line, column));
+      clearingCellIndexes.add(cellIndexAt(line, column));
     }
   }
   return { coveredCellIndexes, fits: true, clearingCellIndexes: [...clearingCellIndexes] };

@@ -1,4 +1,4 @@
-import type { BoardSize } from '@local/block-game';
+import { BOARD_SIZE } from '@local/block-game';
 
 /** A point on the screen in CSS pixels, as given by pointer events. */
 export interface ScreenPoint {
@@ -12,7 +12,6 @@ export interface BoardMetrics {
   readonly top: number;
   /** Width of the cells and the grid lines between them, without the outer border. */
   readonly innerWidth: number;
-  readonly size: BoardSize;
   /** Width of one grid line between two cells. */
   readonly gridLinePx: number;
 }
@@ -37,7 +36,7 @@ export const TOUCH_LIFT_PX = 56;
 
 /** The distance from the start of one cell to the start of the next. */
 export function cellPitchOf(metrics: BoardMetrics): number {
-  return (metrics.innerWidth + metrics.gridLinePx) / metrics.size;
+  return (metrics.innerWidth + metrics.gridLinePx) / BOARD_SIZE;
 }
 
 /**
@@ -72,13 +71,13 @@ export function findDropTarget(
   const rowFromTop = (shapeTopLeft.y - metrics.top) / cellPitchPx;
   const middleColumn = columnFromLeft + shape.width / 2;
   const middleRow = rowFromTop + shape.height / 2;
-  const isOverBoard = (line: number): boolean => line >= 0 && line <= metrics.size;
+  const isOverBoard = (line: number): boolean => line >= 0 && line <= BOARD_SIZE;
   if (!isOverBoard(middleColumn) || !isOverBoard(middleRow)) {
     return null;
   }
   return {
-    topRow: clampToBoard(Math.round(rowFromTop), metrics.size - shape.height),
-    leftColumn: clampToBoard(Math.round(columnFromLeft), metrics.size - shape.width),
+    topRow: clampToBoard(Math.round(rowFromTop), BOARD_SIZE - shape.height),
+    leftColumn: clampToBoard(Math.round(columnFromLeft), BOARD_SIZE - shape.width),
   };
 }
 

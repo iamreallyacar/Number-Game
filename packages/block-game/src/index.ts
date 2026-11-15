@@ -9,12 +9,11 @@ export {
   type ShapeCell,
   type ShapeId,
 } from './shape-catalogue.js';
+export { dealWeightOf, WEIGHT_RAMP_PLACEMENTS } from './deal-weights.js';
 export {
-  BOARD_SIZES,
-  isBoardSize,
+  BOARD_SIZE,
   SLOT_COUNT,
   type BoardGrid,
-  type BoardSize,
   type CellIndex,
   type GameState,
   type ShapeSlots,
@@ -27,6 +26,8 @@ export {
   shapeFitsAt,
   type FitRefusal,
 } from './shape-fit.js';
+export { canPlaceWholeHand } from './fair-hand.js';
+export { MAX_FAIR_HAND_TRIES } from './deal-shapes.js';
 export { anySlotShapeFits, isGameOver } from './game-over.js';
 export {
   LINE_CLEAR_POINTS,
@@ -40,14 +41,13 @@ export { InvalidGameStateError, parseGameState } from './parse-game-state.js';
 export { BLOCK_GAME_ID } from './game-id.js';
 export { applyMove, type BlockGameMove, type MoveRefusal, type MoveResult } from './move.js';
 export {
-  BOARD_SIZE_CATEGORIES,
-  boardSizeCategory,
+  BLOCK_GAME_CATEGORIES,
+  BLOCK_GAME_CATEGORY,
   InvalidSummaryDetailsError,
   parseSummaryDetails,
   summarizeGame,
   type BlockGameSummary,
   type BlockGameSummaryDetails,
-  type BoardSizeCategory,
 } from './summary.js';
 export {
   GAME_STATE_UPGRADES,

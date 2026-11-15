@@ -1,6 +1,6 @@
 import { cellIndexAt, findFullLines, type FullLines } from './board.js';
 import type { BoardCell } from './board-cell.js';
-import type { BoardGrid, CellIndex } from './game-state.js';
+import { BOARD_SIZE, type BoardGrid, type CellIndex } from './game-state.js';
 import { getShape, type ShapeId } from './shape-catalogue.js';
 
 export type FitRefusal = 'out-of-bounds' | 'cell-occupied';
@@ -19,7 +19,7 @@ export function findFitProblem(
     return 'out-of-bounds';
   }
   const shape = getShape(shapeId);
-  const isInside = (line: number): boolean => line >= 0 && line < board.size;
+  const isInside = (line: number): boolean => line >= 0 && line < BOARD_SIZE;
   const blockPositions = shape.cells.map((cell) => ({
     row: topRow + cell.rowOffset,
     column: leftColumn + cell.columnOffset,
@@ -28,7 +28,7 @@ export function findFitProblem(
     return 'out-of-bounds';
   }
   const isOccupied = blockPositions.some(
-    ({ row, column }) => board.cells[cellIndexAt(board.size, row, column)] !== null,
+    ({ row, column }) => board.cells[cellIndexAt(row, column)] !== null,
   );
   return isOccupied ? 'cell-occupied' : null;
 }
@@ -43,8 +43,8 @@ export function shapeFitsAt(
 }
 
 export function shapeFitsAnywhere(board: BoardGrid, shapeId: ShapeId): boolean {
-  for (let topRow = 0; topRow < board.size; topRow++) {
-    for (let leftColumn = 0; leftColumn < board.size; leftColumn++) {
+  for (let topRow = 0; topRow < BOARD_SIZE; topRow++) {
+    for (let leftColumn = 0; leftColumn < BOARD_SIZE; leftColumn++) {
       if (shapeFitsAt(board, shapeId, topRow, leftColumn)) {
         return true;
       }
@@ -67,7 +67,7 @@ export function coveredCellIndexes(
     );
   }
   return getShape(shapeId).cells.map((cell) =>
-    cellIndexAt(board.size, topRow + cell.rowOffset, leftColumn + cell.columnOffset),
+    cellIndexAt(topRow + cell.rowOffset, leftColumn + cell.columnOffset),
   );
 }
 
@@ -93,5 +93,5 @@ export function linesClearedByPlacement(
   topRow: number,
   leftColumn: number,
 ): FullLines {
-  return findFullLines({ size: board.size, cells: fillShape(board, shapeId, topRow, leftColumn) });
+  return findFullLines({ cells: fillShape(board, shapeId, topRow, leftColumn) });
 }

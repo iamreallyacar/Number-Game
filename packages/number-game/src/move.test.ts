@@ -3,7 +3,6 @@ import type { GameState } from './game-state.js';
 import { applyMove } from './move.js';
 
 const STATE: GameState = {
-  width: 10,
   cells: [5, 5, 1, 2, 1, 2, 1, 2, 1, 2],
   score: 120,
   stage: 2,

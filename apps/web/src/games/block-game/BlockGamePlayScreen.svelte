@@ -73,7 +73,7 @@
 
   const gameOver = $derived(isGameOver(gameState));
   const slotFits = $derived(
-    gameState.slots.map((shapeId) => shapeFitsAnywhere(gameState, shapeId)),
+    gameState.slots.map((shapeId) => shapeId !== null && shapeFitsAnywhere(gameState, shapeId)),
   );
   const preview: PlacementPreview | null = $derived(previewOf(drag));
 
@@ -113,7 +113,7 @@
   }
 
   function positionOf(index: CellIndex): BoardPosition {
-    return { row: rowOf(gameState.size, index), column: columnOf(gameState.size, index) };
+    return { row: rowOf(index), column: columnOf(index) };
   }
 
   function middleOf(indexes: readonly CellIndex[]): BoardPosition {
@@ -126,7 +126,7 @@
     };
   }
 
-  /** Must be called before the placement is shown, while the board size and cells still match. */
+  /** Must be called before the placement is shown, while the cells still match. */
   function showClearEffect(
     clearedCellIndexes: readonly CellIndex[],
     placedCellIndexes: readonly CellIndex[],
@@ -158,7 +158,6 @@
       left: rectangle.left + boardElement.clientLeft,
       top: rectangle.top + boardElement.clientTop,
       innerWidth: boardElement.clientWidth,
-      size: gameState.size,
       gridLinePx: BOARD_GRID_LINE_PX,
     };
   }
@@ -180,6 +179,9 @@
     const shapeId = gameState.slots[slotIndex];
     if (shapeId === undefined) {
       throw new RangeError(`There is no slot ${String(slotIndex)}`);
+    }
+    if (shapeId === null) {
+      return;
     }
     const cellPitchPx = cellPitchOf(measureBoard());
     const pickedUp: ActiveDrag = {
@@ -279,7 +281,6 @@
 
   <BlockGameBoard
     cells={gameState.cells}
-    size={gameState.size}
     {preview}
     previewColour={drag === null ? null : getShape(drag.shapeId).colour}
     {clearEffects}

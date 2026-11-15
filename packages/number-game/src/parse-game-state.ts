@@ -6,7 +6,7 @@ import {
   type DifficultyId,
   type HintAllowance,
 } from './difficulty.js';
-import { BOARD_WIDTHS, isBoardWidth, type BoardWidth, type GameState } from './game-state.js';
+import { BOARD_WIDTH, type GameState } from './game-state.js';
 import { isRandomState } from '@local/seeded-random';
 
 export class InvalidGameStateError extends Error {
@@ -14,7 +14,6 @@ export class InvalidGameStateError extends Error {
 }
 
 const GAME_STATE_KEYS: readonly (keyof GameState)[] = [
-  'width',
   'cells',
   'score',
   'stage',
@@ -39,14 +38,7 @@ function readRecord(value: unknown): ReadonlyMap<string, unknown> {
   return new Map<string, unknown>(Object.entries(value));
 }
 
-function readWidth(value: unknown): BoardWidth {
-  if (!isBoardWidth(value)) {
-    fail(`width must be one of ${BOARD_WIDTHS.join(', ')}`);
-  }
-  return value;
-}
-
-function readCells(value: unknown, width: BoardWidth): Cell[] {
+function readCells(value: unknown): Cell[] {
   if (!Array.isArray(value)) {
     fail('cells must be an array');
   }
@@ -56,12 +48,12 @@ function readCells(value: unknown, width: BoardWidth): Cell[] {
     }
     return cell;
   });
-  if (cells.length === 0 || cells.length % width !== 0) {
-    fail(`cells must fill whole rows of ${String(width)}, got ${String(cells.length)} cells`);
+  if (cells.length === 0 || cells.length % BOARD_WIDTH !== 0) {
+    fail(`cells must fill whole rows of ${String(BOARD_WIDTH)}, got ${String(cells.length)} cells`);
   }
-  for (let rowStart = 0; rowStart < cells.length; rowStart += width) {
-    if (countNumbers(cells.slice(rowStart, rowStart + width)) === 0) {
-      fail(`row ${String(rowStart / width + 1)} is empty and should have been removed`);
+  for (let rowStart = 0; rowStart < cells.length; rowStart += BOARD_WIDTH) {
+    if (countNumbers(cells.slice(rowStart, rowStart + BOARD_WIDTH)) === 0) {
+      fail(`row ${String(rowStart / BOARD_WIDTH + 1)} is empty and should have been removed`);
     }
   }
   return cells;
@@ -108,8 +100,7 @@ export function parseGameState(value: unknown): GameState {
     }
   }
 
-  const width = readWidth(record.get('width'));
-  const cells = readCells(record.get('cells'), width);
+  const cells = readCells(record.get('cells'));
   const score = record.get('score');
   if (!isWholeNumberAtLeast(score, 0)) {
     fail('score must be a whole number of 0 or more');
@@ -125,7 +116,6 @@ export function parseGameState(value: unknown): GameState {
   }
 
   return {
-    width,
     cells,
     score,
     stage,

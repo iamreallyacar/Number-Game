@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getShape, type ShapeSlots } from '@local/block-game';
+  import { getShape, type ShapeId, type ShapeSlots } from '@local/block-game';
   import BlockGameShape from './BlockGameShape.svelte';
   import { describeShape } from './describe-shape.js';
 
@@ -14,6 +14,12 @@
     readonly onPickUp: (slotIndex: number, event: PointerEvent) => void;
   }
 
+  // The room a shape gets inside a slot on each axis, whichever is smaller: the row height or the
+  // slot width. The slot is a size container, so 100cqw is the slot width.
+  const SLOT_ROOM = 'min(5rem, 100cqw - 1rem)';
+  const SLOT_GAP_PX = 2;
+  const LARGEST_CELL_SIZE = '1.3rem';
+
   const { slots, slotFits, draggedSlotIndex, returnedSlotIndex, onPickUp }: Props = $props();
 
   function describeSlot(slotIndex: number): string {
@@ -21,13 +27,24 @@
     if (shapeId === undefined) {
       throw new RangeError(`There is no slot ${String(slotIndex)}`);
     }
+    if (shapeId === null) {
+      return `Slot ${String(slotIndex + 1)}: empty`;
+    }
     const fitNote = slotFits[slotIndex] === true ? 'drag it onto the board' : 'fits nowhere yet';
     return `Slot ${String(slotIndex + 1)}: ${describeShape(getShape(shapeId))}, ${fitNote}`;
   }
 
+  /** Shrinks a cell so the longest side of the shape fits the room of a slot. */
+  function cellSizeFor(shapeId: ShapeId): string {
+    const shape = getShape(shapeId);
+    const longestSide = Math.max(shape.width, shape.height);
+    const gapsPx = (longestSide - 1) * SLOT_GAP_PX;
+    return `min(${LARGEST_CELL_SIZE}, calc((${SLOT_ROOM} - ${String(gapsPx)}px) / ${String(longestSide)}))`;
+  }
+
   function handlePointerDown(slotIndex: number, event: PointerEvent): void {
     // Only the main mouse button, a finger, or a pen tip picks a shape up.
-    if (draggedSlotIndex !== null || event.button !== 0) {
+    if (slots[slotIndex] === null || draggedSlotIndex !== null || event.button !== 0) {
       return;
     }
     event.preventDefault();
@@ -44,7 +61,8 @@
   {#each slots as shapeId, slotIndex (slotIndex)}
     <li
       class="slot"
-      class:no-fit={slotFits[slotIndex] !== true}
+      class:empty={shapeId === null}
+      class:no-fit={shapeId !== null && slotFits[slotIndex] !== true}
       class:dragged={draggedSlotIndex === slotIndex}
       class:returned={returnedSlotIndex === slotIndex}
       aria-label={describeSlot(slotIndex)}
@@ -56,9 +74,15 @@
         event.preventDefault();
       }}
     >
-      <span class="slot-shape">
-        <BlockGameShape {shapeId} cellSize="1.3rem" gap="2px" />
-      </span>
+      {#if shapeId !== null}
+        <span class="slot-shape">
+          <BlockGameShape
+            {shapeId}
+            cellSize={cellSizeFor(shapeId)}
+            gap={`${String(SLOT_GAP_PX)}px`}
+          />
+        </span>
+      {/if}
     </li>
   {/each}
 </ul>
@@ -77,7 +101,8 @@
   .slot {
     display: grid;
     place-items: center;
-    min-height: 5.5rem;
+    height: 6rem;
+    container-type: inline-size;
     border: 1px solid var(--color-border);
     border-radius: 10px;
     background: var(--color-surface);
@@ -86,6 +111,10 @@
     touch-action: none;
     user-select: none;
     -webkit-touch-callout: none;
+  }
+
+  .slot.empty {
+    cursor: default;
   }
 
   /* A shape that fits nowhere is faded and drawn dashed, so the hint does not rely on colour. */

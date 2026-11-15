@@ -8,13 +8,7 @@ export {
   type DifficultyPreset,
   type HintAllowance,
 } from './difficulty.js';
-export {
-  BOARD_WIDTHS,
-  isBoardWidth,
-  type BoardWidth,
-  type CellIndex,
-  type GameState,
-} from './game-state.js';
+export { BOARD_WIDTH, type CellIndex, type GameState } from './game-state.js';
 export { columnOf, countNumbers, rowOf } from './board.js';
 export { isPair } from './pair.js';
 export { hasLineOfSight } from './line-of-sight.js';

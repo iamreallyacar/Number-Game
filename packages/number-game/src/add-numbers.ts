@@ -1,13 +1,11 @@
-import { countNumbers, digitsOnBoard, padToFullRows } from './board.js';
+import { buildAddedNumbersCandidate } from './added-numbers-candidate.js';
+import { countNumbers, padToFullRows } from './board.js';
 import type { Cell, Digit } from './cell.js';
-import type { GameState } from './game-state.js';
-import { pairGroupsWithOddCount, pairPartners } from './pair.js';
-import {
-  drawRandomItem,
-  drawShuffled,
-  type RandomDraw,
-  type RandomState,
-} from '@local/seeded-random';
+import { DIFFICULTY_PRESETS } from './difficulty.js';
+import { BOARD_WIDTH, type GameState } from './game-state.js';
+import { pairGroupsWithOddCount } from './pair.js';
+import { countNumbersClearedByPlayAhead } from './play-ahead.js';
+import type { RandomDraw } from '@local/seeded-random';
 
 export type AddNumbersRefusal = 'no-uses-left';
 
@@ -28,40 +26,45 @@ export function countNumbersToAdd(cells: readonly Cell[]): number {
 }
 
 /**
- * Draws numbers that leave every pair group on the board even (NG-34): one for each odd group,
- * then the rest in pairs from the same group, all in a random order. Only numbers still on the
- * board are drawn (NG-33). An odd group always has a number on the board, so it can always be evened.
+ * Builds several sets of new numbers, plays each one ahead on the board with the set added, and
+ * keeps the set that clears the most numbers. The earliest set wins a tie (NG-36).
  */
-function drawNumbersThatEvenOutPairGroups(
-  randomState: RandomState,
-  cells: readonly Cell[],
-): RandomDraw<Digit[]> {
-  const allowedDigits = digitsOnBoard(cells);
-  const isAllowed = (digit: Digit): boolean => allowedDigits.includes(digit);
-  const count = countNumbersToAdd(cells);
-  const digits: Digit[] = [];
-  let currentState = randomState;
-  for (const oddGroup of pairGroupsWithOddCount(cells)) {
-    const draw = drawRandomItem(currentState, oddGroup.filter(isAllowed));
-    digits.push(draw.value);
-    currentState = draw.randomState;
-  }
-  while (digits.length < count) {
-    const firstDraw = drawRandomItem(currentState, allowedDigits);
-    const partnerDraw = drawRandomItem(
-      firstDraw.randomState,
-      pairPartners(firstDraw.value).filter(isAllowed),
+function chooseBestAddedNumbers(state: GameState): RandomDraw<Digit[]> {
+  const { addNumbersAimChance, addNumbersCandidateCount } = DIFFICULTY_PRESETS[state.difficulty];
+  const count = countNumbersToAdd(state.cells);
+  const lastNumberIndex = state.cells.findLastIndex((cell) => cell !== null);
+  const cellsUpToLastNumber = state.cells.slice(0, lastNumberIndex + 1);
+  let bestDigits: Digit[] | null = null;
+  let bestScore = -1;
+  let currentState = state.randomState;
+  for (let attempt = 0; attempt < addNumbersCandidateCount; attempt++) {
+    const candidate = buildAddedNumbersCandidate(
+      currentState,
+      state.cells,
+      BOARD_WIDTH,
+      count,
+      addNumbersAimChance,
     );
-    digits.push(firstDraw.value, partnerDraw.value);
-    currentState = partnerDraw.randomState;
+    currentState = candidate.randomState;
+    const score = countNumbersClearedByPlayAhead(
+      [...cellsUpToLastNumber, ...candidate.value],
+      BOARD_WIDTH,
+    );
+    if (score > bestScore) {
+      bestScore = score;
+      bestDigits = candidate.value;
+    }
   }
-  return drawShuffled(currentState, digits);
+  if (bestDigits === null) {
+    throw new Error('A difficulty preset must try at least one set of added numbers');
+  }
+  return { value: bestDigits, randomState: currentState };
 }
 
 /**
- * Places new random numbers in reading order right after the last number on the board (NG-18).
- * Only numbers still on the board are added, so a number cleared off the board in this stage
- * stays gone until the next stage (NG-33). The new numbers leave every pair group even (NG-34).
+ * Places new numbers in reading order right after the last number on the board (NG-18). Only
+ * numbers still on the board are added (NG-33), every pair group is left even (NG-34), and the
+ * numbers are aimed to be matchable (NG-36).
  */
 export function applyAddNumbers(state: GameState): AddNumbersResult {
   if (state.addNumbersLeft <= 0) {
@@ -72,14 +75,14 @@ export function applyAddNumbers(state: GameState): AddNumbersResult {
     // mistake in the calling code.
     throw new Error('Add Numbers needs at least one number on the board');
   }
-  const draw = drawNumbersThatEvenOutPairGroups(state.randomState, state.cells);
+  const draw = chooseBestAddedNumbers(state);
   const lastNumberIndex = state.cells.findLastIndex((cell) => cell !== null);
   const cellsUpToLastNumber = state.cells.slice(0, lastNumberIndex + 1);
   return {
     accepted: true,
     state: {
       ...state,
-      cells: padToFullRows([...cellsUpToLastNumber, ...draw.value], state.width),
+      cells: padToFullRows([...cellsUpToLastNumber, ...draw.value], BOARD_WIDTH),
       addNumbersLeft: state.addNumbersLeft - 1,
       randomState: draw.randomState,
     },

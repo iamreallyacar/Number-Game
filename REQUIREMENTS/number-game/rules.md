@@ -6,7 +6,7 @@ These requirements define how the Number Game plays. Cells are counted by row (t
 
 | Term | Meaning |
 | --- | --- |
-| Width (n) | Number of columns, chosen by the player at the start of a game |
+| Width | Number of columns, which is always 10 |
 | Cell | One square of the board. A cell is either empty or holds a number from 1 to 9 |
 | Reading order | Left to right along a row, then continuing at column 1 of the next row, like reading text |
 | Pair | Two numbers that are equal, or that add up to 10 |
@@ -15,9 +15,10 @@ These requirements define how the Number Game plays. Cells are counted by row (t
 
 ## Board
 
-- NG-01: When starting a new game, the player chooses the width n from 10, 11, or 12.
-- NG-02: Each stage starts with n rows of n cells, each filled with a random number from 1 to 9, balanced as described in NG-34. When n times n is odd (width 11), the last cell starts empty, because an odd count of numbers can never all be paired off.
+- NG-01: The board is always 10 cells wide. The player does not choose a width.
+- NG-02: Each stage starts with 10 rows of 10 cells, each filled with a number from 1 to 9. The numbers are chosen as described in NG-35.
 - NG-03: The board has no height limit. Rows are added below as needed, and the board scrolls vertically when it is taller than the screen.
+- NG-35: A starting board is built from a hidden solution. The game first plans an order of matches that clears the whole board while following every rule, including line of sight and row removal. It then gives the two cells of each planned match numbers that pair. So every starting board can be cleared completely without Add Numbers. Most planned pairs cannot see each other at the start and only open up after earlier matches. The numbers are chosen so that few unplanned pairs can see each other at the start. The count of pairs with line of sight at the start is set by the difficulty (see `difficulty.md`).
 - NG-29: Thin grid lines separate every row and column, including empty cells, so the player can follow a row, column, or diagonal across long distances.
 
 ## Selecting and Matching
@@ -37,7 +38,7 @@ Two numbers have line of sight if any one of the following is true:
 - NG-11: Diagonal: they lie on the same diagonal (the row difference equals the column difference) and every cell between them on that diagonal is empty.
 - NG-12: Reading order: every cell between them in reading order is empty. This lets a number see past the end of its row into the next row.
 
-Reading order example on a board with width 10: row 1 column 7 holds a 3, and row 2 column 2 holds a 7. Row 1 columns 8 to 10 and row 2 column 1 are empty. Following reading order from the 3, the next number found is the 7, so they have line of sight. Since 3 + 7 = 10, they clear.
+Reading order example: row 1 column 7 holds a 3, and row 2 column 2 holds a 7. Row 1 columns 8 to 10 and row 2 column 1 are empty. Following reading order from the 3, the next number found is the 7, so they have line of sight. Since 3 + 7 = 10, they clear.
 
 - NG-13: Only horizontal reading order wraps between rows. Vertical and diagonal lines stop at the edge of the board.
 
@@ -49,11 +50,12 @@ Reading order example on a board with width 10: row 1 column 7 holds a 3, and ro
 ## Adding Numbers
 
 - NG-16: An Add Numbers button sits below the board.
-- NG-17: Pressing it adds new random numbers from 1 to 9, limited as described in NG-33. The count is 50 percent of the numbers currently on the board, rounded up, with at least 1. When that count cannot leave every pair group even (NG-34), it grows to the smallest count that can, which is usually 1 more.
+- NG-17: Pressing it adds new numbers from 1 to 9, chosen as described in NG-36 and limited as described in NG-33. The count is 50 percent of the numbers currently on the board, rounded up, with at least 1. When that count cannot leave every pair group even (NG-34), it grows to the smallest count that can, which is usually 1 more.
 - NG-18: New numbers are placed in reading order starting right after the last number on the board, filling the rest of that row and then new rows below.
 - NG-19: The number of uses per stage is set by the difficulty (see `difficulty.md`). The button shows how many uses remain and is disabled when none remain.
 - NG-33: Add Numbers only adds numbers that are still on the board. A number that has been cleared off the board completely is not added again for the rest of the stage. A new stage fills the board from all numbers 1 to 9 as described in NG-02, so every number can appear again.
-- NG-34: A pair group is a set of numbers that all pair with each other: 1 and 9, 2 and 8, 3 and 7, 4 and 6, and 5 alone. Every number can only be cleared when each pair group has an even count of numbers on the board. A new stage board always starts with every group even. Add Numbers first adds one number for each group that is odd, then adds the rest in pairs from the same group, mixed into a random order. Line of sight can still block pairs, so this does not promise that the board can be cleared.
+- NG-34: A pair group is a set of numbers that all pair with each other: 1 and 9, 2 and 8, 3 and 7, 4 and 6, and 5 alone. Every number can only be cleared when each pair group has an even count of numbers on the board. A new stage board always starts with every group even, and Add Numbers always leaves every group even. Line of sight can still block pairs, so matching in a poor order can leave a board that cannot be cleared.
+- NG-36: Add Numbers is built to help the player. Each new number, in the order it is placed, is aimed with a chance set by the difficulty: an aimed number pairs with a number it will see from its cell, which is the nearest number above it, diagonally above it, or before it in reading order. The game builds one or more sets of new numbers this way. The count of sets is set by the difficulty. When it builds more than one, it plays each one ahead with simple matching and keeps the set that clears the most numbers. When the count of new numbers is larger than the count of odd pair groups, the first new number always pairs with the last number on the board, so the press always creates at least one pair with line of sight.
 
 ## Stages
 

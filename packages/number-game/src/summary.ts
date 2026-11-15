@@ -1,5 +1,5 @@
 import { DIFFICULTY_IDS, isDifficultyId, type DifficultyId } from './difficulty.js';
-import { BOARD_WIDTHS, isBoardWidth, type BoardWidth, type GameState } from './game-state.js';
+import type { GameState } from './game-state.js';
 
 /** Shown next to a save slot or a high score (PS-09, PS-13). Stored as JSON with high scores. */
 // A type instead of an interface, because only a type can be passed where the server expects a
@@ -7,7 +7,6 @@ import { BOARD_WIDTHS, isBoardWidth, type BoardWidth, type GameState } from './g
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type NumberGameSummaryDetails = {
   readonly stage: number;
-  readonly width: BoardWidth;
   readonly difficulty: DifficultyId;
 };
 
@@ -26,7 +25,7 @@ export function summarizeGame(state: GameState): NumberGameSummary {
   return {
     score: state.score,
     category: state.difficulty,
-    details: { stage: state.stage, width: state.width, difficulty: state.difficulty },
+    details: { stage: state.stage, difficulty: state.difficulty },
   };
 }
 
@@ -44,13 +43,9 @@ export function parseSummaryDetails(value: unknown): NumberGameSummaryDetails {
   if (typeof stage !== 'number' || !Number.isSafeInteger(stage) || stage < 1) {
     fail('stage must be a whole number of 1 or more');
   }
-  const width = record.get('width');
-  if (!isBoardWidth(width)) {
-    fail(`width must be one of ${BOARD_WIDTHS.join(', ')}`);
-  }
   const difficulty = record.get('difficulty');
   if (!isDifficultyId(difficulty)) {
     fail(`difficulty must be one of ${DIFFICULTY_IDS.join(', ')}`);
   }
-  return { stage, width, difficulty };
+  return { stage, difficulty };
 }

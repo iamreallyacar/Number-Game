@@ -15,7 +15,7 @@ These requirements cover player IDs, save slots stored on the server, and high s
 ## Starting a New Game
 
 - PS-04: Picking an empty slot in the save slot list starts a new game in it.
-- PS-05: The player then picks their player ID from a list, or creates a new one, and chooses the game's options, such as the width and difficulty in the Number Game.
+- PS-05: The player then picks their player ID from a list, or creates a new one, and chooses the game's options, such as the difficulty in the Number Game.
 - PS-06: The game begins in that slot, and the slot is linked to that player ID.
 
 ## Saving
@@ -25,7 +25,7 @@ These requirements cover player IDs, save slots stored on the server, and high s
 
 ## Loading
 
-- PS-09: Picking a used slot in the save slot list continues its game. Each used slot shows the player ID, the score, the game's own details, such as the stage, width, and difficulty in the Number Game, and when it was last played.
+- PS-09: Picking a used slot in the save slot list continues its game. Each used slot shows the player ID, the score, the game's own details, such as the stage and difficulty in the Number Game, and when it was last played.
 - PS-10: Any player can load any save slot.
 - PS-11: Loading a slot continues the game exactly where it was left.
 
