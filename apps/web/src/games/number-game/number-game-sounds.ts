@@ -1,16 +1,5 @@
-import {
-  clipSound,
-  layeredSound,
-  oneOfSound,
-  toneSound,
-  type OneOfSound,
-  type Sound,
-  type Tone,
-} from '../../audio/sound-player.js';
+import { layeredSound, toneSound, type Sound, type Tone } from '../../audio/sound-player.js';
 import { CHEER_SOUND, GAME_OVER_SOUND, WRONG_BUZZER_SOUND } from '../../audio/clip-sounds.js';
-import huatFaatUrl from '../../audio/clips/huat-faat.mp3';
-import huatFaUrl from '../../audio/clips/huat-fa.mp3';
-import huatFacaiUrl from '../../audio/clips/huat-facai.mp3';
 
 // Notes from the C major chord, so every sound fits with the others when they overlap.
 const NOTE_C4_HZ = 261.63;
@@ -38,14 +27,6 @@ function bell(frequencyHz: number, startSeconds: number, peakGain: number): Tone
   ];
 }
 
-// Cheers for prosperity: a Cantonese "faat", a Mandarin "fa" and a Mandarin "fa cai". They are
-// picked at random because a match is the most frequent event in the game.
-const HUAT_SHOUT: OneOfSound = oneOfSound([
-  clipSound(huatFaatUrl),
-  clipSound(huatFaUrl),
-  clipSound(huatFacaiUrl),
-]);
-
 export type NumberGameSoundName =
   | 'select'
   | 'matchShout'
@@ -61,7 +42,7 @@ export const NUMBER_GAME_SOUNDS: Readonly<Record<NumberGameSoundName, Sound>> = 
   select: toneSound([
     { frequencyHz: 440, waveform: 'sine', peakGain: 0.15, startSeconds: 0, fadeSeconds: 0.07 },
   ]),
-  matchShout: HUAT_SHOUT,
+  matchShout: CHEER_SOUND,
   // Played on top of the match shout, a little later, so a removed row also rings.
   rowRemoved: toneSound(bell(NOTE_G5_HZ, 0.08, 0.2)),
   wrongMatch: WRONG_BUZZER_SOUND,

@@ -136,12 +136,14 @@
     clearedCellIndexes: readonly CellIndex[],
     placedCellIndexes: readonly CellIndex[],
     pointsEarned: number,
+    cheerWords: string | null,
   ): void {
     const effect: ClearEffect = {
       id: nextClearEffectId,
       clearedCells: clearedCellIndexes.map(positionOf),
       pointsAt: middleOf(placedCellIndexes),
       pointsEarned,
+      cheerWords,
     };
     nextClearEffectId += 1;
     clearEffects = [...clearEffects, effect];
@@ -231,15 +233,16 @@
     }
   }
 
-  function playPlacementSound(clearedLineCount: number, nextState: GameState): void {
-    if (clearedLineCount > 0) {
-      soundPlayer.play(lineClearSound(clearedLineCount, nextState.streak));
-    } else {
-      soundPlayer.play(BLOCK_GAME_SOUNDS.place);
-    }
+  /** Returns the Chinese words of the line clear cheer, or null when no cheer was played. */
+  function playPlacementSound(clearedLineCount: number, nextState: GameState): string | null {
+    const cheerWords =
+      clearedLineCount > 0
+        ? soundPlayer.play(lineClearSound(clearedLineCount, nextState.streak))
+        : soundPlayer.play(BLOCK_GAME_SOUNDS.place);
     if (isGameOver(nextState)) {
       soundPlayer.play(BLOCK_GAME_SOUNDS.gameOver);
     }
+    return cheerWords;
   }
 
   /** Shows a placement right away, then sends it to the server to be saved (PS-07). */
@@ -253,10 +256,15 @@
       return;
     }
     const clearedLineCount = result.clearedRows.length + result.clearedColumns.length;
+    const cheerWords = playPlacementSound(clearedLineCount, result.state);
     if (clearedLineCount > 0) {
-      showClearEffect(result.clearedCellIndexes, result.placedCellIndexes, result.pointsEarned);
+      showClearEffect(
+        result.clearedCellIndexes,
+        result.placedCellIndexes,
+        result.pointsEarned,
+        cheerWords,
+      );
     }
-    playPlacementSound(clearedLineCount, result.state);
     gameState = result.state;
     const move: BlockGameMove = {
       type: 'place-shape',

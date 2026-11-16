@@ -14,4 +14,6 @@ export interface MatchEffect {
   readonly firstCell: BoardPosition;
   readonly secondCell: BoardPosition;
   readonly pointsEarned: number;
+  /** The Chinese words of the cheer that plays with the match, or null when no cheer plays. */
+  readonly cheerWords: string | null;
 }

@@ -69,7 +69,13 @@
       {#if stageClearEffect !== null && sorted}
         {#key stageClearEffect.id}
           <span class="points" aria-hidden="true">
-            +{stageClearEffect.stageClear.pointsEarned}
+            <span
+              >+{stageClearEffect.stageClear
+                .pointsEarned}{#if stageClearEffect.cheerWords !== null}<span
+                  class="cheer-words"
+                  lang="zh">{stageClearEffect.cheerWords}</span
+                >{/if}</span
+            >
             {#if stageClearEffect.stageClear.perfect}
               <span class="perfect">Perfect</span>
             {/if}
@@ -195,6 +201,11 @@
     opacity: 0;
     pointer-events: none;
     animation: float-up 1.2s ease-out;
+  }
+
+  .cheer-words {
+    margin-left: 0.25em;
+    font-size: 0.8em;
   }
 
   .perfect {

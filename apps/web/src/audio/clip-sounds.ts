@@ -1,4 +1,10 @@
-import { clipSound, oneOfSound, type ClipSound, type OneOfSound } from './sound-player.js';
+import {
+  clipSound,
+  oneOfSound,
+  spokenClipSound,
+  type ClipSound,
+  type OneOfSound,
+} from './sound-player.js';
 import caoUrl from './clips/game-over-cao.mp3';
 import aiyoUrl from './clips/game-over-aiyo.mp3';
 import zougouUrl from './clips/game-over-zougou.mp3';
@@ -16,6 +22,9 @@ import sileUrl from './clips/game-over-sile-cmn.mp3';
 import seilaaUrl from './clips/game-over-seilaa-yue.mp3';
 import tianaUrl from './clips/game-over-tiana-cmn.mp3';
 import wanSuiUrl from './clips/wan-sui.mp3';
+import huatFaatUrl from './clips/huat-faat.mp3';
+import huatFaUrl from './clips/huat-fa.mp3';
+import huatFacaiUrl from './clips/huat-facai.mp3';
 import huatHokkienFirstUrl from './clips/cheer-huat-hokkien-cut-1.mp3';
 import huatHokkienSecondUrl from './clips/cheer-huat-hokkien-cut-2.mp3';
 import ongLaiHakuUrl from './clips/cheer-ong-lai-haku4065.mp3';
@@ -52,25 +61,31 @@ export const GAME_OVER_SOUND: OneOfSound = oneOfSound([
 ]);
 
 /**
- * A cheer in Chinese, picked at random, for a big win such as a cleared stage or cleared lines:
- * a Cantonese "maan seoi" (long live), Hokkien and Teochew shouts of "huat", "ong lai", "chin ho",
- * "ho", and "chai sin", Mandarin shouts of "li hai", "gong xi", and "bang", and Cantonese shouts
- * of "gung hei faat coi" and "zeng".
+ * A cheer in Chinese, picked at random, for every good event in every game: a cleared pair, cleared
+ * lines, or a cleared stage. The pool holds a Cantonese "maan seoi" (long live) and "faat", Mandarin
+ * shouts of "fa" and "fa cai", Hokkien and Teochew shouts of "huat", "ong lai", "chin ho", "ho", and
+ * "chai sin", Mandarin shouts of "li hai", "gong xi", and "bang", and Cantonese shouts of
+ * "gung hei faat coi" and "zeng". Each clip carries its words in Chinese, written in simplified
+ * characters for Mandarin and traditional characters for the other languages, so a screen can show
+ * them beside the points.
  */
 export const CHEER_SOUND: OneOfSound = oneOfSound([
-  clipSound(wanSuiUrl),
-  clipSound(huatHokkienFirstUrl),
-  clipSound(huatHokkienSecondUrl),
-  clipSound(ongLaiHakuUrl),
-  clipSound(ongLaiAkamycocoUrl),
-  clipSound(chinHoUrl),
-  clipSound(hoTeochewUrl),
-  clipSound(chaiSinUrl),
-  clipSound(lihaiUrl),
-  clipSound(gongxiUrl),
-  clipSound(bangUrl),
-  clipSound(gungheiFaatcoiUrl),
-  clipSound(zengUrl),
+  spokenClipSound(wanSuiUrl, '萬歲'),
+  spokenClipSound(huatFaatUrl, '發'),
+  spokenClipSound(huatFaUrl, '发'),
+  spokenClipSound(huatFacaiUrl, '发财'),
+  spokenClipSound(huatHokkienFirstUrl, '發'),
+  spokenClipSound(huatHokkienSecondUrl, '發'),
+  spokenClipSound(ongLaiHakuUrl, '旺來'),
+  spokenClipSound(ongLaiAkamycocoUrl, '旺來'),
+  spokenClipSound(chinHoUrl, '真好'),
+  spokenClipSound(hoTeochewUrl, '好'),
+  spokenClipSound(chaiSinUrl, '財神'),
+  spokenClipSound(lihaiUrl, '厉害'),
+  spokenClipSound(gongxiUrl, '恭喜'),
+  spokenClipSound(bangUrl, '棒'),
+  spokenClipSound(gungheiFaatcoiUrl, '恭喜發財'),
+  spokenClipSound(zengUrl, '正'),
 ]);
 
 /** A game buzzer, for a move the rules refuse. */

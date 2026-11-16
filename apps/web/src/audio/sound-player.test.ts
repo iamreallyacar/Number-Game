@@ -5,6 +5,7 @@ import {
   layeredSound,
   oneOfSound,
   SoundPlayer,
+  spokenClipSound,
   toneSound,
   type SoundPlayerEnvironment,
 } from './sound-player.js';
@@ -201,6 +202,22 @@ describe('SoundPlayer combined sounds', () => {
     soundPlayer.play(layeredSound([clipSound('/a.mp3'), clipSound('/b.mp3')]));
     await letPromisesSettle();
     expect(audioContext.startedSources).toHaveLength(2);
+  });
+
+  it('returns the spoken words of the option picked inside a layered sound', () => {
+    const { soundPlayer } = setUp({ chooseOptionIndex: () => 1 });
+    const cheer = oneOfSound([
+      spokenClipSound('/first.mp3', '發'),
+      spokenClipSound('/second.mp3', '萬歲'),
+    ]);
+    expect(soundPlayer.play(layeredSound([clipSound('/knock.mp3'), cheer]))).toBe('萬歲');
+  });
+
+  it('returns no spoken words for a sound without words or while muted', () => {
+    const { soundPlayer } = setUp();
+    expect(soundPlayer.play(clipSound('/knock.mp3'))).toBeNull();
+    soundPlayer.setMuted(true);
+    expect(soundPlayer.play(spokenClipSound('/first.mp3', '發'))).toBeNull();
   });
 
   it('refuses a one-of sound without options', () => {

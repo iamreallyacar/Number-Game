@@ -92,7 +92,10 @@
   }
 
   function showStageClear(stageClear: StageClear): void {
-    stageClearEffect = { id: nextStageClearEffectId, stageClear };
+    const cheerWords = soundPlayer.play(
+      stageClear.perfect ? DISK_GAME_SOUNDS.perfectStageClear : DISK_GAME_SOUNDS.stageClear,
+    );
+    stageClearEffect = { id: nextStageClearEffectId, stageClear, cheerWords };
     nextStageClearEffectId += 1;
     clearTimeout(stageClearTimer);
     stageClearTimer = setTimeout(() => {
@@ -102,9 +105,6 @@
     showFeedback(
       `Stage cleared for ${String(stageClear.pointsEarned)} points.${perfectNote}`,
       'info',
-    );
-    soundPlayer.play(
-      stageClear.perfect ? DISK_GAME_SOUNDS.perfectStageClear : DISK_GAME_SOUNDS.stageClear,
     );
   }
 

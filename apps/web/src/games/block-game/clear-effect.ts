@@ -12,4 +12,6 @@ export interface ClearEffect {
   /** Where the points float up from: the middle of the placed shape. */
   readonly pointsAt: BoardPosition;
   readonly pointsEarned: number;
+  /** The Chinese words of the cheer that plays with the clear, or null when no cheer plays. */
+  readonly cheerWords: string | null;
 }

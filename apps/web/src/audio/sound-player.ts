@@ -22,6 +22,8 @@ export interface ClipSound {
   readonly url: string;
   /** Loudness of the clip from 0 up, where 1 plays the file as it is. */
   readonly gain: number;
+  /** The words a voice says in the clip, written as they are spoken, or null for a clip without words. */
+  readonly spokenWords: string | null;
 }
 
 /** One of several sounds, picked at random each time it plays, so a frequent sound stays fresh. */
@@ -43,7 +45,11 @@ export function toneSound(tones: readonly Tone[]): ToneSound {
 }
 
 export function clipSound(url: string, gain = 1): ClipSound {
-  return { kind: 'clip', url, gain };
+  return { kind: 'clip', url, gain, spokenWords: null };
+}
+
+export function spokenClipSound(url: string, spokenWords: string): ClipSound {
+  return { kind: 'clip', url, gain: 1, spokenWords };
 }
 
 export function oneOfSound(options: readonly Sound[]): OneOfSound {
@@ -110,9 +116,13 @@ export class SoundPlayer {
     }
   }
 
-  play(sound: Sound): void {
+  /**
+   * Returns the words spoken in the clips that were picked to play, or null when the sound has no
+   * spoken words or sound is muted, so a screen can show the words it is playing.
+   */
+  play(sound: Sound): string | null {
     if (this.#muted) {
-      return;
+      return null;
     }
     // The audio context is made on the first sound, which always comes from a tap. Browsers only
     // allow sound to start after the player has interacted with the page.
@@ -123,35 +133,32 @@ export class SoundPlayer {
         console.error('The browser refused to start sound.', error);
       });
     }
-    this.#playOnContext(audioContext, sound);
+    const spokenWords = this.#playOnContext(audioContext, sound);
+    return spokenWords.length > 0 ? spokenWords.join(' ') : null;
   }
 
-  #playOnContext(audioContext: AudioContext, sound: Sound): void {
+  #playOnContext(audioContext: AudioContext, sound: Sound): readonly string[] {
     switch (sound.kind) {
       case 'tones': {
         const soundStartSeconds = audioContext.currentTime;
         for (const tone of sound.tones) {
           playTone(audioContext, tone, soundStartSeconds);
         }
-        return;
+        return [];
       }
       case 'clip':
         this.#playClip(audioContext, sound);
-        return;
+        return sound.spokenWords === null ? [] : [sound.spokenWords];
       case 'one-of': {
         const optionIndex = this.#environment.chooseOptionIndex(sound.options.length);
         const option = sound.options[optionIndex];
         if (option === undefined) {
           throw new Error(`No sound option at index ${String(optionIndex)}.`);
         }
-        this.#playOnContext(audioContext, option);
-        return;
+        return this.#playOnContext(audioContext, option);
       }
       case 'layered':
-        for (const layer of sound.layers) {
-          this.#playOnContext(audioContext, layer);
-        }
-        return;
+        return sound.layers.flatMap((layer) => this.#playOnContext(audioContext, layer));
     }
   }
 

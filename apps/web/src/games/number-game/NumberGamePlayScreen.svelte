@@ -97,12 +97,18 @@
   }
 
   /** Must be called before the match is shown, while the cells are still where they were tapped. */
-  function showMatchEffect(firstIndex: CellIndex, secondIndex: CellIndex, nextScore: number): void {
+  function showMatchEffect(
+    firstIndex: CellIndex,
+    secondIndex: CellIndex,
+    nextScore: number,
+    cheerWords: string | null,
+  ): void {
     const effect: MatchEffect = {
       id: nextMatchEffectId,
       firstCell: positionOf(firstIndex),
       secondCell: positionOf(secondIndex),
       pointsEarned: nextScore - gameState.score,
+      cheerWords,
     };
     nextMatchEffectId += 1;
     matchEffects = [...matchEffects, effect];
@@ -113,15 +119,16 @@
     matchEffectTimers = [...matchEffectTimers, timer];
   }
 
-  function playMatchSound(removedRowCount: number, stageCleared: boolean): void {
+  /** Returns the Chinese words of the cheer that was played, or null when sound is muted. */
+  function playMatchSound(removedRowCount: number, stageCleared: boolean): string | null {
     if (stageCleared) {
-      soundPlayer.play(NUMBER_GAME_SOUNDS.stageClear);
-      return;
+      return soundPlayer.play(NUMBER_GAME_SOUNDS.stageClear);
     }
-    soundPlayer.play(NUMBER_GAME_SOUNDS.matchShout);
+    const cheerWords = soundPlayer.play(NUMBER_GAME_SOUNDS.matchShout);
     if (removedRowCount > 0) {
       soundPlayer.play(NUMBER_GAME_SOUNDS.rowRemoved);
     }
+    return cheerWords;
   }
 
   /** Shows a move right away, then sends it to the server to be saved (PS-07). */
@@ -155,8 +162,16 @@
         return;
       case 'matched': {
         const clearedStage = gameState.stage;
-        showMatchEffect(outcome.firstIndex, outcome.secondIndex, outcome.match.state.score);
-        playMatchSound(outcome.match.removedRowCount, outcome.match.stageCleared);
+        const cheerWords = playMatchSound(
+          outcome.match.removedRowCount,
+          outcome.match.stageCleared,
+        );
+        showMatchEffect(
+          outcome.firstIndex,
+          outcome.secondIndex,
+          outcome.match.state.score,
+          cheerWords,
+        );
         playMove(outcome.match.state, {
           type: 'match',
           firstIndex: outcome.firstIndex,

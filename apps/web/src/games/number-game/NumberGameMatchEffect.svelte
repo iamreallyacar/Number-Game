@@ -18,7 +18,10 @@
   class="over-cell points"
   style:--row={effect.secondCell.row}
   style:--column={effect.secondCell.column}
-  aria-hidden="true">+{effect.pointsEarned}</span
+  aria-hidden="true"
+  >+{effect.pointsEarned}{#if effect.cheerWords !== null}<span class="cheer-words" lang="zh"
+      >{effect.cheerWords}</span
+    >{/if}</span
 >
 
 <style>
@@ -52,6 +55,11 @@
       0 0 6px var(--color-surface);
     opacity: 0;
     animation: float-up 0.9s ease-out;
+  }
+
+  .cheer-words {
+    margin-left: 0.25em;
+    font-size: 0.8em;
   }
 
   @keyframes burst {

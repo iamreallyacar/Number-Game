@@ -26,7 +26,7 @@ These requirements cover everything around the games: the dashboard, how games p
 
 ## Sound and Motion
 
-- PL-18: Games may play short sound effects, made of tones or of recorded clips that ship with the app. Sound is on by default.
+- PL-18: Games may play short sound effects, made of tones or of recorded clips that ship with the app. Sound is on by default. When a cheer plays with a score pop up, the Chinese words of that cheer show beside the points. Nothing is shown while sound is muted.
 - PL-19: A mute button in the site header on every page turns all game sounds off and on. The choice is remembered on that device only and is not stored on the server.
 - PL-20: Moving effects are turned off or reduced when the device asks for reduced motion.
 

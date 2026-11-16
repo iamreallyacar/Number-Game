@@ -161,3 +161,5 @@ Gives stage clears a Chinese cheer instead of plain bells, and widens the pools 
 - [x] T-83: Play a cheer picked at random over the bells when a stage is cleared in the Number Game and the Disk Game, and pick the Block Game line clear cheer at random from a wider pool that keeps "wan sui". Update NG-31, DK-22, and BG-18, the sound tests, and `CREDITS.md` to match. (NG-31, DK-22, BG-18)
 - [x] T-84: Collect a small set of Mandarin and Cantonese cheers and add them to the cheer pool: 厉害, 恭喜, 棒, 恭喜發財, and 正. No free recording was found for 旺, 好嘢, or a Hokkien 興 "heng". (NG-31, DK-22, BG-18)
 - [ ] T-85: Ask the owner to listen to every new clip in the running app, and remove any that sound wrong, with the joined phrases and the stretched "diu" checked first.
+- [x] T-86: Make a cleared pair in the Number Game play from the shared cheer pool, and move the three "huat" clips into that pool, so every game draws its cheers from one pool and its groans from the other. (NG-31)
+- [x] T-87: Show the Chinese words of the cheer beside the points that float up when a pair, lines, or a stage is cleared, in every game. (PL-18)
