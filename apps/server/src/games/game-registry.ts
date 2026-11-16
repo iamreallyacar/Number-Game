@@ -1,12 +1,9 @@
 import type { GameSummary, SummaryDetails } from '@local/game-server-api';
+import type { StoredFormatUpgrade } from '@local/stored-values';
 import type { Static, TSchema } from 'typebox';
 import { Value } from 'typebox/value';
 import { HttpError } from '../http-error.js';
-import {
-  currentFormatVersion,
-  upgradeStoredValue,
-  type StoredFormatUpgrade,
-} from './stored-format.js';
+import { currentFormatVersion, upgradeStoredValue } from './stored-format.js';
 
 export type GameMoveOutcome<State> =
   | { readonly accepted: true; readonly state: State }

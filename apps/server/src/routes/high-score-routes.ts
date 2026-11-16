@@ -2,16 +2,16 @@ import {
   highScoresResponseSchema,
   personalBestsResponseSchema,
   playerIdSchema,
-  type GameResult as GameResultAnswer,
+  type GameResult,
 } from '@local/game-server-api';
 import { Type } from 'typebox';
-import type { GameResult, HighScoresStore } from '../database/high-scores-store.js';
+import type { HighScoresStore, StoredGameResult } from '../database/high-scores-store.js';
 import type { PlayersStore } from '../database/players-store.js';
 import type { GameRegistry, RegisteredGame } from '../games/game-registry.js';
 import { HttpError } from '../http-error.js';
 import { gameParamsSchema } from '../request-schemas.js';
 import type { TypedFastify } from '../typed-fastify.js';
-import { findPlayerId } from './request-lookups.js';
+import { requirePlayerId } from './request-lookups.js';
 
 export interface HighScoreRouteDependencies {
   readonly games: GameRegistry;
@@ -22,7 +22,7 @@ export interface HighScoreRouteDependencies {
 const DEFAULT_HIGH_SCORE_LIMIT = 20;
 const MAX_HIGH_SCORE_LIMIT = 100;
 
-function describeResult(game: RegisteredGame, result: GameResult): GameResultAnswer {
+function describeResult(game: RegisteredGame, result: StoredGameResult): GameResult {
   return {
     playerId: result.playerId,
     score: result.score,
@@ -83,7 +83,7 @@ export function registerHighScoreRoutes(
     },
     (request) => {
       const game = games.getGame(request.params.gameId);
-      const playerId = findPlayerId(players, request.params.playerId);
+      const playerId = requirePlayerId(players, request.params.playerId);
       const personalBests = highScores
         .listPersonalBests(game.id, playerId)
         .sort(

@@ -50,7 +50,7 @@
 ## PROJECT OVERVIEW
 
 - Title: Number Game
-- Description: Self-hosted game dashboard for a local network, starting with the Number Game, a grid puzzle where pairs of numbers are cleared
+- Description: Self-hosted game dashboard for a local network. It has two games: the Number Game, a grid puzzle where pairs of numbers are cleared, and the Block Game, a grid puzzle where shapes are placed to fill and clear rows and columns
 - Stack: TypeScript (strict), Svelte with Vite, Node.js with Fastify, SQLite, Docker compose
 
 ## DIRECTORY
@@ -59,3 +59,6 @@
 - `TASKS.md`: task list
 - `ARCHITECTURE.md`: code architecture
 - `REQUIREMENTS/`: requirement folder, with one subfolder per game
+- `packages/`: code shared by the server and the browser app, with one rules package per game. Each package has a `README.md`
+- `apps/server/`: the Fastify server
+- `apps/web/`: the Svelte browser app

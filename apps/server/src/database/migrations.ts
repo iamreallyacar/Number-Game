@@ -83,6 +83,12 @@ export const MIGRATIONS: readonly string[] = [
   DELETE FROM save_slots WHERE game_id = 'block-game';
   DELETE FROM high_scores WHERE game_id = 'block-game';
   `,
+  // The Disk Game was removed from the dashboard, so no code is left that can read its saves and
+  // high scores.
+  `
+  DELETE FROM save_slots WHERE game_id = 'disk-game';
+  DELETE FROM high_scores WHERE game_id = 'disk-game';
+  `,
 ];
 
 function readSchemaVersion(database: DatabaseSync): number {

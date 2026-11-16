@@ -14,18 +14,19 @@
   } from '@local/block-game';
   import { onDestroy } from 'svelte';
   import { getSoundPlayer } from '../../audio/sound-player.js';
-  import type { PlayScreenProps } from '../browser-game.js';
+  import GameOverPanel from '../../components/GameOverPanel.svelte';
+  import StatusBar from '../../components/StatusBar.svelte';
+  import type { BoardPosition } from '../board-position.js';
+  import type { DetailField, PlayScreenProps } from '../browser-game.js';
   import {
     BLOCK_GAME_PRELOADED_SOUNDS,
     BLOCK_GAME_SOUNDS,
     lineClearSound,
   } from './block-game-sounds.js';
   import BlockGameBoard from './BlockGameBoard.svelte';
-  import BlockGameOverPanel from './BlockGameOverPanel.svelte';
   import BlockGameShape from './BlockGameShape.svelte';
   import BlockGameSlots from './BlockGameSlots.svelte';
-  import BlockGameStatusBar from './BlockGameStatusBar.svelte';
-  import type { BoardPosition, ClearEffect } from './clear-effect.js';
+  import type { ClearEffect } from './clear-effect.js';
   import {
     cellPitchOf,
     findDropTarget,
@@ -77,6 +78,12 @@
   soundPlayer.preload(BLOCK_GAME_PRELOADED_SOUNDS);
 
   const gameOver = $derived(isGameOver(gameState));
+  // Score and streak stay on screen during play (BG-16).
+  const statusFields: readonly DetailField[] = $derived([
+    { label: 'Score', value: String(gameState.score) },
+    { label: 'Streak', value: String(gameState.streak) },
+    { label: 'Lines', value: String(gameState.linesCleared) },
+  ]);
   const slotFits = $derived(
     gameState.slots.map((shapeId) => shapeId !== null && shapeFitsAnywhere(gameState, shapeId)),
   );
@@ -287,11 +294,7 @@
 />
 
 <div class="play-screen">
-  <BlockGameStatusBar
-    score={gameState.score}
-    streak={gameState.streak}
-    linesCleared={gameState.linesCleared}
-  />
+  <StatusBar fields={statusFields} />
   <!-- Always takes up its line, so a message coming and going does not move the board mid-drag. -->
   <p class="feedback" class:shown={feedback !== null} role="status">{feedback ?? ''}</p>
 
@@ -304,9 +307,10 @@
   />
 
   {#if gameOver}
-    <BlockGameOverPanel
-      score={gameState.score}
-      linesCleared={gameState.linesCleared}
+    <!-- Shown when none of the shapes left in the hand fits on the board (BG-19, BG-20). -->
+    <GameOverPanel
+      reason="None of your remaining shapes fits on the board."
+      finalResult={`Final score ${String(gameState.score)} with ${String(gameState.linesCleared)} lines cleared`}
       {newGamePath}
       {dashboardPath}
     />

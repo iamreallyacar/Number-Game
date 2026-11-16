@@ -1,4 +1,5 @@
-import { layeredSound, toneSound, type Sound, type Tone } from '../../audio/sound-player.js';
+import { bellTones } from '../../audio/bell-tones.js';
+import { layeredSound, toneSound, type Sound } from '../../audio/sound-player.js';
 import { CHEER_SOUND, GAME_OVER_SOUND, WOOD_KNOCK_SOUND } from '../../audio/clip-sounds.js';
 
 // Notes from the F major chord, so every sound fits with the others when they overlap. A different
@@ -14,23 +15,7 @@ const NOTE_F6_HZ = 1396.91;
 const LINE_CLEAR_NOTES_HZ = [NOTE_C5_HZ, NOTE_F5_HZ, NOTE_A5_HZ, NOTE_C6_HZ, NOTE_F6_HZ] as const;
 const LINE_CLEAR_NOTE_GAP_SECONDS = 0.07;
 
-// A struck bell rings with an extra tone at about 2.76 times its main note. A little of it makes a
-// plain tone sound like a bell instead of a beep; too much makes it sharp on the ears.
-const BELL_OVERTONE_RATIO = 2.76;
-const BELL_OVERTONE_GAIN_SHARE = 0.1;
-
-function bell(frequencyHz: number, startSeconds: number, peakGain: number): Tone[] {
-  return [
-    { frequencyHz, waveform: 'sine', peakGain, startSeconds, fadeSeconds: 0.8 },
-    {
-      frequencyHz: frequencyHz * BELL_OVERTONE_RATIO,
-      waveform: 'sine',
-      peakGain: peakGain * BELL_OVERTONE_GAIN_SHARE,
-      startSeconds,
-      fadeSeconds: 0.25,
-    },
-  ];
-}
+const BELL_RING_SECONDS = 0.8;
 
 export type BlockGameSoundName = 'pickUp' | 'place' | 'invalidDrop' | 'gameOver';
 
@@ -61,7 +46,8 @@ export function lineClearSound(clearedLineCount: number, streak: number): Sound 
   const streakBonus = streak >= 2 ? 1 : 0;
   const noteCount = Math.min(clearedLineCount + streakBonus, LINE_CLEAR_NOTES_HZ.length);
   const bells = LINE_CLEAR_NOTES_HZ.slice(0, Math.max(noteCount, 1)).flatMap(
-    (frequencyHz, noteIndex) => bell(frequencyHz, noteIndex * LINE_CLEAR_NOTE_GAP_SECONDS, 0.2),
+    (frequencyHz, noteIndex) =>
+      bellTones(frequencyHz, noteIndex * LINE_CLEAR_NOTE_GAP_SECONDS, 0.2, BELL_RING_SECONDS),
   );
   return layeredSound([toneSound(bells), CHEER_SOUND]);
 }

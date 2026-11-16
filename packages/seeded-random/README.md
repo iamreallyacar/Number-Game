@@ -10,4 +10,4 @@ Everything is exported through `src/index.ts`. Every function is pure: it takes 
 
 | File | Job |
 | --- | --- |
-| `seeded-random.ts` | Mulberry32 generator: seeds, fractions, even and weighted picks from a list, and shuffles |
+| `seeded-random.ts` | Mulberry32 generator: seeds, fractions, and even and weighted picks from a list |

@@ -8,6 +8,7 @@ import {
 } from './difficulty.js';
 import { BOARD_WIDTH, type GameState } from './game-state.js';
 import { isRandomState } from '@local/seeded-random';
+import { isWholeNumberAtLeast, readStoredFields } from '@local/stored-values';
 
 export class InvalidGameStateError extends Error {
   override readonly name = 'InvalidGameStateError';
@@ -25,17 +26,6 @@ const GAME_STATE_KEYS: readonly (keyof GameState)[] = [
 
 function fail(message: string): never {
   throw new InvalidGameStateError(`Invalid game state: ${message}`);
-}
-
-function isWholeNumberAtLeast(value: unknown, minimum: number): value is number {
-  return typeof value === 'number' && Number.isSafeInteger(value) && value >= minimum;
-}
-
-function readRecord(value: unknown): ReadonlyMap<string, unknown> {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    fail('expected an object');
-  }
-  return new Map<string, unknown>(Object.entries(value));
 }
 
 function readCells(value: unknown): Cell[] {
@@ -93,7 +83,7 @@ function readHintsLeft(value: unknown, difficulty: DifficultyId): HintAllowance 
  * InvalidGameStateError naming the first problem found, so a broken save is never loaded.
  */
 export function parseGameState(value: unknown): GameState {
-  const record = readRecord(value);
+  const record = readStoredFields(value) ?? fail('expected an object');
   for (const key of record.keys()) {
     if (!GAME_STATE_KEYS.some((knownKey) => knownKey === key)) {
       fail(`unknown field '${key}'`);

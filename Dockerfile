@@ -3,10 +3,10 @@ FROM node:24-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/seeded-random/package.json packages/seeded-random/
+COPY packages/stored-values/package.json packages/stored-values/
 COPY packages/game-server-api/package.json packages/game-server-api/
 COPY packages/number-game/package.json packages/number-game/
 COPY packages/block-game/package.json packages/block-game/
-COPY packages/disk-game/package.json packages/disk-game/
 COPY apps/server/package.json apps/server/
 COPY apps/web/package.json apps/web/
 RUN npm ci
@@ -19,18 +19,18 @@ ENV NODE_ENV=production
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/seeded-random/package.json packages/seeded-random/
+COPY packages/stored-values/package.json packages/stored-values/
 COPY packages/game-server-api/package.json packages/game-server-api/
 COPY packages/number-game/package.json packages/number-game/
 COPY packages/block-game/package.json packages/block-game/
-COPY packages/disk-game/package.json packages/disk-game/
 COPY apps/server/package.json apps/server/
 COPY apps/web/package.json apps/web/
 RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=build /app/packages/seeded-random/dist packages/seeded-random/dist
+COPY --from=build /app/packages/stored-values/dist packages/stored-values/dist
 COPY --from=build /app/packages/game-server-api/dist packages/game-server-api/dist
 COPY --from=build /app/packages/number-game/dist packages/number-game/dist
 COPY --from=build /app/packages/block-game/dist packages/block-game/dist
-COPY --from=build /app/packages/disk-game/dist packages/disk-game/dist
 COPY --from=build /app/apps/server/dist apps/server/dist
 COPY --from=build /app/apps/web/dist apps/web/dist
 

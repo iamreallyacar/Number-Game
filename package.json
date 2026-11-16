@@ -8,10 +8,10 @@
   },
   "workspaces": [
     "packages/seeded-random",
+    "packages/stored-values",
     "packages/game-server-api",
     "packages/number-game",
     "packages/block-game",
-    "packages/disk-game",
     "apps/server",
     "apps/web"
   ],

@@ -123,4 +123,36 @@ describe('runMigrations', () => {
     const keptScores = database.prepare('SELECT score FROM high_scores').all();
     expect(keptScores.map((row) => row['score'])).toEqual([200]);
   });
+
+  it('deletes every save and high score of the removed Disk Game and keeps other games', () => {
+    const database = new DatabaseSync(':memory:');
+    for (const migration of MIGRATIONS.slice(0, 5)) {
+      database.exec(migration);
+    }
+    database.exec('PRAGMA user_version = 5');
+    const insertSave = database.prepare(
+      `INSERT INTO save_slots
+         (game_id, slot_number, save_id, player_id, state_json, state_version, locked_device_id,
+          last_played_at)
+       VALUES (?, ?, ?, 'Sam', '{}', 1, 'device-aaaa', '2026-01-01')`,
+    );
+    const insertScore = database.prepare(
+      `INSERT INTO high_scores
+         (game_id, player_id, score, category, details_json, finished_at)
+       VALUES (?, 'Sam', ?, 'normal', '{}', '2026-01-01')`,
+    );
+    database.exec("INSERT INTO players (player_id, created_at) VALUES ('Sam', '2026-01-01')");
+    insertSave.run('disk-game', 1, 'save-disk-1');
+    insertSave.run('disk-game', 2, 'save-disk-2');
+    insertSave.run(NUMBER_GAME_ID, 1, 'save-number');
+    insertScore.run('disk-game', 100);
+    insertScore.run(NUMBER_GAME_ID, 200);
+
+    runMigrations(database);
+
+    const keptSaves = database.prepare('SELECT save_id FROM save_slots').all();
+    expect(keptSaves.map((row) => row['save_id'])).toEqual(['save-number']);
+    const keptScores = database.prepare('SELECT score FROM high_scores').all();
+    expect(keptScores.map((row) => row['score'])).toEqual([200]);
+  });
 });

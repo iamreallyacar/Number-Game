@@ -1,3 +1,4 @@
+import { isWholeNumberAtLeast, readStoredFields } from '@local/stored-values';
 import { DIFFICULTY_IDS, isDifficultyId, type DifficultyId } from './difficulty.js';
 import type { GameState } from './game-state.js';
 
@@ -35,12 +36,9 @@ function fail(message: string): never {
 
 /** Checks summary details read back from storage or from the server, and returns them typed. */
 export function parseSummaryDetails(value: unknown): NumberGameSummaryDetails {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    fail('expected an object');
-  }
-  const record = new Map<string, unknown>(Object.entries(value));
+  const record = readStoredFields(value) ?? fail('expected an object');
   const stage = record.get('stage');
-  if (typeof stage !== 'number' || !Number.isSafeInteger(stage) || stage < 1) {
+  if (!isWholeNumberAtLeast(stage, 1)) {
     fail('stage must be a whole number of 1 or more');
   }
   const difficulty = record.get('difficulty');

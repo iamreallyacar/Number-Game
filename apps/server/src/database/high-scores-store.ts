@@ -2,7 +2,7 @@ import type { DatabaseSync, SQLOutputValue } from 'node:sqlite';
 import { readIntegerColumn, readTextColumn } from './row-values.js';
 
 /** One finished game. `category` is what high scores are filtered by, such as the difficulty. */
-export interface GameResult {
+export interface StoredGameResult {
   readonly gameId: string;
   readonly playerId: string;
   readonly score: number;
@@ -14,7 +14,7 @@ export interface GameResult {
   readonly finishedAt: string;
 }
 
-function toGameResult(row: Record<string, SQLOutputValue>): GameResult {
+function toGameResult(row: Record<string, SQLOutputValue>): StoredGameResult {
   return {
     gameId: readTextColumn(row, 'game_id'),
     playerId: readTextColumn(row, 'player_id'),
@@ -29,7 +29,7 @@ function toGameResult(row: Record<string, SQLOutputValue>): GameResult {
 export class HighScoresStore {
   constructor(private readonly database: DatabaseSync) {}
 
-  insertResult(result: GameResult): void {
+  insertResult(result: StoredGameResult): void {
     this.database
       .prepare(
         `INSERT INTO high_scores
@@ -48,7 +48,7 @@ export class HighScoresStore {
   }
 
   /** Best results first. Ties go to whoever got there first. A null category means all of them. */
-  listTopResults(gameId: string, category: string | null, limit: number): GameResult[] {
+  listTopResults(gameId: string, category: string | null, limit: number): StoredGameResult[] {
     return this.database
       .prepare(
         `SELECT * FROM high_scores
@@ -61,7 +61,7 @@ export class HighScoresStore {
   }
 
   /** The best result of one player in each category they have played. */
-  listPersonalBests(gameId: string, playerId: string): GameResult[] {
+  listPersonalBests(gameId: string, playerId: string): StoredGameResult[] {
     return this.database
       .prepare(
         `SELECT * FROM (

@@ -16,13 +16,15 @@
   } from '@local/number-game';
   import { onDestroy } from 'svelte';
   import { getSoundPlayer, type Sound } from '../../audio/sound-player.js';
-  import type { PlayScreenProps } from '../browser-game.js';
-  import type { BoardPosition, MatchEffect } from './match-effect.js';
+  import GameOverPanel from '../../components/GameOverPanel.svelte';
+  import StatusBar from '../../components/StatusBar.svelte';
+  import type { BoardPosition } from '../board-position.js';
+  import type { DetailField, PlayScreenProps } from '../browser-game.js';
+  import { DIFFICULTY_LABELS } from './difficulty-labels.js';
+  import type { MatchEffect } from './match-effect.js';
   import { MATCH_REFUSAL_MESSAGES } from './match-refusal-messages.js';
   import NumberGameActionBar from './NumberGameActionBar.svelte';
   import NumberGameBoard from './NumberGameBoard.svelte';
-  import NumberGameOverPanel from './NumberGameOverPanel.svelte';
-  import NumberGameStatusBar from './NumberGameStatusBar.svelte';
   import { NUMBER_GAME_PRELOADED_SOUNDS, NUMBER_GAME_SOUNDS } from './number-game-sounds.js';
   import { tapCell } from './tap-cell.js';
 
@@ -55,6 +57,12 @@
   soundPlayer.preload(NUMBER_GAME_PRELOADED_SOUNDS);
 
   const gameOver = $derived(isGameOver(gameState));
+  // Score and stage stay on screen during play (NG-22, NG-24).
+  const statusFields: readonly DetailField[] = $derived([
+    { label: 'Score', value: String(gameState.score) },
+    { label: 'Stage', value: String(gameState.stage) },
+    { label: 'Difficulty', value: DIFFICULTY_LABELS[gameState.difficulty] },
+  ]);
   const stuck = $derived(isStuck(gameState));
   const STUCK_MESSAGE: Feedback = {
     text: 'No pairs can see each other. Press Add Numbers.',
@@ -201,11 +209,7 @@
 
 <div class="play-screen">
   <div class="sticky-top">
-    <NumberGameStatusBar
-      score={gameState.score}
-      stage={gameState.stage}
-      difficulty={gameState.difficulty}
-    />
+    <StatusBar fields={statusFields} />
     <!-- Always takes up its line, so a message coming and going does not move the board under a tap. -->
     <p
       class="feedback"
@@ -229,9 +233,10 @@
   />
 
   {#if gameOver}
-    <NumberGameOverPanel
-      score={gameState.score}
-      stage={gameState.stage}
+    <!-- Shown when no pair is left and Add Numbers is used up (NG-26, NG-27). -->
+    <GameOverPanel
+      reason="No pairs are left and Add Numbers is used up."
+      finalResult={`Final score ${String(gameState.score)} on stage ${String(gameState.stage)}`}
       {newGamePath}
       {dashboardPath}
     />

@@ -1,8 +1,4 @@
-/** A row and column on the board, counted from 0. */
-export interface BoardPosition {
-  readonly row: number;
-  readonly column: number;
-}
+import type { BoardPosition } from '../board-position.js';
 
 /**
  * What the board shows for a moment after a pair is cleared (NG-30). Positions are taken from the

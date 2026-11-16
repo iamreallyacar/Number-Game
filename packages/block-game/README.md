@@ -4,13 +4,13 @@ This package holds the Block Game rules as plain TypeScript, with no browser or 
 
 ## Contract
 
-Everything is exported through `src/index.ts`. Every function is pure: it takes a game state and returns a new one without changing the old one. The package owns every fact about the game that the server and the browser must agree on:
+`src/index.ts` exports only what the server and the browser use. Every function is pure: it takes a game state and returns a new one without changing the old one. The package owns every fact about the game that the server and the browser must agree on:
 
 - `BLOCK_GAME_ID`, the id both apps register the game under.
 - `BOARD_SIZE`, the number of rows and columns of the board, which is always 10.
-- `dealWeightOf` and `WEIGHT_RAMP_PLACEMENTS`, the weight of a shape for dealing after a number of placed shapes. Each shape has a starting weight and a late weight, and the deal weights move from one to the other in even steps over the first 200 placements. It uses whole number math only, so the browser and the server always agree.
+- The deal weights. Each shape has a starting weight and a late weight, and the deal weights move from one to the other in even steps over the first 200 placements. `deal-weights.ts` uses whole number math only, so the browser and the server always agree.
 - `BlockGameMove` and `applyMove`, the moves a player can make and the one function that applies any of them. The server module checks its move schema against `BlockGameMove` when it compiles.
-- `canPlaceWholeHand` and `MAX_FAIR_HAND_TRIES`, the fairness check behind every dealt hand and the number of hands tried before the three single cells fallback. The server and the browser deal the same hands because both run the same package.
+- The fairness check behind every dealt hand, in `fair-hand.ts` and `deal-shapes.ts`. The server and the browser deal the same hands because both run the same package.
 - `isGameOver`, which the server calls after every accepted move to end the game.
 - `summarizeGame` and `parseSummaryDetails`, which write and read back the summary shown next to save slots and high scores. `BLOCK_GAME_CATEGORIES` lists the high score categories, which is the single category `BLOCK_GAME_CATEGORY`.
 - `GAME_STATE_UPGRADES` and `SUMMARY_DETAILS_UPGRADES`, which upgrade stored states and summary details written by older versions of the game.
@@ -21,7 +21,7 @@ Moves that a player can get wrong, such as a shape that sticks out of the board,
 
 ## Changing the Stored Format
 
-Saved games keep a `GameState` as JSON, and high scores keep the summary details as JSON. When a change adds, renames, or removes a field in either one, add an upgrade to the end of the matching list in `stored-format-upgrades.ts` that turns the old shape into the new one. Never edit an upgrade that has shipped. Shape ids are stored in saved games too, so a shape that has shipped must never be renamed or removed from the catalogue. Without an upgrade, every existing save would be rejected as broken.
+Saved games keep a `GameState` as JSON, and high scores keep the summary details as JSON. When a change adds, renames, or removes a field in either one, add an upgrade to the end of the matching list in `stored-format-upgrades.ts`, typed with `StoredFormatUpgrade` from `@local/stored-values`, that turns the old shape into the new one. Never edit an upgrade that has shipped. Shape ids are stored in saved games too, so a shape that has shipped must never be renamed or removed from the catalogue. Without an upgrade, every existing save would be rejected as broken.
 
 ## Files
 

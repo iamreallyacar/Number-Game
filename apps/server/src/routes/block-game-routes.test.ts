@@ -1,9 +1,7 @@
 import { BLOCK_GAME_ID } from '@local/block-game';
 import { describe, expect, it } from 'vitest';
-import { buildApp } from '../app.js';
-import { openInMemoryDatabase } from '../database/open-database.js';
 import { createGameRegistry } from '../games/create-game-registry.js';
-import { createPlayer, DEVICE_A } from '../test-support.js';
+import { createPlayer, DEVICE_A, startTestServer } from '../test-support.js';
 
 const SLOT_URL = `/api/games/${BLOCK_GAME_ID}/slots/1`;
 const PLACE_FIRST_SHAPE_AT_CORNER = {
@@ -11,13 +9,7 @@ const PLACE_FIRST_SHAPE_AT_CORNER = {
 };
 
 async function startServerWithBlockGameInSlot() {
-  const app = await buildApp({
-    database: openInMemoryDatabase(),
-    games: createGameRegistry(),
-    saveSlotsPerGame: 3,
-    webAppDir: '/no-web-app-here',
-    logRequests: false,
-  });
+  const { app } = await startTestServer({ games: createGameRegistry() });
   await createPlayer(app, 'Sam');
   const started = await app.inject({
     method: 'POST',

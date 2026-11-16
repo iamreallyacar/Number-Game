@@ -1,7 +1,5 @@
+import { readStoredFields, type StoredFormatUpgrade } from '@local/stored-values';
 import { BOARD_WIDTH } from './game-state.js';
-
-/** Turns a stored value written in one format version into the next version. */
-export type StoredFormatUpgrade = (stored: unknown) => unknown;
 
 // Saved game states and high score details outlive the code that wrote them, so a change to
 // GameState or NumberGameSummaryDetails needs an upgrade here, the same way the database schema
@@ -14,10 +12,10 @@ export type StoredFormatUpgrade = (stored: unknown) => unknown;
  * meeting another width here means the stored data is broken.
  */
 function removeStoredWidth(stored: unknown, storedKind: string): unknown {
-  if (typeof stored !== 'object' || stored === null || Array.isArray(stored)) {
+  const fields = readStoredFields(stored);
+  if (fields === null) {
     throw new Error(`Cannot upgrade ${storedKind}: expected an object`);
   }
-  const fields = new Map<string, unknown>(Object.entries(stored));
   const width = fields.get('width');
   if (width !== BOARD_WIDTH) {
     throw new Error(

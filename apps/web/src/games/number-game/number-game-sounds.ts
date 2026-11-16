@@ -1,4 +1,5 @@
-import { layeredSound, toneSound, type Sound, type Tone } from '../../audio/sound-player.js';
+import { bellTones } from '../../audio/bell-tones.js';
+import { layeredSound, toneSound, type Sound } from '../../audio/sound-player.js';
 import { CHEER_SOUND, GAME_OVER_SOUND, WRONG_BUZZER_SOUND } from '../../audio/clip-sounds.js';
 
 // Notes from the C major chord, so every sound fits with the others when they overlap.
@@ -9,23 +10,7 @@ const NOTE_E5_HZ = 659.25;
 const NOTE_G5_HZ = 783.99;
 const NOTE_C6_HZ = 1046.5;
 
-// A struck bell rings with an extra tone at about 2.76 times its main note. A little of it makes a
-// plain tone sound like a bell instead of a beep; too much makes it sharp on the ears.
-const BELL_OVERTONE_RATIO = 2.76;
-const BELL_OVERTONE_GAIN_SHARE = 0.1;
-
-function bell(frequencyHz: number, startSeconds: number, peakGain: number): Tone[] {
-  return [
-    { frequencyHz, waveform: 'sine', peakGain, startSeconds, fadeSeconds: 0.9 },
-    {
-      frequencyHz: frequencyHz * BELL_OVERTONE_RATIO,
-      waveform: 'sine',
-      peakGain: peakGain * BELL_OVERTONE_GAIN_SHARE,
-      startSeconds,
-      fadeSeconds: 0.3,
-    },
-  ];
-}
+const BELL_RING_SECONDS = 0.9;
 
 export type NumberGameSoundName =
   'select' | 'matchShout' | 'wrongMatch' | 'addNumbers' | 'hint' | 'stageClear' | 'gameOver';
@@ -65,10 +50,10 @@ export const NUMBER_GAME_SOUNDS: Readonly<Record<NumberGameSoundName, Sound>> = 
   ]),
   stageClear: layeredSound([
     toneSound([
-      ...bell(NOTE_C5_HZ, 0, 0.22),
-      ...bell(NOTE_E5_HZ, 0.1, 0.22),
-      ...bell(NOTE_G5_HZ, 0.2, 0.22),
-      ...bell(NOTE_C6_HZ, 0.3, 0.25),
+      ...bellTones(NOTE_C5_HZ, 0, 0.22, BELL_RING_SECONDS),
+      ...bellTones(NOTE_E5_HZ, 0.1, 0.22, BELL_RING_SECONDS),
+      ...bellTones(NOTE_G5_HZ, 0.2, 0.22, BELL_RING_SECONDS),
+      ...bellTones(NOTE_C6_HZ, 0.3, 0.25, BELL_RING_SECONDS),
     ]),
     CHEER_SOUND,
   ]),

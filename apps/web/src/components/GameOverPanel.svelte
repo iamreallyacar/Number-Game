@@ -1,19 +1,21 @@
 <script lang="ts">
   interface Props {
-    readonly score: number;
-    readonly linesCleared: number;
+    /** Why the game ended, as one sentence. */
+    readonly reason: string;
+    /** The final score and what the game counts next to it, such as "Final score 120 on stage 3". */
+    readonly finalResult: string;
     readonly newGamePath: string;
     readonly dashboardPath: string;
   }
 
-  const { score, linesCleared, newGamePath, dashboardPath }: Props = $props();
+  const { reason, finalResult, newGamePath, dashboardPath }: Props = $props();
 </script>
 
-<!-- Shown when none of the shapes left in the hand fits on the board (BG-19, BG-20). -->
+<!-- Shown in place of a game's controls when the game has ended (PS-12). -->
 <section class="panel stack" aria-live="polite">
   <h2>Game over</h2>
-  <p>None of your remaining shapes fits on the board.</p>
-  <p class="final-result">Final score {score} with {linesCleared} lines cleared</p>
+  <p>{reason}</p>
+  <p class="final-result">{finalResult}</p>
   <p>The result is added to the high scores.</p>
   <div class="button-row">
     <a class="button primary" href={newGamePath}>New Game</a>

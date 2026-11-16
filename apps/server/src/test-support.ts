@@ -26,13 +26,24 @@ export interface TestServer {
   readonly database: DatabaseSync;
 }
 
-/** A server with an in-memory database that offers only the counter test game. */
-export async function startTestServer(
-  webAppDir = join(tmpdir(), 'no-web-app-here'),
-): Promise<TestServer> {
-  const database = openInMemoryDatabase();
+function createCounterGameRegistry(): GameRegistry {
   const games = new GameRegistry();
   games.register(counterTestGame);
+  return games;
+}
+
+export interface TestServerOptions {
+  /** The folder of the built browser app. Left out, the server has no browser app to serve. */
+  readonly webAppDir?: string;
+  /** The games the server offers. Left out, it offers only the counter test game. */
+  readonly games?: GameRegistry;
+}
+
+/** A server with an in-memory database. */
+export async function startTestServer(options: TestServerOptions = {}): Promise<TestServer> {
+  const webAppDir = options.webAppDir ?? join(tmpdir(), 'no-web-app-here');
+  const games = options.games ?? createCounterGameRegistry();
+  const database = openInMemoryDatabase();
   const app = await buildApp({
     database,
     games,

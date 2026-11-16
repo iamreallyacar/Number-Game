@@ -1,5 +1,4 @@
-/** Turns a stored value written in one format version into the next version. */
-export type StoredFormatUpgrade = (stored: unknown) => unknown;
+import type { StoredFormatUpgrade } from '@local/stored-values';
 
 /** Entry 0 of an upgrade list turns version 1 into version 2, so the newest is the length + 1. */
 export function currentFormatVersion(upgrades: readonly StoredFormatUpgrade[]): number {

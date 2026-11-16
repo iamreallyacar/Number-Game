@@ -9,22 +9,22 @@ The repository is one npm workspace with these parts:
 | Folder | Package | Job |
 | --- | --- | --- |
 | `packages/seeded-random` | `@local/seeded-random` | The seeded random number generator shared by the game rules packages. No browser or server code. See Randomness below |
+| `packages/stored-values` | `@local/stored-values` | The checks every game uses when it reads a value back from storage, and the type of a stored format upgrade. No browser or server code |
 | `packages/game-server-api` | `@local/game-server-api` | TypeBox schemas of every server request body and answer, shared by the server and the browser app |
 | `packages/number-game` | `@local/number-game` | The Number Game rules as plain TypeScript. No browser or server code. Its files are listed in `packages/number-game/README.md` |
 | `packages/block-game` | `@local/block-game` | The Block Game rules as plain TypeScript. No browser or server code. Its files are listed in `packages/block-game/README.md` |
-| `packages/disk-game` | `@local/disk-game` | The Disk Game rules as plain TypeScript. No browser or server code. Its files are listed in `packages/disk-game/README.md` |
 | `apps/server` | `@local/server` | Fastify server. Stores players, saves, and high scores in SQLite, applies moves, and serves the built browser app |
 | `apps/web` | `@local/web` | Svelte app built with Vite. Shows the dashboard and the games |
 
-Dependencies only point one way: `apps/server` and `apps/web` both use the packages, the game rules packages use `packages/seeded-random`, and the packages use neither app. A rules package never uses another game's rules package. The browser and the server talk only over HTTP.
+Dependencies only point one way: `apps/server` and `apps/web` both use the packages, the game rules packages use `packages/seeded-random` and `packages/stored-values`, and the packages use neither app. A rules package never uses another game's rules package. The browser and the server talk only over HTTP.
 
 ## Adding a Game
 
 Each game provides its own rules package plus one module for each app:
 
 - Rules package: a folder under `packages/` with a `README.md` that lists its files. It owns every fact the two apps must agree on: the game id, the game state type, the move type, one function that applies any move, the summary of a state for save slots and high scores, a check that reads stored states and summary details back, and the upgrade lists for older stored formats.
-- Server module: registers the game with the server game registry. It adds the TypeBox schemas of the new game options and the moves, and checks when it compiles that the move schema matches the rules package move type. Everything else it passes on from the rules package. The shared save slot and move routes call it for the game named in the URL, so a game does not need routes of its own. The modules are `apps/server/src/games/number-game.ts`, `apps/server/src/games/block-game.ts`, and `apps/server/src/games/disk-game.ts`, and every game is listed in `apps/server/src/games/create-game-registry.ts`.
-- Browser module: registers the game with the browser game registry under the id from the rules package. It gives the dashboard a name and a description, the high score categories, a way to label the summary details, and loaders for the new game options form and the play screen. The loaders use a dynamic `import()`, so a game's form and play screen are only downloaded the first time they are needed and the dashboard stays small as games are added. The modules are `apps/web/src/games/number-game/number-game-module.ts`, `apps/web/src/games/block-game/block-game-module.ts`, and `apps/web/src/games/disk-game/disk-game-module.ts`, and every game is listed in `apps/web/src/games/create-browser-game-registry.ts`.
+- Server module: registers the game with the server game registry. It adds the TypeBox schemas of the new game options and the moves, and checks when it compiles that the move schema matches the rules package move type. Everything else it passes on from the rules package. The shared save slot and move routes call it for the game named in the URL, so a game does not need routes of its own. The modules are `apps/server/src/games/number-game.ts` and `apps/server/src/games/block-game.ts`, and every game is listed in `apps/server/src/games/create-game-registry.ts`.
+- Browser module: registers the game with the browser game registry under the id from the rules package. It gives the dashboard a name and a description, the high score categories, a way to label the summary details, and loaders for the new game options form and the play screen. The loaders use a dynamic `import()`, so a game's form and play screen are only downloaded the first time they are needed and the dashboard stays small as games are added. The modules are `apps/web/src/games/number-game/number-game-module.ts` and `apps/web/src/games/block-game/block-game-module.ts`, and every game is listed in `apps/web/src/games/create-browser-game-registry.ts`.
 - Requirements: a folder under `REQUIREMENTS/` named after the game.
 - Registrations: the new package is added to the workspace list in the root `package.json`, which must stay in build order with dependencies first, and to the `Dockerfile`.
 
@@ -44,7 +44,7 @@ Because the server applies every move itself, a changed browser cannot save an i
 
 ## Randomness
 
-New boards, Add Numbers, Block Game shapes, and Disk Game layouts use a seeded random number generator whose state is part of the game state. The server picks a random seed when it starts a new game, so the rules package itself has no hidden randomness. Since the browser and the server start from the same state, they produce the same numbers for the same move. A save loaded on another device continues with exactly the same upcoming numbers.
+New boards, Add Numbers, and Block Game shapes use a seeded random number generator whose state is part of the game state. The server picks a random seed when it starts a new game, so the rules package itself has no hidden randomness. Since the browser and the server start from the same state, they produce the same numbers for the same move. A save loaded on another device continues with exactly the same upcoming numbers.
 
 ## Storage
 
@@ -52,7 +52,7 @@ The server stores everything in one SQLite file inside `DATA_DIR`. Tables are cr
 
 Each save row has a random save id, made with `crypto.randomUUID()` when a game starts. A slot holds many games one after another, so the save id is what tells them apart. The migration that added it gave every save that already existed its own random id. (PS-19)
 
-Game states and high score summary details are stored as JSON, each with the format version of the game that wrote it. Before the server uses one, it runs the game's upgrades from the stored version to the newest, then checks it with the rules package. This works like the database migrations, but each game keeps its own list. A stored format newer than the server knows, or one that fails the check, is refused with the error `broken-save` or `broken-high-score` instead of being loaded. The server does not write the upgraded state back on its own. The next move saves it in the newest format.
+Game states and high score summary details are stored as JSON, each with the format version of the game that wrote it. Before the server uses one, it runs the game's upgrades from the stored version to the newest, then checks it with the rules package. This works like the database migrations, but each game keeps its own list. A game that is removed from the dashboard gets a database migration that deletes its saves and high scores, since no code is left to read them. A stored format newer than the server knows, or one that fails the check, is refused with the error `broken-save` or `broken-high-score` instead of being loaded. The server does not write the upgraded state back on its own. The next move saves it in the newest format.
 
 ## Configuration
 
@@ -99,7 +99,7 @@ The slot list, the start answer, and the open answer all carry the save id. Open
 
 Requests that start, open, or change a save must send an `x-device-id` header. The browser makes up a random device ID once and keeps it. Opening a save moves its lock to that device, and moves from any other device are refused with the error `opened-elsewhere`. (PS-18)
 
-High scores store a `category` used for filtering and a `details` object shown next to the score. For the Number Game, the category is the difficulty, and the details are the stage and difficulty. For the Block Game, every result is in one category, and the details are the lines cleared. For the Disk Game, the category is the starting disk count, and the details are the stage, the starting disk count, and, for a save only, the moves left.
+High scores store a `category` used for filtering and a `details` object shown next to the score. For the Number Game, the category is the difficulty, and the details are the stage and difficulty. For the Block Game, every result is in one category, and the details are the lines cleared.
 
 Paths outside `/api/` serve the built browser app from `apps/web/dist`, and unknown pages get its `index.html` so the browser app can handle its own page routing. If the browser app has not been built, the server logs a warning and serves only the API.
 
@@ -115,11 +115,11 @@ Paths outside `/api/` serve the built browser app from `apps/web/dist`, and unkn
 | `api/` | One function per server route. Every answer is checked with the shared schemas from `@local/game-server-api` before it is used |
 | `api/device-id.ts` | The random device ID kept in local storage and sent in the `x-device-id` header |
 | `saving/move-sync.ts` | Sends moves to the server one at a time and in order, retries failed saves, and stops when the save was opened elsewhere or is gone |
-| `games/` | The browser game registry and each game's browser module |
-| `audio/` | The shared sound player. It plays tones made in the browser and recorded clips (bundled mp3 files with their credits in `audio/clips/CREDITS.md`, fetched once, decoded once, and preloaded by each play screen), and keeps the mute choice from the header button in local storage (PL-18, PL-19) |
+| `games/` | The browser game registry, each game's browser module, and `board-position.ts`, the row and column type the board effects share |
+| `audio/` | The shared sound player and `bell-tones.ts`, the bell that the games build their chimes from. The player plays tones made in the browser and recorded clips (bundled mp3 files with their credits in `audio/clips/CREDITS.md`, fetched once, decoded once, and preloaded by each play screen), and keeps the mute choice from the header button in local storage (PL-18, PL-19) |
 | `test-support/` | Helpers for the tests, such as a local storage kept in memory. Only tests use them |
 | `pages/` | One Svelte component per page: dashboard, game, play, outdated play link, and not found |
-| `components/` | Pieces of pages: the sound mute button, the game leaderboard, the save slot list, the new game setup, the player ID picker, the save status banner, the save gone notice, the top results table, and the personal bests list |
+| `components/` | Pieces of pages: the sound mute button, the game leaderboard, the save slot list, the new game setup, the player ID picker, the save status banner, the save gone notice, the top results table, and the personal bests list. Also the pieces every play screen shares: the status bar, the game over panel, and the points pop-up that floats up from a board cell |
 
 Pages and their paths:
 
@@ -136,9 +136,7 @@ The play page loads the save and hands its state to the game's play screen. The 
 
 The Number Game play screen still calls the single rules (`applyMatch`, `applyAddNumbers`, `applyHint`) instead of `applyMove`, because it needs what only they return, such as whether a stage was cleared and which pair a hint shows. The moves it sends use the `NumberGameMove` type from the rules package.
 
-Sounds and effects only show what happened and never change the game state. The play screen picks the Number Game sound for each event, including game over, from `number-game-sounds.ts` and plays it with the shared sound player. After a match it also hands the board a short-lived match effect: a burst on both cleared cells and the points earned, placed with the cell positions from before the move. (NG-30, NG-31)
-
-The Disk Game play screen also calls the single rules (`applyDiskMove`, `applyUndo`, `applyHint`), because it needs the stage clear, and the move a hint shows. When a move clears a stage, the rules already hold the next stage's layout, so the play screen keeps showing the sorted pegs from the stage clear for a moment, with the points floating up, before it shows the new layout. Which peg a tap picks up from or drops onto is decided in `tap-peg.ts`. (DK-09, DK-23)
+Sounds and effects only show what happened and never change the game state. Each play screen picks the sound for an event, including game over, from its game's sounds file (`number-game-sounds.ts` or `block-game-sounds.ts`) and plays it with the shared sound player. After a match it also hands the board a short-lived match effect: a burst on both cleared cells, and the points earned with the Chinese words of the cheer beside them, placed with the cell positions from before the move. The Block Game play screen does the same after a line clear, with a flash on the cleared cells. (NG-30, NG-31, BG-17, BG-18, PL-18)
 
 ## Packaging
 

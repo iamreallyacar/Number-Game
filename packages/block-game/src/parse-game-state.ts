@@ -1,4 +1,5 @@
 import { isRandomState } from '@local/seeded-random';
+import { isWholeNumberAtLeast, readStoredFields } from '@local/stored-values';
 import { countFullLines, findFullLines } from './board.js';
 import { isShapeColour, type BoardCell } from './board-cell.js';
 import { BOARD_SIZE, SLOT_COUNT, type GameState, type ShapeSlots } from './game-state.js';
@@ -24,17 +25,10 @@ function fail(message: string): never {
 
 function readWholeNumberAtLeastZero(record: ReadonlyMap<string, unknown>, key: string): number {
   const value = record.get(key);
-  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) {
+  if (!isWholeNumberAtLeast(value, 0)) {
     fail(`${key} must be a whole number of 0 or more`);
   }
   return value;
-}
-
-function readRecord(value: unknown): ReadonlyMap<string, unknown> {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    fail('expected an object');
-  }
-  return new Map<string, unknown>(Object.entries(value));
 }
 
 function readCells(value: unknown): BoardCell[] {
@@ -82,7 +76,7 @@ function readSlots(value: unknown): ShapeSlots {
  * InvalidGameStateError naming the first problem found, so a broken save is never loaded.
  */
 export function parseGameState(value: unknown): GameState {
-  const record = readRecord(value);
+  const record = readStoredFields(value) ?? fail('expected an object');
   for (const key of record.keys()) {
     if (!GAME_STATE_KEYS.some((knownKey) => knownKey === key)) {
       fail(`unknown field '${key}'`);

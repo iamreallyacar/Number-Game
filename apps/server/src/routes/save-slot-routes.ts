@@ -16,7 +16,7 @@ import {
   slotParamsSchema,
 } from '../request-schemas.js';
 import type { TypedFastify } from '../typed-fastify.js';
-import { findGameSave, findGameSlot, findPlayerId } from './request-lookups.js';
+import { findGameSave, findGameSlot, requirePlayerId } from './request-lookups.js';
 
 export interface SaveSlotRouteDependencies {
   readonly games: GameRegistry;
@@ -81,7 +81,7 @@ export function registerSaveSlotRoutes(
     },
     async (request, reply) => {
       const { game, slotNumber } = findGameSlot(dependencies, request.params);
-      const playerId = findPlayerId(players, request.body.playerId);
+      const playerId = requirePlayerId(players, request.body.playerId);
       const startedGame = game.startGame(request.body.options, randomInt(RANDOM_SEED_LIMIT));
       const save: StoredSave = {
         gameId: game.id,

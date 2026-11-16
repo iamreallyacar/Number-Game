@@ -7,10 +7,10 @@ import { countNumbersClearedByPlayAhead } from './play-ahead.js';
 import type { RandomDraw } from '@local/seeded-random';
 
 /** Chance that each added number is aimed at a number it will see, the same on every preset (NG-36, DF-05). */
-export const ADD_NUMBERS_AIM_CHANCE = 0.5;
+const ADD_NUMBERS_AIM_CHANCE = 0.5;
 
 /** How many sets of added numbers are built and played ahead before one is kept, the same on every preset (NG-36, DF-05). */
-export const ADD_NUMBERS_CANDIDATE_COUNT = 1;
+const ADD_NUMBERS_CANDIDATE_COUNT = 1;
 
 export type AddNumbersRefusal = 'no-uses-left';
 

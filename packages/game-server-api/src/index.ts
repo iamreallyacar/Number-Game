@@ -1,14 +1,8 @@
 // The request and answer shapes of the server API, shared by the server and the browser app so
 // the two cannot drift apart. The routes are listed in the Server API section of ARCHITECTURE.md.
 export { apiErrorBodySchema, type ApiErrorBody } from './error-body.js';
+export type { GameSummary, SummaryDetails } from './game-summary-schemas.js';
 export {
-  gameSummarySchema,
-  summaryDetailsSchema,
-  type GameSummary,
-  type SummaryDetails,
-} from './game-summary-schemas.js';
-export {
-  gameResultSchema,
   highScoresResponseSchema,
   personalBestsResponseSchema,
   type GameResult,

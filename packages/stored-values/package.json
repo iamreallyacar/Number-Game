@@ -1,5 +1,5 @@
 {
-  "name": "@local/disk-game",
+  "name": "@local/stored-values",
   "private": true,
   "type": "module",
   "exports": {
@@ -11,8 +11,5 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json"
-  },
-  "dependencies": {
-    "@local/seeded-random": "*"
   }
 }

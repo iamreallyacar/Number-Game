@@ -1,5 +1,4 @@
-/** Turns a stored value written in one format version into the next version. */
-export type StoredFormatUpgrade = (stored: unknown) => unknown;
+import type { StoredFormatUpgrade } from '@local/stored-values';
 
 // Saved game states and high score details outlive the code that wrote them, so a change to
 // GameState or BlockGameSummaryDetails needs an upgrade here, the same way the database schema

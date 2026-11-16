@@ -5,7 +5,7 @@ import { makeWebAppDir, startTestServer } from '../test-support.js';
 
 describe('web app routes', () => {
   it('serves files of the built browser app', async () => {
-    const { app } = await startTestServer(makeWebAppDir());
+    const { app } = await startTestServer({ webAppDir: makeWebAppDir() });
     const response = await app.inject({ method: 'GET', url: '/app.js' });
     expect(response.statusCode).toBe(200);
     expect(response.body).toContain('console.log');
@@ -15,7 +15,7 @@ describe('web app routes', () => {
     const webAppDir = makeWebAppDir();
     mkdirSync(join(webAppDir, 'assets'));
     writeFileSync(join(webAppDir, 'assets', 'shout-1a2b3c.mp3'), 'not real audio');
-    const { app } = await startTestServer(webAppDir);
+    const { app } = await startTestServer({ webAppDir });
     const response = await app.inject({ method: 'GET', url: '/assets/shout-1a2b3c.mp3' });
     expect(response.statusCode).toBe(200);
     expect(response.headers['content-type']).toBe('audio/mpeg');
@@ -23,14 +23,14 @@ describe('web app routes', () => {
   });
 
   it('serves the index page for browser app pages', async () => {
-    const { app } = await startTestServer(makeWebAppDir());
+    const { app } = await startTestServer({ webAppDir: makeWebAppDir() });
     const response = await app.inject({ method: 'GET', url: '/games/counter' });
     expect(response.statusCode).toBe(200);
     expect(response.body).toContain('dashboard');
   });
 
   it('answers unknown API paths with a JSON 404', async () => {
-    const { app } = await startTestServer(makeWebAppDir());
+    const { app } = await startTestServer({ webAppDir: makeWebAppDir() });
     const response = await app.inject({ method: 'GET', url: '/api/nothing' });
     expect(response.statusCode).toBe(404);
     expect(response.json()).toMatchObject({ error: 'not-found' });

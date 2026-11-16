@@ -4,7 +4,7 @@ This package holds the Number Game rules as plain TypeScript, with no browser or
 
 ## Contract
 
-Everything is exported through `src/index.ts`. Every function is pure: it takes a game state and returns a new one without changing the old one. The package owns every fact about the game that the server and the browser must agree on:
+`src/index.ts` exports only what the server and the browser use. Every function is pure: it takes a game state and returns a new one without changing the old one. The package owns every fact about the game that the server and the browser must agree on:
 
 - `NUMBER_GAME_ID`, the id both apps register the game under.
 - `NumberGameMove` and `applyMove`, the moves a player can make and the one function that applies any of them. The server module checks its move schema against `NumberGameMove` when it compiles.
@@ -16,7 +16,7 @@ Moves that a player can get wrong, such as a match that is not a pair, return a 
 
 ## Changing the Stored Format
 
-Saved games keep a `GameState` as JSON, and high scores keep the summary details as JSON. When a change adds, renames, or removes a field in either one, add an upgrade to the end of the matching list in `stored-format-upgrades.ts` that turns the old shape into the new one. Never edit an upgrade that has shipped. Without an upgrade, every existing save would be rejected as broken. The same goes for lowering a difficulty preset in `difficulty.ts`: the stored state check refuses a save that holds more Add Numbers uses or hints than its preset gives, so a lowered preset needs an upgrade that lowers the stored values too.
+Saved games keep a `GameState` as JSON, and high scores keep the summary details as JSON. When a change adds, renames, or removes a field in either one, add an upgrade to the end of the matching list in `stored-format-upgrades.ts`, typed with `StoredFormatUpgrade` from `@local/stored-values`, that turns the old shape into the new one. Never edit an upgrade that has shipped. Without an upgrade, every existing save would be rejected as broken. The same goes for lowering a difficulty preset in `difficulty.ts`: the stored state check refuses a save that holds more Add Numbers uses or hints than its preset gives, so a lowered preset needs an upgrade that lowers the stored values too.
 
 ## Files
 

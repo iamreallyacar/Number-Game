@@ -7,7 +7,7 @@ import { shapeFitsAnywhere, shapeFitsAt } from './shape-fit.js';
  * How many placements the search may try for one hand before it gives up and calls the hand not
  * fair (BG-22). A count and not a time limit, so the browser and the server always agree.
  */
-export const MAX_FAIR_HAND_SEARCH_PLACEMENTS = 1000;
+const MAX_FAIR_HAND_SEARCH_PLACEMENTS = 1000;
 
 interface SearchBudget {
   placementsLeft: number;

@@ -1,7 +1,7 @@
 import type { GameResult } from '@local/game-server-api';
 import type { BrowserGame } from '../games/browser-game.js';
 
-/** The game's own labels for the details of a finished game, such as "Stage 3, Width 10". */
+/** The game's own labels for the details of a finished game, such as "Stage 3, Difficulty Easy". */
 export function describeResultDetails(game: BrowserGame, result: GameResult): string {
   return game
     .describeDetails(result.details)

@@ -3,7 +3,6 @@ export {
   createRandomState,
   drawRandomFraction,
   drawRandomItem,
-  drawShuffled,
   drawWeightedItem,
   isRandomState,
   type RandomDraw,

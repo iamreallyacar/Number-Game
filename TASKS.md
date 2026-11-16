@@ -64,10 +64,10 @@ The server is the source of truth. The browser sends moves, the server applies t
 
 ## Audit Follow-up
 
-Findings from `AUDIT.md`.
+Findings from the first audit. Its file, `AUDIT.md`, was removed in T-92.
 
-- [x] T-42: Version stored game states and summary details, share the server API schemas, move each game's contract into its rules package, test shared server code with a fake game, and split the documents per game. (AUDIT.md A-01 to A-05, A-07 to A-10)
-- [x] T-43: Load each game's play screen and new game options form only when they are first needed. (AUDIT.md A-06)
+- [x] T-42: Version stored game states and summary details, share the server API schemas, move each game's contract into its rules package, test shared server code with a fake game, and split the documents per game. (audit findings A-01 to A-05, A-07 to A-10)
+- [x] T-43: Load each game's play screen and new game options form only when they are first needed. (audit finding A-06)
 
 ## Phase 6: Playtest Improvements
 
@@ -95,17 +95,17 @@ The second game. Its requirements are in `REQUIREMENTS/block-game/rules.md`.
 
 ## Phase 9: Disk Game
 
-The third game. Its requirements are in `REQUIREMENTS/disk-game/rules.md`.
+The third game. It was removed again in Phase 16, together with its requirements file.
 
 - [x] T-57: Write the Disk Game requirements. (DK-01 to DK-23)
 - [x] T-58: Rules package `packages/disk-game`: layouts, random layout with the reroll rule, fewest moves to the closest peg, moves, undo, hints, stage clear, move budget, scoring, game over, summary, and stored state checks. (DK-01, DK-02, DK-04 to DK-08, DK-10 to DK-17, DK-19, DK-21)
 - [x] T-59: Server module that registers the Disk Game with its new game options and move schemas. (DK-04, DK-08, DK-12, DK-13, DK-21)
 - [x] T-60: Browser module: dashboard entry, starting disk count form, play screen with tap to pick up and drop, refused drop feedback, undo and hint buttons, score and moves left, stage clear effect, sounds, and the game over screen. (DK-03, DK-09, DK-10, DK-14, DK-18, DK-20, DK-22, DK-23)
-- [ ] T-61: Playtest the Disk Game on a phone and a laptop, then tune the reroll rule, the move budget factor, the hint cost, and the scoring values. (DK-07, DK-13, DK-16, DK-17, OQ-20)
+- [x] T-61: Playtest the Disk Game on a phone and a laptop, then tune the reroll rule, the move budget factor, the hint cost, and the scoring values. Dropped, because the Disk Game was removed in T-89. (DK-07, DK-13, DK-16, DK-17, OQ-20)
 
 ## Close-out
 
-The project was closed on 2026-11-11 after it was deployed and used on a home server. The three playtest and tuning tasks (T-41, T-55, T-61) stay unticked, because no tuning pass was made. The scoring values, difficulty presets, shape weights, and move budget values are kept as shipped. The final audit is in `AUDIT.md`.
+The project was closed on 2026-11-11 after it was deployed and used on a home server. The playtest and tuning tasks T-41 and T-55 stay unticked, because no tuning pass was made. The scoring values, difficulty presets, and shape weights are kept as shipped.
 
 ## Phase 10: Polishing
 
@@ -123,7 +123,6 @@ Replaces the random starting board and the random Add Numbers with generators th
 - [x] T-66: Measure the generators with simulated play on every width and preset, and tune the preset values and `difficulty.md` to match. (DF-04, DF-05)
 - [x] T-67: Review the number generation work with a fresh reviewer and fix what it finds.
 - [x] T-68: Remove board widths 11 and 12 so the board is always 10 wide: drop the width option, the width in the game state and summary, and delete the saves and high scores made on the removed widths. (NG-01, NG-02, PS-05, PS-09)
-
 
 ## Phase 12: Block Game Challenge
 
@@ -164,3 +163,22 @@ Gives stage clears a Chinese cheer instead of plain bells, and widens the pools 
 - [x] T-86: Make a cleared pair in the Number Game play from the shared cheer pool, and move the three "huat" clips into that pool, so every game draws its cheers from one pool and its groans from the other. (NG-31)
 - [x] T-87: Show the Chinese words of the cheer beside the points that float up when a pair, lines, or a stage is cleared, in every game. (PL-18)
 - [x] T-88: Make the cheer words larger than the points and keep them in view for about 2 seconds. Drop the Number Game row removed ring, and play the game over sound alone when a move ends the game. (PL-18, NG-31)
+
+## Phase 16: Disk Game Removal and Cleanup
+
+Removes the third game to make room for a real time multiplayer game, and clears out code that was copied between the two games that stay.
+
+- [x] T-89: Remove the Disk Game: its rules package, server module, browser module, requirements, tests, and every mention in the documents. Delete its saves and high scores with a database migration. (OQ-20)
+- [x] T-90: Share the code that was copied between the Number Game and the Block Game in the browser: the game over panel, the status bar, the points and cheer words that float up, the bell tones, and the board position type. (PL-18, PL-20)
+- [x] T-91: Share the stored value checks and the stored format upgrade type through the new `packages/stored-values` package, trim each package index to what the apps use, and remove code that nothing uses.
+- [x] T-92: Remove `AUDIT.md`. Its open findings that still hold are the tasks in the Backlog below. Rename the server names it found confusing, and let the test server take the games it offers.
+
+## Backlog
+
+Known gaps that are not planned yet. They come from the last audit and still hold.
+
+- [ ] T-93: List a save that cannot be read as broken, with no summary, so it can still be deleted. Today one such save makes the whole slot list of its game fail, and one unreadable high score does the same to the high score table.
+- [ ] T-94: Give the Block Game a way to play without dragging, such as tapping a slot and then a cell, so it works with a keyboard and a screen reader.
+- [ ] T-95: Make the sound button say clearly whether its label is the current state or the action, for example with `aria-pressed` and a fixed label.
+- [ ] T-96: Add tests for `router.ts`, the Svelte components, and the Block Game pointer handling.
+- [ ] T-97: Keep each fact in one document: the game summaries are in `README.md` and the rules files, and the high score categories are in `ARCHITECTURE.md` and the rules files.

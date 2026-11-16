@@ -1,3 +1,4 @@
+import { isWholeNumberAtLeast, readStoredFields } from '@local/stored-values';
 import type { GameState } from './game-state.js';
 
 /** The one high score category, since every game uses the same board (BG-21). */
@@ -37,17 +38,14 @@ function fail(message: string): never {
 
 /** Checks summary details read back from storage or from the server, and returns them typed. */
 export function parseSummaryDetails(value: unknown): BlockGameSummaryDetails {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    fail('expected an object');
-  }
-  const record = new Map<string, unknown>(Object.entries(value));
+  const record = readStoredFields(value) ?? fail('expected an object');
   for (const key of record.keys()) {
     if (key !== 'linesCleared') {
       fail(`unknown field '${key}'`);
     }
   }
   const linesCleared = record.get('linesCleared');
-  if (typeof linesCleared !== 'number' || !Number.isSafeInteger(linesCleared) || linesCleared < 0) {
+  if (!isWholeNumberAtLeast(linesCleared, 0)) {
     fail('linesCleared must be a whole number of 0 or more');
   }
   return { linesCleared };

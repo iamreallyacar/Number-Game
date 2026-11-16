@@ -67,7 +67,7 @@ export function findGameSave(
 }
 
 /** Finds a player ID in any letter case and returns it as it was created. */
-export function findPlayerId(players: PlayersStore, requestedPlayerId: string): string {
+export function requirePlayerId(players: PlayersStore, requestedPlayerId: string): string {
   const playerId = players.findPlayerId(requestedPlayerId);
   if (playerId === null) {
     throw new HttpError(404, 'unknown-player', `There is no player ID '${requestedPlayerId}'`);

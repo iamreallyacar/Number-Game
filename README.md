@@ -1,6 +1,6 @@
 # Number Game
 
-A small self-hosted game dashboard that runs on a home server (such as a Proxmox VM or container) and is played from a phone or laptop browser on the local network. The dashboard has three games: the Number Game, a grid puzzle where you clear pairs of numbers, the Block Game, a grid puzzle where you place shapes to fill and clear rows and columns, and the Disk Game, a puzzle where you move disks between three pegs until they all sit on one.
+A small self-hosted game dashboard that runs on a home server (such as a Proxmox VM or container) and is played from a phone or laptop browser on the local network. The dashboard has two games: the Number Game, a grid puzzle where you clear pairs of numbers, and the Block Game, a grid puzzle where you place shapes to fill and clear rows and columns.
 
 ## Goals
 
@@ -34,23 +34,12 @@ The full rules are in `REQUIREMENTS/number-game/rules.md`.
 
 The full rules are in `REQUIREMENTS/block-game/rules.md`.
 
-## The Disk Game in Short
-
-- There are 3 pegs, and the disks start spread out across them at random. A bigger disk is never on top of a smaller one, at the start or during play.
-- You move one top disk at a time to another peg. A stage is cleared when every disk is on any one peg.
-- You pick a starting disk count of 3, 4, or 5, and each stage adds one more disk, up to 10.
-- Each stage adds moves to a shared budget based on the fewest moves needed, and unused moves carry over. Undo and hints are allowed but cost moves.
-- Clearing a stage earns points, with a bonus for a perfect solve. The game ends when you no longer have enough moves left to finish the stage.
-- Saves, player IDs, and high scores work the same way as in the other games. High scores are filtered by starting disk count.
-
-The full rules are in `REQUIREMENTS/disk-game/rules.md`.
-
 ## Scope
 
 In scope:
 
 - A web dashboard that lists the available games.
-- The Number Game, the Block Game, and the Disk Game, playable with touch and mouse.
+- The Number Game and the Block Game, playable with touch and mouse.
 - Hosting on a single local server, packaged so others can self-host it.
 - Sound clips from Wikimedia Commons under CC BY-SA, CC BY, CC0, and public domain terms, credited in `apps/web/src/audio/clips/CREDITS.md`.
 
@@ -69,7 +58,6 @@ The `REQUIREMENTS/` folder holds the detailed requirements. Platform requirement
 | `REQUIREMENTS/number-game/rules.md` | Board, matching, line of sight, row removal, adding numbers, stages, scoring, and game over |
 | `REQUIREMENTS/number-game/difficulty.md` | Difficulty presets and ideas for later |
 | `REQUIREMENTS/block-game/rules.md` | Board, hands, shapes, the fair deal, placing, line clearing, scoring, and game over |
-| `REQUIREMENTS/disk-game/rules.md` | Pegs, disks, random layouts, moves, undo and hints, stages, move budget, scoring, and game over |
 | `REQUIREMENTS/players-saves-scores.md` | Player IDs, server save slots, and high scores |
 | `REQUIREMENTS/open-questions.md` | Open decisions, the chosen tech stack, and answered questions |
 

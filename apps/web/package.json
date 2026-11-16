@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "@local/block-game": "*",
-    "@local/disk-game": "*",
     "@local/game-server-api": "*",
     "@local/number-game": "*",
     "typebox": "^1.4.6"
