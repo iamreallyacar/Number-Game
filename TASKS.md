@@ -193,6 +193,13 @@ Adds the first room game. The rules are in `REQUIREMENTS/survivor-game/`.
 - [x] T-111: Add the Survivor Game to `README.md` and to the project overview in `CLAUDE.md`, and document the new setting. (SG-09)
 - [ ] T-112: Playtest solo and with several phones, then tune the values in `balance.md`. (OQ-28)
 
+## Phase 18: Add Numbers Rescue
+
+Makes Add Numbers help a player who is left with a few numbers that cannot see each other.
+
+- [x] T-113: Add at least one row of numbers on every press, and on a small board keep a set of new numbers that a search can clear completely. Remove the played-ahead check, which the search replaces. (NG-17, NG-36, DF-05, OQ-21)
+- [ ] T-114: Playtest Add Numbers on a small board on each preset, then tune the small board limit and the count of sets tried. (DF-05, OQ-21)
+
 ## Backlog
 
 Known gaps that are not planned yet. They come from the last audit and still hold.

@@ -1,16 +1,25 @@
 import { buildAddedNumbersCandidate } from './added-numbers-candidate.js';
 import { countNumbers, padToFullRows } from './board.js';
 import type { Cell, Digit } from './cell.js';
+import { findFewestNumbersLeft } from './clear-search.js';
 import { BOARD_WIDTH, type GameState } from './game-state.js';
 import { pairGroupsWithOddCount } from './pair.js';
-import { countNumbersClearedByPlayAhead } from './play-ahead.js';
-import type { RandomDraw } from '@local/seeded-random';
+import type { RandomDraw, RandomState } from '@local/seeded-random';
 
 /** Chance that each added number is aimed at a number it will see, the same on every preset (NG-36, DF-05). */
 const ADD_NUMBERS_AIM_CHANCE = 0.5;
 
-/** How many sets of added numbers are built and played ahead before one is kept, the same on every preset (NG-36, DF-05). */
-const ADD_NUMBERS_CANDIDATE_COUNT = 1;
+/** Add Numbers never adds fewer numbers than this, so the new numbers reach under every column (NG-17). */
+const MIN_NUMBERS_TO_ADD = BOARD_WIDTH;
+
+/** A board with at most this many numbers gets a set of new numbers that is checked by search (NG-36, DF-05). */
+const SMALL_BOARD_NUMBER_LIMIT = 20;
+
+/** How many sets of new numbers are tried on a small board before the best one is kept (NG-36, DF-05). */
+const SMALL_BOARD_CANDIDATE_COUNT = 8;
+
+/** How many different boards the search may look at for each set of new numbers on a small board. */
+const SMALL_BOARD_SEARCH_BUDGET = 2000;
 
 export type AddNumbersRefusal = 'no-uses-left';
 
@@ -19,43 +28,52 @@ export type AddNumbersResult =
   | { readonly accepted: false; readonly reason: AddNumbersRefusal };
 
 /**
- * Half of the numbers on the board, rounded up, and never fewer than 1 (NG-17). One more is added
- * when needed so the new numbers can leave every pair group even (NG-34).
+ * Half of the numbers on the board, rounded up, and never fewer than one row of numbers (NG-17).
+ * One more is added when needed so the new numbers can leave every pair group even (NG-34).
  */
 export function countNumbersToAdd(cells: readonly Cell[]): number {
-  const halfCount = Math.max(1, Math.ceil(countNumbers(cells) / 2));
+  const halfCount = Math.ceil(countNumbers(cells) / 2);
   const oddGroupCount = pairGroupsWithOddCount(cells).length;
-  const count = Math.max(halfCount, oddGroupCount);
+  // There are 5 pair groups, so one row of numbers always covers every odd group.
+  const count = Math.max(halfCount, MIN_NUMBERS_TO_ADD);
   // After one number for each odd group, the rest are added in pairs, so they must be even.
   return count + ((count - oddGroupCount) % 2);
 }
 
 /**
- * Builds several sets of new numbers, plays each one ahead on the board with the set added, and
- * keeps the set that clears the most numbers. The earliest set wins a tie (NG-36).
+ * Builds one set of new numbers for a board above the small board limit. On a small board it
+ * builds sets until the search finds one that lets the whole board be cleared, and otherwise keeps
+ * the set that leaves the fewest numbers. The earliest set wins a tie (NG-36).
  */
-function chooseBestAddedNumbers(state: GameState): RandomDraw<Digit[]> {
+function chooseAddedNumbers(state: GameState): RandomDraw<Digit[]> {
   const count = countNumbersToAdd(state.cells);
   const lastNumberIndex = state.cells.findLastIndex((cell) => cell !== null);
   const cellsUpToLastNumber = state.cells.slice(0, lastNumberIndex + 1);
-  let bestDigits: Digit[] | null = null;
-  let bestScore = -1;
-  let currentState = state.randomState;
-  for (let attempt = 0; attempt < ADD_NUMBERS_CANDIDATE_COUNT; attempt++) {
-    const candidate = buildAddedNumbersCandidate(
-      currentState,
+  const buildCandidate = (randomState: RandomState): RandomDraw<Digit[]> =>
+    buildAddedNumbersCandidate(
+      randomState,
       state.cells,
       BOARD_WIDTH,
       count,
       ADD_NUMBERS_AIM_CHANCE,
     );
+
+  if (countNumbers(state.cells) > SMALL_BOARD_NUMBER_LIMIT) {
+    return buildCandidate(state.randomState);
+  }
+  let bestDigits: Digit[] | null = null;
+  let fewestNumbersLeft = Infinity;
+  let currentState = state.randomState;
+  for (let attempt = 0; attempt < SMALL_BOARD_CANDIDATE_COUNT && fewestNumbersLeft > 0; attempt++) {
+    const candidate = buildCandidate(currentState);
     currentState = candidate.randomState;
-    const score = countNumbersClearedByPlayAhead(
+    const numbersLeft = findFewestNumbersLeft(
       [...cellsUpToLastNumber, ...candidate.value],
       BOARD_WIDTH,
+      SMALL_BOARD_SEARCH_BUDGET,
     );
-    if (score > bestScore) {
-      bestScore = score;
+    if (numbersLeft < fewestNumbersLeft) {
+      fewestNumbersLeft = numbersLeft;
       bestDigits = candidate.value;
     }
   }
@@ -79,7 +97,7 @@ export function applyAddNumbers(state: GameState): AddNumbersResult {
     // mistake in the calling code.
     throw new Error('Add Numbers needs at least one number on the board');
   }
-  const draw = chooseBestAddedNumbers(state);
+  const draw = chooseAddedNumbers(state);
   const lastNumberIndex = state.cells.findLastIndex((cell) => cell !== null);
   const cellsUpToLastNumber = state.cells.slice(0, lastNumberIndex + 1);
   return {

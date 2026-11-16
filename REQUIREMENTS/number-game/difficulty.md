@@ -16,7 +16,7 @@ The player picks a difficulty preset when starting a new game. Each preset chang
 ## Number Generation
 
 - DF-04: A starting board opens with the count of pairs with line of sight shown in the table (see NG-35), for the first stage and every later one. The game keeps building boards until one lands in that range, up to 60 tries, and otherwise keeps the closest. In simulated play every one of 3000 boards per preset landed in the range, mostly at its top end. A typical board took about 8 ms to build on Easy and Normal and 14 ms on Hard on a desktop computer, and the slowest took about 175 ms, so a phone may take a few times longer.
-- DF-05: Add Numbers works the same on every preset: each new number is aimed with a 50 percent chance, and 1 set of new numbers is built (see NG-36). Only the count of uses per stage changes between presets. In simulated play, trying more sets made every preset much easier, and the aim chance changed the result much less.
+- DF-05: Add Numbers works the same on every preset: each new number is aimed with a 50 percent chance (see NG-36). A board with more than 20 numbers gets 1 set of new numbers. A board with 20 numbers or fewer is a small board: up to 8 sets are tried, and the search that checks each set looks at up to 2000 boards. Only the count of uses per stage changes between presets. In simulated play, trying more sets on every board made every preset much easier, and the aim chance changed the result much less. With the row minimum of NG-17 and the small board search, a player who picks matches at random cleared stage 1 in 147 of 150 games on Easy, 130 on Normal, and 65 on Hard, up from 101, 49, and 27 without them. The slowest press took about 140 ms on a desktop computer.
 
 ## Hints
 
@@ -31,6 +31,6 @@ These are not requirements. They are options to consider if the presets are not 
 | Custom preset | Player sets each value | Adds screen complexity |
 | Undo | Lets the player take back a match | Could be limited or cost points |
 | Harder later stages | For example fewer Add Numbers uses as stages go up | Keeps endless play challenging |
-| Add Numbers amount | Adding fewer numbers gives fewer new pairs | Base rule is 50 percent |
+| Add Numbers amount | Adding fewer numbers gives fewer new pairs | Base rule is 50 percent with a minimum of one row |
 | Allowed line of sight directions | Turning off diagonal or reading order wrap makes matches rarer | Changes the core rules, so use with care |
 | Time limit | Adds pressure | Might not suit relaxed phone play |

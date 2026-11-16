@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { applyAddNumbers, countNumbersToAdd } from './add-numbers.js';
 import { countNumbers, padToFullRows } from './board.js';
 import type { Cell } from './cell.js';
+import { findFewestNumbersLeft } from './clear-search.js';
 import { findValidPair } from './find-pair.js';
 import { BOARD_WIDTH, type GameState } from './game-state.js';
 import { pairGroupsWithOddCount } from './pair.js';
@@ -9,23 +10,23 @@ import { cellsFromRows, makeTestState } from './test-support.js';
 
 describe('countNumbersToAdd', () => {
   it('adds half of the numbers on the board, rounded up', () => {
-    expect(countNumbersToAdd(cellsFromRows(['1919......']))).toBe(2);
-    expect(countNumbersToAdd(cellsFromRows(['19191.....']))).toBe(3);
+    expect(countNumbersToAdd(cellsFromRows(Array<string>(4).fill('1919191919')))).toBe(20);
+    expect(countNumbersToAdd(cellsFromRows([...Array<string>(4).fill('1919191919'), '5.']))).toBe(
+      21,
+    );
   });
 
-  it('adds at least one number', () => {
-    expect(countNumbersToAdd(cellsFromRows(['1.........']))).toBe(1);
+  it('adds at least one row of numbers', () => {
+    expect(countNumbersToAdd(cellsFromRows(['1919......']))).toBe(10);
+    expect(countNumbersToAdd(cellsFromRows(['1234......']))).toBe(10);
   });
 
-  it('adds one more when half would leave a number with nothing to pair with', () => {
-    // Every pair group is even, so 3 new numbers would always leave one of them alone.
-    expect(countNumbersToAdd(cellsFromRows(['191919....']))).toBe(4);
-    // 1 new number evens out the 1 and 9 group, and the second needs a partner.
-    expect(countNumbersToAdd(cellsFromRows(['199.......']))).toBe(3);
-  });
-
-  it('adds at least one number for each odd pair group', () => {
-    expect(countNumbersToAdd(cellsFromRows(['1234......']))).toBe(4);
+  it('adds one more when the count would leave a number with nothing to pair with', () => {
+    // Every pair group is even, so 15 new numbers would always leave one of them alone.
+    expect(countNumbersToAdd(cellsFromRows(Array<string>(3).fill('1919191919')))).toBe(16);
+    // 1 new number evens out the 1 and 9 group, and the other 9 cannot all be paired.
+    expect(countNumbersToAdd(cellsFromRows(['1.........']))).toBe(11);
+    expect(countNumbersToAdd(cellsFromRows(['199.......']))).toBe(11);
   });
 });
 
@@ -36,21 +37,21 @@ describe('applyAddNumbers', () => {
     if (!result.accepted) {
       throw new Error(`Expected Add Numbers to be accepted, got ${result.reason}`);
     }
-    expect(result.addedCount).toBe(9);
+    expect(result.addedCount).toBe(11);
     const { cells } = result.state;
     expect(cells).toHaveLength(30);
     expect(cells.slice(0, 18)).toEqual(state.cells.slice(0, 18));
-    expect(cells.slice(18, 27).every((cell) => cell !== null)).toBe(true);
-    expect(cells.slice(27)).toEqual([null, null, null]);
+    expect(cells.slice(18, 29).every((cell) => cell !== null)).toBe(true);
+    expect(cells.slice(29)).toEqual([null]);
   });
 
   it('fills empty cells left after the last number instead of skipping them', () => {
     const state = makeTestState({ cells: cellsFromRows(['11......11', '1.........']) });
     const result = applyAddNumbers(state);
-    expect(result.accepted && result.state.cells.slice(10, 14).every((cell) => cell !== null)).toBe(
+    expect(result.accepted && result.state.cells.slice(10, 22).every((cell) => cell !== null)).toBe(
       true,
     );
-    expect(result.accepted && result.state.cells.slice(14)).toEqual(Array(6).fill(null));
+    expect(result.accepted && result.state.cells.slice(22)).toEqual(Array(8).fill(null));
   });
 
   it('uses one Add Numbers and moves the random state on', () => {
@@ -100,10 +101,10 @@ describe('applyAddNumbers', () => {
   });
 
   it.each([
-    [['3.........'], 1],
-    [['34........'], 2],
-    [['555.......'], 3],
-    [['.........4'], 1],
+    [['3.........'], 11],
+    [['34........'], 10],
+    [['555.......'], 11],
+    [['.........4'], 11],
   ])('adds the right count to a small board %j', (rows: string[], expectedCount: number) => {
     for (let seed = 0; seed < 30; seed++) {
       const state = makeTestState({ cells: cellsFromRows(rows), randomState: seed });
@@ -119,6 +120,20 @@ describe('applyAddNumbers', () => {
     const result = applyAddNumbers(state);
     expect(result.accepted && result.addedCount).toBe(500);
   });
+
+  it.each([[['1212......']], [['1.2.1.2...']], [['12........', '..12......']], [['12131213..']]])(
+    'lets a small stuck board %j be cleared completely',
+    (rows: string[]) => {
+      for (let seed = 0; seed < 50; seed++) {
+        const state = makeTestState({ cells: cellsFromRows(rows), randomState: seed });
+        expect(findValidPair(state.cells, BOARD_WIDTH)).toBeNull();
+        const result = applyAddNumbers(state);
+        expect(
+          result.accepted && findFewestNumbersLeft(result.state.cells, BOARD_WIDTH, 5000),
+        ).toBe(0);
+      }
+    },
+  );
 
   it('throws on a board with no numbers, since clearing the last one starts a new stage', () => {
     const state = makeTestState({ cells: cellsFromRows(['..........']) });

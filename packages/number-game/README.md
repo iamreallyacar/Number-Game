@@ -34,9 +34,9 @@ Saved games keep a `GameState` as JSON, and high scores keep the summary details
 | `scoring.ts` | Points for matches, empty rows, and stage clears |
 | `pair.ts` and `line-of-sight.ts` | Whether two numbers are a pair, pair groups, and which numbers a cell can see looking forward or backward |
 | `match.ts` | Applies a match, removes empty rows, adds points, and moves to the next stage when the board is cleared |
-| `add-numbers.ts` | Applies Add Numbers: counts the numbers to add, builds the sets, and keeps the one that clears the most when played ahead. The aim chance and the count of sets are the same on every preset |
+| `add-numbers.ts` | Applies Add Numbers: counts the numbers to add and builds the set. On a small board it builds several sets and keeps the first one the search can clear completely, or else the one that leaves the fewest numbers. The values are the same on every preset |
 | `added-numbers-candidate.ts` | Builds one set of numbers to add, aimed at numbers they will see, leaving every pair group even |
-| `play-ahead.ts` | Plays a board ahead with simple matching, up to a match budget, and counts the numbers cleared |
+| `clear-search.ts` | Searches through orders of matches, up to a budget of boards, for the fewest numbers that can be left on a board |
 | `stage-clear.ts` | Adds the stage bonus and fills a new board |
 | `find-pair.ts` and `hint.ts` | Finds the first or every valid pair, for hints, the stuck warning, and game over |
 | `move.ts` | The move type and `applyMove`, which sends each move to its rule |
