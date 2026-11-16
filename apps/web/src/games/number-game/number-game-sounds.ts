@@ -1,12 +1,13 @@
 import {
   clipSound,
+  layeredSound,
   oneOfSound,
   toneSound,
   type OneOfSound,
   type Sound,
   type Tone,
 } from '../../audio/sound-player.js';
-import { GAME_OVER_SOUND, WRONG_BUZZER_SOUND } from '../../audio/clip-sounds.js';
+import { CHEER_SOUND, GAME_OVER_SOUND, WRONG_BUZZER_SOUND } from '../../audio/clip-sounds.js';
 import huatFaatUrl from '../../audio/clips/huat-faat.mp3';
 import huatFaUrl from '../../audio/clips/huat-fa.mp3';
 import huatFacaiUrl from '../../audio/clips/huat-facai.mp3';
@@ -90,11 +91,14 @@ export const NUMBER_GAME_SOUNDS: Readonly<Record<NumberGameSoundName, Sound>> = 
       fadeSeconds: 0.35,
     },
   ]),
-  stageClear: toneSound([
-    ...bell(NOTE_C5_HZ, 0, 0.22),
-    ...bell(NOTE_E5_HZ, 0.1, 0.22),
-    ...bell(NOTE_G5_HZ, 0.2, 0.22),
-    ...bell(NOTE_C6_HZ, 0.3, 0.25),
+  stageClear: layeredSound([
+    toneSound([
+      ...bell(NOTE_C5_HZ, 0, 0.22),
+      ...bell(NOTE_E5_HZ, 0.1, 0.22),
+      ...bell(NOTE_G5_HZ, 0.2, 0.22),
+      ...bell(NOTE_C6_HZ, 0.3, 0.25),
+    ]),
+    CHEER_SOUND,
   ]),
   gameOver: GAME_OVER_SOUND,
 };

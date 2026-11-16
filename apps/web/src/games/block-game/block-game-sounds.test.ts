@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { CHEER_SOUND } from '../../audio/clip-sounds.js';
 import { lineClearSound } from './block-game-sounds.js';
 
 // Each bell is a main tone plus a quiet overtone.
@@ -7,7 +8,7 @@ const TONES_PER_BELL = 2;
 function bellToneCount(clearedLineCount: number, streak: number): number {
   const sound = lineClearSound(clearedLineCount, streak);
   if (sound.kind !== 'layered') {
-    throw new Error('The line clear sound should layer a shout over the bells.');
+    throw new Error('The line clear sound should layer a cheer over the bells.');
   }
   const bells = sound.layers.find((layer) => layer.kind === 'tones');
   if (bells?.kind !== 'tones') {
@@ -27,10 +28,15 @@ describe('lineClearSound', () => {
     expect(bellToneCount(9, 9)).toBe(5 * TONES_PER_BELL);
   });
 
-  it('shouts over the bells', () => {
+  it('plays a random cheer over the bells', () => {
     const sound = lineClearSound(1, 1);
-    expect(sound.kind === 'layered' && sound.layers.some((layer) => layer.kind === 'clip')).toBe(
-      true,
+    expect(sound.kind === 'layered' && sound.layers.includes(CHEER_SOUND)).toBe(true);
+  });
+
+  it('keeps "wan sui" among the cheers', () => {
+    const cheerUrls = CHEER_SOUND.options.map((option) =>
+      option.kind === 'clip' ? option.url : '',
     );
+    expect(cheerUrls.some((url) => url.includes('wan-sui'))).toBe(true);
   });
 });

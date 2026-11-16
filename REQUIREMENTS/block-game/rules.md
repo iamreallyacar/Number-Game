@@ -84,7 +84,7 @@ These requirements define how the Block Game plays. Rows are counted from top to
 Effects only show what happened. They never change the rules, the score, or what is saved.
 
 - BG-17: When lines are cleared, the cleared cells show a short effect and the points earned float up from the board.
-- BG-18: Sounds follow the mute button from PL-19. Clearing lines shouts "wan sui" over a run of bells that grows with the number of lines and the streak, placing a shape plays a wooden knock, and game over plays a comic Chinese groan picked at random.
+- BG-18: Sounds follow the mute button from PL-19. Clearing lines plays a Chinese cheer, picked at random from a pool that includes "wan sui", over a run of bells that grows with the number of lines and the streak, placing a shape plays a wooden knock, and game over plays a comic Chinese groan picked at random.
 
 ## Game Over
 

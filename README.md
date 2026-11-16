@@ -52,7 +52,7 @@ In scope:
 - A web dashboard that lists the available games.
 - The Number Game, the Block Game, and the Disk Game, playable with touch and mouse.
 - Hosting on a single local server, packaged so others can self-host it.
-- Sound clips from Wikimedia Commons under CC BY-SA, CC0, and public domain terms, credited in `apps/web/src/audio/clips/CREDITS.md`.
+- Sound clips from Wikimedia Commons under CC BY-SA, CC BY, CC0, and public domain terms, credited in `apps/web/src/audio/clips/CREDITS.md`.
 
 Out of scope for now:
 

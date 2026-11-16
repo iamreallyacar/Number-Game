@@ -1,13 +1,5 @@
-import {
-  clipSound,
-  layeredSound,
-  toneSound,
-  type ClipSound,
-  type Sound,
-  type Tone,
-} from '../../audio/sound-player.js';
-import { GAME_OVER_SOUND, WOOD_KNOCK_SOUND } from '../../audio/clip-sounds.js';
-import wanSuiUrl from '../../audio/clips/wan-sui.mp3';
+import { layeredSound, toneSound, type Sound, type Tone } from '../../audio/sound-player.js';
+import { CHEER_SOUND, GAME_OVER_SOUND, WOOD_KNOCK_SOUND } from '../../audio/clip-sounds.js';
 
 // Notes from the F major chord, so every sound fits with the others when they overlap. A different
 // chord from the Number Game gives this game a voice of its own.
@@ -40,9 +32,6 @@ function bell(frequencyHz: number, startSeconds: number, peakGain: number): Tone
   ];
 }
 
-// A Cantonese "maan seoi", the cheer "long live", shouted when lines are cleared.
-const WAN_SUI_SHOUT: ClipSound = clipSound(wanSuiUrl);
-
 export type BlockGameSoundName = 'pickUp' | 'place' | 'invalidDrop' | 'gameOver';
 
 /** The Block Game sound for each event that always sounds the same (BG-18). */
@@ -65,7 +54,7 @@ export const BLOCK_GAME_SOUNDS: Readonly<Record<BlockGameSoundName, Sound>> = {
 };
 
 /**
- * The line clear sound: a cheer over a rising run of bells, one more for each extra line and for a
+ * The line clear sound: a random cheer over a rising run of bells, one more for each extra line and for a
  * streak of 2 or more, so bigger clears sound bigger (BG-17, BG-18).
  */
 export function lineClearSound(clearedLineCount: number, streak: number): Sound {
@@ -74,7 +63,7 @@ export function lineClearSound(clearedLineCount: number, streak: number): Sound 
   const bells = LINE_CLEAR_NOTES_HZ.slice(0, Math.max(noteCount, 1)).flatMap(
     (frequencyHz, noteIndex) => bell(frequencyHz, noteIndex * LINE_CLEAR_NOTE_GAP_SECONDS, 0.2),
   );
-  return layeredSound([toneSound(bells), WAN_SUI_SHOUT]);
+  return layeredSound([toneSound(bells), CHEER_SOUND]);
 }
 
 /** Every sound the game can play, for the play screen to preload. */

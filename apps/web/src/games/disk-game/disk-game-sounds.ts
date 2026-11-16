@@ -1,5 +1,5 @@
-import { toneSound, type Sound, type Tone } from '../../audio/sound-player.js';
-import { GAME_OVER_SOUND, WOOD_KNOCK_SOUND } from '../../audio/clip-sounds.js';
+import { layeredSound, toneSound, type Sound, type Tone } from '../../audio/sound-player.js';
+import { CHEER_SOUND, GAME_OVER_SOUND, WOOD_KNOCK_SOUND } from '../../audio/clip-sounds.js';
 
 // Notes from the D major chord, so every sound fits with the others when they overlap. A chord of
 // its own gives this game a different voice from the Number Game and the Block Game.
@@ -18,12 +18,13 @@ function softTone(frequencyHz: number, startSeconds: number, fadeSeconds: number
   return { frequencyHz, waveform: 'sine', peakGain: 0.16, startSeconds, fadeSeconds };
 }
 
-function risingRun(frequenciesHz: readonly number[]): Sound {
-  return toneSound(
+function cheerOverRisingRun(frequenciesHz: readonly number[]): Sound {
+  const risingRun = toneSound(
     frequenciesHz.map((frequencyHz, noteIndex) =>
       softTone(frequencyHz, noteIndex * STAGE_CLEAR_NOTE_GAP_SECONDS, 0.6),
     ),
   );
+  return layeredSound([risingRun, CHEER_SOUND]);
 }
 
 export type DiskGameSoundName =
@@ -47,9 +48,9 @@ export const DISK_GAME_SOUNDS: Readonly<Record<DiskGameSoundName, Sound>> = {
   // The drop played backwards in pitch: down, then up.
   undo: toneSound([softTone(NOTE_D4_HZ, 0, 0.1), softTone(NOTE_A3_HZ, 0.07, 0.14)]),
   hint: toneSound([softTone(NOTE_FSHARP5_HZ, 0, 0.25), softTone(NOTE_A5_HZ, 0.1, 0.35)]),
-  stageClear: risingRun([NOTE_D4_HZ, NOTE_FSHARP4_HZ, NOTE_A4_HZ, NOTE_D5_HZ]),
+  stageClear: cheerOverRisingRun([NOTE_D4_HZ, NOTE_FSHARP4_HZ, NOTE_A4_HZ, NOTE_D5_HZ]),
   // A perfect stage rings two notes higher.
-  perfectStageClear: risingRun([
+  perfectStageClear: cheerOverRisingRun([
     NOTE_D4_HZ,
     NOTE_FSHARP4_HZ,
     NOTE_A4_HZ,

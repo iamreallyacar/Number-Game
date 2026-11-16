@@ -151,3 +151,13 @@ Makes the starting boards less generous and takes Add Numbers out of the difficu
 - [x] T-78: Start each board with fewer pairs with line of sight: 5 or 6 on Easy, 3 or 4 on Normal, and 1 or 2 on Hard. The board must still be clearable, and clearing pairs must still reveal new ones. (NG-35, DF-04)
 - [x] T-79: Make Add Numbers work the same on every preset, with one aim chance and one count of sets tried. Only the count of uses per stage differs between presets. (NG-36, DF-02, DF-05)
 - [x] T-80: Measure the new values with simulated play on every preset, and update `difficulty.md` and the open questions to match. (DF-04, DF-05, OQ-21)
+
+## Phase 15: Wider Cheers and Groans
+
+Gives stage clears a Chinese cheer instead of plain bells, and widens the pools of cheers and game over groans.
+
+- [x] T-81: Write `manifest.md` for the 7 Hokkien cheers from the raw titles and the Commons licence data. Leave out any clip whose source or licence cannot be confirmed.
+- [x] T-82: Add the game over groans to the shared game over pool and to `CREDITS.md`. Leave out `game-over-diao-tone1-cmn.mp3`, which is the word 刁 and not the 屌 that was asked for. No free recording of "wo cao" exists, so `game-over-woqu-cmn.mp3` (我去) stands in for it. (NG-31, BG-18, DK-22)
+- [x] T-83: Play a cheer picked at random over the bells when a stage is cleared in the Number Game and the Disk Game, and pick the Block Game line clear cheer at random from a wider pool that keeps "wan sui". Update NG-31, DK-22, and BG-18, the sound tests, and `CREDITS.md` to match. (NG-31, DK-22, BG-18)
+- [x] T-84: Collect a small set of Mandarin and Cantonese cheers and add them to the cheer pool: 厉害, 恭喜, 棒, 恭喜發財, and 正. No free recording was found for 旺, 好嘢, or a Hokkien 興 "heng". (NG-31, DK-22, BG-18)
+- [ ] T-85: Ask the owner to listen to every new clip in the running app, and remove any that sound wrong, with the joined phrases and the stretched "diu" checked first.
