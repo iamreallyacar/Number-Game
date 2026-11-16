@@ -14,7 +14,7 @@
     type StageClear,
   } from '@local/disk-game';
   import { onDestroy } from 'svelte';
-  import { getSoundPlayer } from '../../audio/sound-player.js';
+  import { getSoundPlayer, type Sound } from '../../audio/sound-player.js';
   import type { PlayScreenProps } from '../browser-game.js';
   import { DISK_GAME_PRELOADED_SOUNDS, DISK_GAME_SOUNDS } from './disk-game-sounds.js';
   import DiskGameActionBar from './DiskGameActionBar.svelte';
@@ -30,7 +30,7 @@
   const FEEDBACK_SHOW_MS = 2500;
   // Matches the longest stage clear animation in DiskGameBoard.svelte. The sorted pegs stay on
   // screen this long before the next stage's layout replaces them.
-  const STAGE_CLEAR_SHOW_MS = 1200;
+  const STAGE_CLEAR_SHOW_MS = 2000;
 
   interface Feedback {
     readonly text: string;
@@ -91,8 +91,17 @@
     }, REFUSED_DROP_SHOW_MS);
   }
 
-  function showStageClear(stageClear: StageClear): void {
-    const cheerWords = soundPlayer.play(
+  /**
+   * Plays the sound of a move, or the game over sound alone when the move ended the game, so two
+   * sounds never play on top of each other. Returns the Chinese words spoken in the sound, if any.
+   */
+  function playMoveSound(nextState: GameState, moveSound: Sound): string | null {
+    return soundPlayer.play(isGameOver(nextState) ? DISK_GAME_SOUNDS.gameOver : moveSound);
+  }
+
+  function showStageClear(stageClear: StageClear, nextState: GameState): void {
+    const cheerWords = playMoveSound(
+      nextState,
       stageClear.perfect ? DISK_GAME_SOUNDS.perfectStageClear : DISK_GAME_SOUNDS.stageClear,
     );
     stageClearEffect = { id: nextStageClearEffectId, stageClear, cheerWords };
@@ -112,9 +121,6 @@
   function commitMove(nextState: GameState, move: DiskGameMove): void {
     heldPeg = null;
     gameState = nextState;
-    if (isGameOver(nextState)) {
-      soundPlayer.play(DISK_GAME_SOUNDS.gameOver);
-    }
     saveMove(move);
   }
 
@@ -143,9 +149,9 @@
       case 'moved':
         hintMove = null;
         if (outcome.result.stageClear === null) {
-          soundPlayer.play(DISK_GAME_SOUNDS.drop);
+          playMoveSound(outcome.result.state, DISK_GAME_SOUNDS.drop);
         } else {
-          showStageClear(outcome.result.stageClear);
+          showStageClear(outcome.result.stageClear, outcome.result.state);
         }
         commitMove(outcome.result.state, { type: 'move-disk', ...outcome.move });
         return;
@@ -159,7 +165,7 @@
       return;
     }
     hintMove = null;
-    soundPlayer.play(DISK_GAME_SOUNDS.undo);
+    playMoveSound(result.state, DISK_GAME_SOUNDS.undo);
     commitMove(result.state, { type: 'undo' });
   }
 
@@ -175,7 +181,7 @@
         `${String(result.hintMove.toPeg + 1)}.`,
       'info',
     );
-    soundPlayer.play(DISK_GAME_SOUNDS.hint);
+    playMoveSound(result.state, DISK_GAME_SOUNDS.hint);
     commitMove(result.state, { type: 'hint' });
   }
 </script>

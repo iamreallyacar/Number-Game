@@ -200,12 +200,12 @@
     translate: -50% 0;
     opacity: 0;
     pointer-events: none;
-    animation: float-up 1.2s ease-out;
+    animation: float-up 2s ease-out;
   }
 
   .cheer-words {
-    margin-left: 0.25em;
-    font-size: 0.8em;
+    margin-left: 0.2em;
+    font-size: 1.6em;
   }
 
   .perfect {
@@ -240,8 +240,12 @@
       transform: translateY(0) scale(0.8);
       opacity: 0;
     }
-    15% {
+    8% {
       transform: translateY(0) scale(1.15);
+      opacity: 1;
+    }
+    /* Held in full view for most of the time, so the cheer words can be read. */
+    70% {
       opacity: 1;
     }
     100% {

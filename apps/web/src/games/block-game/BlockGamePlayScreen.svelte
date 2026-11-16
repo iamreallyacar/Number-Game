@@ -42,7 +42,7 @@
   const RETURNED_SLOT_SHOW_MS = 400;
   const FEEDBACK_SHOW_MS = 2500;
   // Matches the longest animation in BlockGameClearEffect.svelte.
-  const CLEAR_EFFECT_SHOW_MS = 900;
+  const CLEAR_EFFECT_SHOW_MS = 2000;
 
   /** A shape on its way from a slot to the board. */
   interface ActiveDrag {
@@ -233,16 +233,19 @@
     }
   }
 
-  /** Returns the Chinese words of the line clear cheer, or null when no cheer was played. */
+  /**
+   * Plays the game over sound alone when the placement ended the game, so two sounds never play on
+   * top of each other. Returns the Chinese words of the line clear cheer, or null when none played.
+   */
   function playPlacementSound(clearedLineCount: number, nextState: GameState): string | null {
-    const cheerWords =
-      clearedLineCount > 0
-        ? soundPlayer.play(lineClearSound(clearedLineCount, nextState.streak))
-        : soundPlayer.play(BLOCK_GAME_SOUNDS.place);
     if (isGameOver(nextState)) {
-      soundPlayer.play(BLOCK_GAME_SOUNDS.gameOver);
+      return soundPlayer.play(BLOCK_GAME_SOUNDS.gameOver);
     }
-    return cheerWords;
+    return soundPlayer.play(
+      clearedLineCount > 0
+        ? lineClearSound(clearedLineCount, nextState.streak)
+        : BLOCK_GAME_SOUNDS.place,
+    );
   }
 
   /** Shows a placement right away, then sends it to the server to be saved (PS-07). */

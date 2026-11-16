@@ -28,14 +28,7 @@ function bell(frequencyHz: number, startSeconds: number, peakGain: number): Tone
 }
 
 export type NumberGameSoundName =
-  | 'select'
-  | 'matchShout'
-  | 'rowRemoved'
-  | 'wrongMatch'
-  | 'addNumbers'
-  | 'hint'
-  | 'stageClear'
-  | 'gameOver';
+  'select' | 'matchShout' | 'wrongMatch' | 'addNumbers' | 'hint' | 'stageClear' | 'gameOver';
 
 /** The Number Game sound for each event (NG-31). */
 export const NUMBER_GAME_SOUNDS: Readonly<Record<NumberGameSoundName, Sound>> = {
@@ -43,8 +36,6 @@ export const NUMBER_GAME_SOUNDS: Readonly<Record<NumberGameSoundName, Sound>> = 
     { frequencyHz: 440, waveform: 'sine', peakGain: 0.15, startSeconds: 0, fadeSeconds: 0.07 },
   ]),
   matchShout: CHEER_SOUND,
-  // Played on top of the match shout, a little later, so a removed row also rings.
-  rowRemoved: toneSound(bell(NOTE_G5_HZ, 0.08, 0.2)),
   wrongMatch: WRONG_BUZZER_SOUND,
   addNumbers: toneSound([
     {

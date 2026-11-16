@@ -84,7 +84,7 @@ Reading order example: row 1 column 7 holds a 3, and row 2 column 2 holds a 7. R
 Effects only show what happened. They never change the rules, the score, or what is saved.
 
 - NG-30: When a pair is cleared, both cleared cells show a short burst, and the points earned by the move float up from the second selected cell, such as +10, or +60 when a row is removed too.
-- NG-31: The game plays a short sound for each of these events: selecting a number, clearing a pair, removing an empty row, a wrong match, pressing Add Numbers, showing a hint, clearing a stage, and game over. Clearing a pair plays a Chinese cheer such as "huat", "wan sui", or "ong lai", picked at random from the cheer pool that every game shares. A wrong match plays a buzzer. Clearing a stage plays a cheer from the same pool over a run of bells. Game over plays a comic Chinese groan such as "cao" or "aiyo", picked at random.
+- NG-31: The game plays a short sound for each of these events: selecting a number, clearing a pair, a wrong match, pressing Add Numbers, showing a hint, clearing a stage, and game over. Clearing a pair plays a Chinese cheer such as "huat", "wan sui", or "ong lai", picked at random from the cheer pool that every game shares. A wrong match plays a buzzer. Clearing a stage plays a cheer from the same pool over a run of bells. Game over plays a comic Chinese groan such as "cao" or "aiyo", picked at random.
 - NG-32: Sounds follow the mute button from PL-19.
 
 ## Game Over

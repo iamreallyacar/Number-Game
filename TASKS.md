@@ -163,3 +163,4 @@ Gives stage clears a Chinese cheer instead of plain bells, and widens the pools 
 - [ ] T-85: Ask the owner to listen to every new clip in the running app, and remove any that sound wrong, with the joined phrases and the stretched "diu" checked first.
 - [x] T-86: Make a cleared pair in the Number Game play from the shared cheer pool, and move the three "huat" clips into that pool, so every game draws its cheers from one pool and its groans from the other. (NG-31)
 - [x] T-87: Show the Chinese words of the cheer beside the points that float up when a pair, lines, or a stage is cleared, in every game. (PL-18)
+- [x] T-88: Make the cheer words larger than the points and keep them in view for about 2 seconds. Drop the Number Game row removed ring, and play the game over sound alone when a move ends the game. (PL-18, NG-31)

@@ -13,14 +13,16 @@
   <span class="over-cell flash" style:--row={cell.row} style:--column={cell.column}></span>
 {/each}
 <span
-  class="over-cell points"
+  class="over-cell pop-up"
   style:--row={effect.pointsAt.row}
   style:--column={effect.pointsAt.column}
   aria-hidden="true"
-  >+{effect.pointsEarned}{#if effect.cheerWords !== null}<span class="cheer-words" lang="zh"
-      >{effect.cheerWords}</span
-    >{/if}</span
 >
+  <span class="points">+{effect.pointsEarned}</span>
+  {#if effect.cheerWords !== null}
+    <span class="cheer-words" lang="zh">{effect.cheerWords}</span>
+  {/if}
+</span>
 
 <style>
   .over-cell {
@@ -44,7 +46,10 @@
     animation: flash 0.45s ease-out;
   }
 
-  .points {
+  .pop-up {
+    display: flex;
+    align-items: baseline;
+    gap: 0.2em;
     color: var(--color-accent);
     font-size: calc(var(--cell-pitch) * 0.7);
     font-weight: 800;
@@ -52,13 +57,17 @@
     text-shadow:
       0 0 3px var(--color-surface),
       0 0 6px var(--color-surface);
+  }
+
+  .points {
     opacity: 0;
     animation: float-up 0.9s ease-out;
   }
 
   .cheer-words {
-    margin-left: 0.25em;
-    font-size: 0.8em;
+    font-size: 1.6em;
+    opacity: 0;
+    animation: linger-up 2s ease-out;
   }
 
   @keyframes flash {
@@ -93,10 +102,40 @@
     .points {
       animation-name: fade;
     }
+
+    .cheer-words {
+      animation-name: linger-fade;
+    }
+  }
+
+  /* The words stay up longer than the points, so there is time to read them. */
+  @keyframes linger-up {
+    0% {
+      transform: translateY(0) scale(0.8);
+      opacity: 0;
+    }
+    8% {
+      transform: translateY(0) scale(1.15);
+      opacity: 1;
+    }
+    70% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(calc(var(--cell-pitch) * -2)) scale(1);
+      opacity: 0;
+    }
   }
 
   @keyframes fade {
     15% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes linger-fade {
+    8%,
+    70% {
       opacity: 1;
     }
   }

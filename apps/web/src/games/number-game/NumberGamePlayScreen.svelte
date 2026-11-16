@@ -15,7 +15,7 @@
     type NumberGameMove,
   } from '@local/number-game';
   import { onDestroy } from 'svelte';
-  import { getSoundPlayer } from '../../audio/sound-player.js';
+  import { getSoundPlayer, type Sound } from '../../audio/sound-player.js';
   import type { PlayScreenProps } from '../browser-game.js';
   import type { BoardPosition, MatchEffect } from './match-effect.js';
   import { MATCH_REFUSAL_MESSAGES } from './match-refusal-messages.js';
@@ -29,7 +29,7 @@
   const REJECTED_PAIR_SHOW_MS = 400;
   const FEEDBACK_SHOW_MS = 2500;
   // Matches the longest animation in NumberGameMatchEffect.svelte.
-  const MATCH_EFFECT_SHOW_MS = 900;
+  const MATCH_EFFECT_SHOW_MS = 2000;
 
   interface Feedback {
     readonly text: string;
@@ -119,16 +119,12 @@
     matchEffectTimers = [...matchEffectTimers, timer];
   }
 
-  /** Returns the Chinese words of the cheer that was played, or null when sound is muted. */
-  function playMatchSound(removedRowCount: number, stageCleared: boolean): string | null {
-    if (stageCleared) {
-      return soundPlayer.play(NUMBER_GAME_SOUNDS.stageClear);
-    }
-    const cheerWords = soundPlayer.play(NUMBER_GAME_SOUNDS.matchShout);
-    if (removedRowCount > 0) {
-      soundPlayer.play(NUMBER_GAME_SOUNDS.rowRemoved);
-    }
-    return cheerWords;
+  /**
+   * Plays the sound of a move, or the game over sound alone when the move ended the game, so two
+   * sounds never play on top of each other. Returns the Chinese words spoken in the sound, if any.
+   */
+  function playMoveSound(nextState: GameState, moveSound: Sound): string | null {
+    return soundPlayer.play(isGameOver(nextState) ? NUMBER_GAME_SOUNDS.gameOver : moveSound);
   }
 
   /** Shows a move right away, then sends it to the server to be saved (PS-07). */
@@ -136,9 +132,6 @@
     gameState = nextState;
     selectedIndex = null;
     hintPair = null;
-    if (isGameOver(nextState)) {
-      soundPlayer.play(NUMBER_GAME_SOUNDS.gameOver);
-    }
     saveMove(move);
   }
 
@@ -162,9 +155,11 @@
         return;
       case 'matched': {
         const clearedStage = gameState.stage;
-        const cheerWords = playMatchSound(
-          outcome.match.removedRowCount,
-          outcome.match.stageCleared,
+        const cheerWords = playMoveSound(
+          outcome.match.state,
+          outcome.match.stageCleared
+            ? NUMBER_GAME_SOUNDS.stageClear
+            : NUMBER_GAME_SOUNDS.matchShout,
         );
         showMatchEffect(
           outcome.firstIndex,
@@ -189,7 +184,7 @@
     const result = applyAddNumbers(gameState);
     if (result.accepted) {
       playMove(result.state, { type: 'add-numbers' });
-      soundPlayer.play(NUMBER_GAME_SOUNDS.addNumbers);
+      playMoveSound(result.state, NUMBER_GAME_SOUNDS.addNumbers);
     }
   }
 
@@ -200,7 +195,7 @@
     }
     playMove(result.state, { type: 'hint' });
     hintPair = result.pair;
-    soundPlayer.play(NUMBER_GAME_SOUNDS.hint);
+    playMoveSound(result.state, NUMBER_GAME_SOUNDS.hint);
   }
 </script>
 
