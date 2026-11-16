@@ -1,6 +1,6 @@
 # Players, Saves, and High Scores
 
-These requirements cover player IDs, save slots stored on the server, and high scores. Player IDs are shared by every game on the dashboard. Each game has its own save slots and high scores.
+These requirements cover player IDs, save slots stored on the server, and high scores. Player IDs are shared by every game on the dashboard. Each game has its own save slots and high scores. The save slot requirements apply to saved games only (PL-21).
 
 ## Player IDs
 
@@ -38,6 +38,8 @@ These requirements cover player IDs, save slots stored on the server, and high s
 - PS-13: Each game result records the player ID, final score, date, and the game's own details and category. Each game's rules file says what these are.
 - PS-14: The leaderboard on the game page shows the top results for the game, with a way to filter by the game's category, such as the difficulty in the Number Game.
 - PS-15: Each player ID has a personal best score per category, shown on the leaderboard for a picked player.
+- PS-23: A result of a room game records the player ID of every player on the team. The leaderboard shows all of them, and the result counts for the personal best of each.
+- PS-24: The game page of a room game shows the leaderboard and the list of rooms in place of the save slots.
 
 ## Configuration
 

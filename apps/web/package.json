@@ -11,6 +11,7 @@
     "@local/block-game": "*",
     "@local/game-server-api": "*",
     "@local/number-game": "*",
+    "@local/survivor-game": "*",
     "typebox": "^1.4.6"
   },
   "devDependencies": {

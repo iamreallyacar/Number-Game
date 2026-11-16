@@ -11,10 +11,10 @@ async function startServerWithResults() {
   await createPlayer(server.app, 'Ana');
   const store = new HighScoresStore(server.database);
   const results = [
-    { playerId: 'Sam', score: 30, category: 'to-3' },
-    { playerId: 'Sam', score: 90, category: 'to-3' },
-    { playerId: 'Ana', score: 50, category: 'to-5' },
-    { playerId: 'Sam', score: 10, category: 'to-5' },
+    { playerIds: ['Sam'], score: 30, category: 'to-3' },
+    { playerIds: ['Sam'], score: 90, category: 'to-3' },
+    { playerIds: ['Ana'], score: 50, category: 'to-5' },
+    { playerIds: ['Sam'], score: 10, category: 'to-5' },
   ];
   for (const [index, result] of results.entries()) {
     store.insertResult({
@@ -43,14 +43,14 @@ describe('high score routes', () => {
     expect(response.json()).toEqual({
       highScores: [
         {
-          playerId: 'Ana',
+          playerIds: ['Ana'],
           score: 50,
           category: 'to-5',
           details: { count: 1 },
           finishedAt: '2026-01-03T00:00:00.000Z',
         },
         {
-          playerId: 'Sam',
+          playerIds: ['Sam'],
           score: 10,
           category: 'to-5',
           details: { count: 1 },
@@ -71,7 +71,7 @@ describe('high score routes', () => {
     const { app, database } = await startServerWithResults();
     new HighScoresStore(database).insertResult({
       gameId: COUNTER_GAME_ID,
-      playerId: 'Ana',
+      playerIds: ['Ana'],
       score: 999,
       category: 'to-3',
       detailsJson: '{"value":3}',
@@ -90,8 +90,8 @@ describe('high score routes', () => {
     });
     expect(response.json()).toMatchObject({
       personalBests: [
-        { playerId: 'Sam', score: 90, category: 'to-3' },
-        { playerId: 'Sam', score: 10, category: 'to-5' },
+        { playerIds: ['Sam'], score: 90, category: 'to-3' },
+        { playerIds: ['Sam'], score: 10, category: 'to-5' },
       ],
     });
   });
@@ -104,5 +104,33 @@ describe('high score routes', () => {
     });
     expect(response.statusCode).toBe(404);
     expect(response.json()).toMatchObject({ error: 'unknown-player' });
+  });
+
+  it('names every player of a team result and counts it for each of them', async () => {
+    const { app, database } = await startServerWithResults();
+    await createPlayer(app, 'Lee');
+    new HighScoresStore(database).insertResult({
+      gameId: COUNTER_GAME_ID,
+      playerIds: ['Lee', 'Sam', 'Ana'],
+      score: 500,
+      category: 'to-5',
+      detailsJson: '{"count":5}',
+      detailsVersion: COUNTER_FORMAT_VERSION,
+      finishedAt: '2026-03-01T00:00:00.000Z',
+    });
+
+    const top = await app.inject({ method: 'GET', url: `${HIGH_SCORES_URL}?limit=1` });
+    expect(top.json()).toMatchObject({
+      highScores: [{ score: 500, playerIds: ['Lee', 'Sam', 'Ana'] }],
+    });
+    for (const playerId of ['lee', 'sam', 'ana']) {
+      const bests = await app.inject({
+        method: 'GET',
+        url: `${COUNTER_URL}/personal-bests/${playerId}`,
+      });
+      expect(bests.json<{ personalBests: { score: number }[] }>().personalBests).toContainEqual(
+        expect.objectContaining({ score: 500 }),
+      );
+    }
   });
 });

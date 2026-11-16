@@ -25,3 +25,5 @@ export const saveParamsSchema = Type.Object({
   slotNumber: Type.Integer({ minimum: 1 }),
   saveId: saveIdSchema,
 });
+
+export const roomParamsSchema = Type.Object({ gameId: Type.String(), roomId: Type.String() });

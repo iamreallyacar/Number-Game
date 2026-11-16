@@ -5,12 +5,12 @@
   import { openSave, sendMove, type SaveAddress } from '../api/game-server-api.js';
   import SaveGoneNotice from '../components/SaveGoneNotice.svelte';
   import SaveStatusBanner from '../components/SaveStatusBanner.svelte';
-  import type { BrowserGame, PlayScreenProps } from '../games/browser-game.js';
+  import type { PlayScreenProps, SavedBrowserGame } from '../games/browser-game.js';
   import { routePath } from '../routing/routes.js';
   import { MoveSync, type SaveStatus } from '../saving/move-sync.js';
 
   interface Props {
-    readonly game: BrowserGame;
+    readonly game: SavedBrowserGame;
     readonly slotNumber: number;
     readonly saveId: string;
   }

@@ -13,6 +13,8 @@ These requirements cover everything around the games: the dashboard, how games p
 - PL-04: Each game lives in its own self-contained module, so a new game can be added without changing the code of other games.
 - PL-05: Games register themselves with the dashboard through one shared interface that provides at least a unique id, a display name, a description, and an entry point.
 - PL-06: The dashboard code does not contain rules or logic for any specific game.
+- PL-21: A game is one of two kinds. A saved game is played by one player in a save slot, one move at a time. A room game is played live by one or more players in a room and has no save slots. Each kind has its own shared interface, and PL-04 to PL-06 hold for both.
+- PL-22: A room game keeps a live connection between each player's browser and the server for as long as a run lasts.
 
 ## Players, Saves, and High Scores
 

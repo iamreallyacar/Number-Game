@@ -4,6 +4,7 @@ import { buildApp } from './app.js';
 import { ConfigError, readConfig, type ServerConfig } from './config.js';
 import { openDatabase } from './database/open-database.js';
 import { createGameRegistry } from './games/create-game-registry.js';
+import { systemScheduler } from './rooms/step-loop.js';
 
 // The built browser app sits next to this package in the workspace: apps/web/dist.
 const WEB_APP_DIR = fileURLToPath(new URL('../../web/dist/', import.meta.url));
@@ -26,6 +27,8 @@ const app = await buildApp({
   database,
   games: createGameRegistry(),
   saveSlotsPerGame: config.saveSlotsPerGame,
+  maxRoomGameRuns: config.maxRoomGameRuns,
+  stepScheduler: systemScheduler,
   webAppDir: WEB_APP_DIR,
   logRequests: true,
 });

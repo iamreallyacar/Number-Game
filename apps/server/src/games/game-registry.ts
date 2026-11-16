@@ -3,7 +3,14 @@ import type { StoredFormatUpgrade } from '@local/stored-values';
 import type { Static, TSchema } from 'typebox';
 import { Value } from 'typebox/value';
 import { HttpError } from '../http-error.js';
-import { currentFormatVersion, upgradeStoredValue } from './stored-format.js';
+import {
+  BROKEN_SAVE,
+  readStoredJson,
+  readStoredSummaryDetails,
+  type StoredSummaryDetails,
+} from './read-stored-json.js';
+import type { RegisteredRoomGame } from './room-game.js';
+import { currentFormatVersion } from './stored-format.js';
 
 export type GameMoveOutcome<State> =
   | { readonly accepted: true; readonly state: State }
@@ -39,12 +46,6 @@ export interface StoredGameState {
   readonly stateVersion: number;
 }
 
-/** Summary details as they are kept with a high score. */
-export interface StoredSummaryDetails {
-  readonly detailsJson: string;
-  readonly detailsVersion: number;
-}
-
 export interface StartedGame {
   readonly state: unknown;
   readonly storedState: StoredGameState;
@@ -60,18 +61,26 @@ export type RegisteredMoveOutcome =
     }
   | { readonly accepted: false; readonly reason: string };
 
-/**
- * A game as the shared server code sees it. It works on stored JSON, so games with different
- * state types can sit in one registry.
- */
-export interface RegisteredGame {
+/** What every kind of game offers, which is all the high score routes need. */
+export interface GameBasics {
   readonly id: string;
   readonly categories: readonly string[];
+  readSummaryDetails(stored: StoredSummaryDetails): SummaryDetails;
+}
+
+/** A game of either kind. Check `kind` to tell them apart. */
+export type AnyRegisteredGame = RegisteredGame | RegisteredRoomGame;
+
+/**
+ * A saved game as the shared server code sees it. It works on stored JSON, so games with different
+ * state types can sit in one registry.
+ */
+export interface RegisteredGame extends GameBasics {
+  readonly kind: 'saved';
   startGame(options: unknown, seed: number): StartedGame;
   readState(stored: StoredGameState): unknown;
   applyMove(stored: StoredGameState, move: unknown): RegisteredMoveOutcome;
   summarize(stored: StoredGameState): GameSummary;
-  readSummaryDetails(stored: StoredSummaryDetails): SummaryDetails;
 }
 
 function describeSchemaError(schema: TSchema, value: unknown): string {
@@ -82,28 +91,6 @@ function describeSchemaError(schema: TSchema, value: unknown): string {
   const location = firstError.instancePath === '' ? 'value' : firstError.instancePath;
   return `${location} ${firstError.message}`;
 }
-
-/** Reads stored JSON, upgrades it to the newest format, and checks it, failing with a 500 error. */
-function readStoredJson<Parsed>(
-  json: string,
-  version: number,
-  upgrades: readonly StoredFormatUpgrade[],
-  parse: (stored: unknown) => Parsed,
-  brokenError: { readonly code: string; readonly description: string },
-): Parsed {
-  try {
-    return parse(upgradeStoredValue(JSON.parse(json), version, upgrades));
-  } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error);
-    throw new HttpError(500, brokenError.code, `${brokenError.description}: ${reason}`);
-  }
-}
-
-const BROKEN_SAVE = { code: 'broken-save', description: 'This save is broken and cannot be used' };
-const BROKEN_HIGH_SCORE = {
-  code: 'broken-high-score',
-  description: 'A stored high score is broken and cannot be shown',
-};
 
 /** Wraps a game definition so the registry can hold it next to games with other state types. */
 export function defineServerGame<
@@ -129,6 +116,7 @@ export function defineServerGame<
   }
 
   return {
+    kind: 'saved',
     id: definition.id,
     categories: definition.categories,
 
@@ -167,33 +155,47 @@ export function defineServerGame<
     },
 
     readSummaryDetails(stored) {
-      return readStoredJson(
-        stored.detailsJson,
-        stored.detailsVersion,
-        definition.summaryDetailsUpgrades,
-        (value) => definition.parseSummaryDetails(value),
-        BROKEN_HIGH_SCORE,
+      return readStoredSummaryDetails(stored, definition.summaryDetailsUpgrades, (value) =>
+        definition.parseSummaryDetails(value),
       );
     },
   };
 }
 
-/** Holds every game the server knows, looked up by game id (PL-05). */
+/** Holds every game the server knows, of both kinds, looked up by game id (PL-05, PL-21). */
 export class GameRegistry {
-  private readonly gamesById = new Map<string, RegisteredGame>();
+  private readonly gamesById = new Map<string, AnyRegisteredGame>();
 
-  register(game: RegisteredGame): void {
+  register(game: AnyRegisteredGame): void {
     if (this.gamesById.has(game.id)) {
       throw new Error(`A game with id '${game.id}' is already registered`);
     }
     this.gamesById.set(game.id, game);
   }
 
-  /** Throws a 404 error for an unknown game id, since the id comes from the request URL. */
-  getGame(gameId: string): RegisteredGame {
+  /** Finds a game of either kind. Throws a 404 error for an unknown id, as it comes from the URL. */
+  getGame(gameId: string): AnyRegisteredGame {
     const game = this.gamesById.get(gameId);
     if (game === undefined) {
       throw new HttpError(404, 'unknown-game', `There is no game with id '${gameId}'`);
+    }
+    return game;
+  }
+
+  /** Like getGame, but refuses a room game with 400 and 'wrong-game-kind'. */
+  getSavedGame(gameId: string): RegisteredGame {
+    const game = this.getGame(gameId);
+    if (game.kind !== 'saved') {
+      throw new HttpError(400, 'wrong-game-kind', `${gameId} is a room game, not a saved game`);
+    }
+    return game;
+  }
+
+  /** Like getGame, but refuses a saved game with 400 and 'wrong-game-kind'. */
+  getRoomGame(gameId: string): RegisteredRoomGame {
+    const game = this.getGame(gameId);
+    if (game.kind !== 'room') {
+      throw new HttpError(400, 'wrong-game-kind', `${gameId} is a saved game, not a room game`);
     }
     return game;
   }

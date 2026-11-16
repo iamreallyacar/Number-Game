@@ -1,6 +1,7 @@
 <script lang="ts">
   import GameLeaderboard from '../components/GameLeaderboard.svelte';
   import NewGameSetup from '../components/NewGameSetup.svelte';
+  import RoomList from '../components/RoomList.svelte';
   import SaveSlotList from '../components/SaveSlotList.svelte';
   import type { BrowserGame } from '../games/browser-game.js';
   import { navigate } from '../routing/router.js';
@@ -21,7 +22,19 @@
 
 <h1>{game.name}</h1>
 
-{#if newGameSlotNumber === null}
+{#if game.kind === 'room'}
+  <!-- PS-24: the rooms take the place of the save slots. -->
+  <p>{game.description}</p>
+  <section class="stack">
+    <h2>Leaderboard</h2>
+    <GameLeaderboard {game} />
+  </section>
+  <section class="stack">
+    <h2>Rooms</h2>
+    <p class="muted">Create a room, or join one that is waiting for players.</p>
+    <RoomList {game} />
+  </section>
+{:else if newGameSlotNumber === null}
   <p>{game.description}</p>
   <section class="stack">
     <h2>Leaderboard</h2>

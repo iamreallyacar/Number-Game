@@ -2,7 +2,8 @@ import { Type, type Static } from 'typebox';
 import { summaryDetailsSchema } from './game-summary-schemas.js';
 
 export const gameResultSchema = Type.Object({
-  playerId: Type.String(),
+  /** Everyone on the result in the order they joined. A saved game result has exactly one. */
+  playerIds: Type.Array(Type.String(), { minItems: 1 }),
   score: Type.Number(),
   category: Type.String(),
   details: summaryDetailsSchema,

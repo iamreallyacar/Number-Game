@@ -1,6 +1,6 @@
 # Number Game
 
-A small self-hosted game dashboard that runs on a home server (such as a Proxmox VM or container) and is played from a phone or laptop browser on the local network. The dashboard has two games: the Number Game, a grid puzzle where you clear pairs of numbers, and the Block Game, a grid puzzle where you place shapes to fill and clear rows and columns.
+A small self-hosted game dashboard that runs on a home server (such as a Proxmox VM or container) and is played from a phone or laptop browser on the local network. The dashboard has three games: the Number Game, a grid puzzle where you clear pairs of numbers, the Block Game, a grid puzzle where you place shapes to fill and clear rows and columns, and the Survivor Game, a real-time team game where one to four players, each on their own device, fight off waves of enemies together.
 
 ## Goals
 
@@ -34,12 +34,22 @@ The full rules are in `REQUIREMENTS/number-game/rules.md`.
 
 The full rules are in `REQUIREMENTS/block-game/rules.md`.
 
+## The Survivor Game in Short
+
+- One to four players form a room, and each plays on their own device. Solo play is a room with one player.
+- Players steer with a joystick or the keys, shoot automatically, and are tied together by a rope that keeps them close.
+- Beaten enemies give score and experience. Each level up offers upgrades to choose from.
+- Enemies keep getting stronger, so every run ends in defeat. The goal is the highest team score.
+- A run is played in one sitting, with no save slots. Results go into the high scores.
+
+The full rules are in `REQUIREMENTS/survivor-game/rules.md`, and the numbers they use are in `REQUIREMENTS/survivor-game/balance.md`.
+
 ## Scope
 
 In scope:
 
 - A web dashboard that lists the available games.
-- The Number Game and the Block Game, playable with touch and mouse.
+- The Number Game, the Block Game, and the Survivor Game, playable with touch and mouse.
 - Hosting on a single local server, packaged so others can self-host it.
 - Sound clips from Wikimedia Commons under CC BY-SA, CC BY, CC0, and public domain terms, credited in `apps/web/src/audio/clips/CREDITS.md`.
 
@@ -58,6 +68,8 @@ The `REQUIREMENTS/` folder holds the detailed requirements. Platform requirement
 | `REQUIREMENTS/number-game/rules.md` | Board, matching, line of sight, row removal, adding numbers, stages, scoring, and game over |
 | `REQUIREMENTS/number-game/difficulty.md` | Difficulty presets and ideas for later |
 | `REQUIREMENTS/block-game/rules.md` | Board, hands, shapes, the fair deal, placing, line clearing, scoring, and game over |
+| `REQUIREMENTS/survivor-game/rules.md` | Rooms, movement, the rope, shooting, enemies, upgrades, scoring, and defeat |
+| `REQUIREMENTS/survivor-game/balance.md` | The numbers the Survivor Game rules use |
 | `REQUIREMENTS/players-saves-scores.md` | Player IDs, server save slots, and high scores |
 | `REQUIREMENTS/open-questions.md` | Open decisions, the chosen tech stack, and answered questions |
 
@@ -86,7 +98,7 @@ Without Docker, install Node.js 24 or newer in the VM or container and follow th
 
 ## Playing From a Phone
 
-The phone or laptop must be on the same network as the server.
+The phone or laptop must be on the same network as the server. In the Survivor Game, every player joins the same server from their own device.
 
 1. Find the server address by running `hostname -I` inside the VM or container. The first address is usually the right one, such as `192.168.1.50`. It is also shown in the Proxmox web interface under the VM or container summary.
 2. Open `http://<server address>:<PORT>` in the phone browser, such as `http://192.168.1.50:3000`.
@@ -116,6 +128,7 @@ The server reads these settings from environment variables. Copy `.env.example` 
 | `PORT` | `3000` | Port the server listens on |
 | `DATA_DIR` | `./data` | Folder where the SQLite database with players, saves, and high scores is stored |
 | `SAVE_SLOTS_PER_GAME` | `10` | Number of save slots each game has. If it is lowered, saves in the slots above the new number are kept but cannot be reached until it is raised again |
+| `MAX_ROOM_GAME_RUNS` | `4` | Most rooms of room games, from 1 to 1000, that exist at once, counting waiting rooms and runs in progress, shared by every room game. Each run is stepped many times a second, so raise it only as far as the server machine can keep up |
 
 With Docker, `compose.yaml` reads the same `.env` file, but some settings mean something slightly different:
 
@@ -125,7 +138,8 @@ With Docker, `compose.yaml` reads the same `.env` file, but some settings mean s
 | `PORT` | Port on the host that the game is reachable on. Inside the container the server always uses port 3000 |
 | `DATA_DIR` | Folder on the host that holds the database. It is mounted into the container as `/data` |
 | `SAVE_SLOTS_PER_GAME` | Same as without Docker |
+| `MAX_ROOM_GAME_RUNS` | Same as without Docker |
 
 ## Status
 
-The project is finished and closed, apart from small polishing work. The work plan, its close-out note, and the polishing tasks are in `TASKS.md`.
+The Number Game and the Block Game are finished. The Survivor Game is built and waits for playtesting and tuning (T-112). The task list is in `TASKS.md`.

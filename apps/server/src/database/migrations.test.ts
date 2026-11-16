@@ -14,7 +14,7 @@ describe('runMigrations', () => {
       .prepare("SELECT name FROM sqlite_schema WHERE type = 'table' ORDER BY name")
       .all()
       .map((row) => row['name']);
-    expect(tables).toEqual(['high_scores', 'players', 'save_slots']);
+    expect(tables).toEqual(['high_score_players', 'high_scores', 'players', 'save_slots']);
   });
 
   it('refuses a database made by a newer server', () => {
@@ -154,5 +154,71 @@ describe('runMigrations', () => {
     expect(keptSaves.map((row) => row['save_id'])).toEqual(['save-number']);
     const keptScores = database.prepare('SELECT score FROM high_scores').all();
     expect(keptScores.map((row) => row['score'])).toEqual([200]);
+  });
+
+  it('moves the player of every existing high score into the table of result players', () => {
+    const database = new DatabaseSync(':memory:');
+    for (const migration of MIGRATIONS.slice(0, 6)) {
+      database.exec(migration);
+    }
+    database.exec('PRAGMA user_version = 6');
+    database.exec(`
+      INSERT INTO players (player_id, created_at) VALUES ('Sam', '2026-01-01'), ('Ana', '2026-01-01');
+      INSERT INTO high_scores
+        (high_score_id, game_id, player_id, score, category, details_json, details_version,
+         finished_at)
+      VALUES
+        (7, 'counter', 'Sam', 30, 'to-3', '{"count":3}', 2, '2026-01-01'),
+        (9, 'counter', 'Ana', 50, 'to-5', '{"count":5}', 2, '2026-01-02');
+    `);
+
+    runMigrations(database);
+
+    const results = database.prepare('SELECT * FROM high_scores ORDER BY high_score_id').all();
+    expect(results.map((row) => ({ ...row }))).toEqual([
+      {
+        high_score_id: 7,
+        game_id: 'counter',
+        score: 30,
+        category: 'to-3',
+        details_json: '{"count":3}',
+        details_version: 2,
+        finished_at: '2026-01-01',
+      },
+      {
+        high_score_id: 9,
+        game_id: 'counter',
+        score: 50,
+        category: 'to-5',
+        details_json: '{"count":5}',
+        details_version: 2,
+        finished_at: '2026-01-02',
+      },
+    ]);
+    const players = database
+      .prepare('SELECT * FROM high_score_players ORDER BY high_score_id')
+      .all();
+    expect(players.map((row) => ({ ...row }))).toEqual([
+      { high_score_id: 7, player_id: 'Sam', position: 0 },
+      { high_score_id: 9, player_id: 'Ana', position: 0 },
+    ]);
+    const leftoverTables = database
+      .prepare("SELECT name FROM sqlite_schema WHERE name = 'staged_result_players'")
+      .all();
+    expect(leftoverTables).toEqual([]);
+  });
+
+  it('deletes the player rows of a result with it', () => {
+    const database = new DatabaseSync(':memory:');
+    database.exec('PRAGMA foreign_keys = ON');
+    runMigrations(database);
+    database.exec(`
+      INSERT INTO players (player_id, created_at) VALUES ('Sam', '2026-01-01');
+      INSERT INTO high_scores (game_id, score, category, details_json, details_version, finished_at)
+        VALUES ('counter', 1, 'to-3', '{}', 1, '2026-01-01');
+      INSERT INTO high_score_players (high_score_id, player_id, position) VALUES (1, 'Sam', 0);
+      DELETE FROM high_scores;
+    `);
+    expect(database.prepare('SELECT * FROM high_score_players').all()).toEqual([]);
   });
 });

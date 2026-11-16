@@ -3,6 +3,7 @@ export interface ServerConfig {
   readonly port: number;
   readonly dataDir: string;
   readonly saveSlotsPerGame: number;
+  readonly maxRoomGameRuns: number;
 }
 
 export class ConfigError extends Error {
@@ -15,6 +16,7 @@ const DEFAULT_SETTINGS = {
   PORT: '3000',
   DATA_DIR: './data',
   SAVE_SLOTS_PER_GAME: '10',
+  MAX_ROOM_GAME_RUNS: '4',
 } as const;
 
 type SettingName = keyof typeof DEFAULT_SETTINGS;
@@ -55,5 +57,6 @@ export function readConfig(env: NodeJS.ProcessEnv): ServerConfig {
     port: readWholeNumberSetting(env, 'PORT', 1, 65535),
     dataDir: readSetting(env, 'DATA_DIR'),
     saveSlotsPerGame: readWholeNumberSetting(env, 'SAVE_SLOTS_PER_GAME', 1, 100),
+    maxRoomGameRuns: readWholeNumberSetting(env, 'MAX_ROOM_GAME_RUNS', 1, 1000),
   };
 }

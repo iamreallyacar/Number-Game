@@ -27,7 +27,7 @@
         <thead>
           <tr>
             <th scope="col">Rank</th>
-            <th scope="col">Player</th>
+            <th scope="col">Players</th>
             <th scope="col">Score</th>
             <th scope="col">Details</th>
             <th scope="col">Date</th>
@@ -37,7 +37,7 @@
           {#each highScores as result, index (index)}
             <tr>
               <td>{index + 1}</td>
-              <td>{result.playerId}</td>
+              <td>{result.playerIds.join(', ')}</td>
               <td>{result.score}</td>
               <td>{describeResultDetails(game, result)}</td>
               <td>{formatResultDate(result.finishedAt)}</td>

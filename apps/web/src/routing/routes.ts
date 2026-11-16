@@ -12,6 +12,8 @@ export type Route =
       readonly slotNumber: number;
       readonly saveId: string;
     }
+  /** The waiting room and the play screen of one room of a room game. */
+  | { readonly page: 'room'; readonly gameId: string; readonly roomId: string }
   /** A play link from before save ids, which names only the slot and so cannot be trusted. */
   | { readonly page: 'outdated-play-link'; readonly gameId: string }
   | { readonly page: 'not-found' };
@@ -21,6 +23,9 @@ export type PageRoute = Exclude<Route, { readonly page: 'not-found' | 'outdated-
 
 /** Paths of pages that are now part of the game page. Old links and bookmarks still open it. */
 const FORMER_GAME_SUB_PAGES: readonly string[] = ['new', 'load', 'high-scores'];
+
+/** The query parameter of a room page link that names the player ID this device plays as. */
+const ROOM_PLAYER_ID_PARAMETER = 'playerId';
 
 const SLOT_NUMBER_PATTERN = /^[1-9]\d*$/;
 
@@ -50,6 +55,12 @@ export function parseRoute(path: string): Route {
   if (subPage === undefined) {
     return { page: 'game', gameId };
   }
+  if (subPage === 'rooms') {
+    const roomId = slotText === undefined ? null : decodePathPart(slotText);
+    return roomId === null || savesText !== undefined
+      ? { page: 'not-found' }
+      : { page: 'room', gameId, roomId };
+  }
   if (slotText === undefined) {
     return FORMER_GAME_SUB_PAGES.includes(subPage)
       ? { page: 'game', gameId }
@@ -78,5 +89,21 @@ export function routePath(route: PageRoute): string {
       return gamePath;
     case 'play':
       return `${gamePath}/slots/${String(route.slotNumber)}/saves/${route.saveId}`;
+    case 'room':
+      return `${gamePath}/rooms/${encodeURIComponent(route.roomId)}`;
   }
+}
+
+/** The room page link for one player, so reloading the page returns to the same character. */
+export function roomPagePath(gameId: string, roomId: string, playerId: string | null): string {
+  const path = routePath({ page: 'room', gameId, roomId });
+  return playerId === null
+    ? path
+    : `${path}?${ROOM_PLAYER_ID_PARAMETER}=${encodeURIComponent(playerId)}`;
+}
+
+/** The player ID in the query of a room page link, or null when the link names none. */
+export function readRoomPagePlayerId(search: string): string | null {
+  const playerId = new URLSearchParams(search).get(ROOM_PLAYER_ID_PARAMETER);
+  return playerId === null || playerId === '' ? null : playerId;
 }

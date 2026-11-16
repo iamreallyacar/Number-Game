@@ -8,11 +8,14 @@ import { buildApp } from './app.js';
 import { COUNTER_FORMAT_VERSION, COUNTER_GAME_ID, counterTestGame } from './counter-test-game.js';
 import { openInMemoryDatabase } from './database/open-database.js';
 import { SaveSlotsStore } from './database/save-slots-store.js';
+import { FAKE_ROOM_GAME_ID, fakeRoomTestGame } from './fake-room-test-game.js';
 import { GameRegistry } from './games/game-registry.js';
+import type { StepScheduler } from './rooms/step-loop.js';
 import type { TypedFastify } from './typed-fastify.js';
 
 export const DEVICE_A = { 'x-device-id': 'device-aaaa' };
 export const DEVICE_B = { 'x-device-id': 'device-bbbb' };
+export const FAKE_ROOMS_URL = `/api/games/${FAKE_ROOM_GAME_ID}/rooms`;
 export const COUNTER_URL = `/api/games/${COUNTER_GAME_ID}`;
 export const SLOTS_URL = `${COUNTER_URL}/slots`;
 
@@ -21,37 +24,84 @@ export function saveUrl(slotNumber: number, saveId: string): string {
   return `${SLOTS_URL}/${String(slotNumber)}/saves/${saveId}`;
 }
 
+/** A clock and timer that only move when a test says so, so loops can be stepped by hand. */
+export class ManualScheduler implements StepScheduler {
+  private currentTime = 0;
+  private readonly timers = new Set<{ readonly dueAt: number; readonly callback: () => void }>();
+
+  now(): number {
+    return this.currentTime;
+  }
+
+  schedule(callback: () => void, delayMilliseconds: number): () => void {
+    const timer = { dueAt: this.currentTime + delayMilliseconds, callback };
+    this.timers.add(timer);
+    return () => {
+      this.timers.delete(timer);
+    };
+  }
+
+  /** Moves the clock forward and fires every timer that falls due, in order. */
+  advance(milliseconds: number): void {
+    const targetTime = this.currentTime + milliseconds;
+    for (;;) {
+      const nextTimer = [...this.timers]
+        .filter((timer) => timer.dueAt <= targetTime)
+        .sort((first, second) => first.dueAt - second.dueAt)[0];
+      if (nextTimer === undefined) {
+        break;
+      }
+      this.timers.delete(nextTimer);
+      this.currentTime = Math.max(this.currentTime, nextTimer.dueAt);
+      nextTimer.callback();
+    }
+    this.currentTime = targetTime;
+  }
+
+  get pendingTimerCount(): number {
+    return this.timers.size;
+  }
+}
+
 export interface TestServer {
   readonly app: TypedFastify;
   readonly database: DatabaseSync;
+  /** Drives the step loops of room games. */
+  readonly scheduler: ManualScheduler;
 }
 
-function createCounterGameRegistry(): GameRegistry {
+function createTestGameRegistry(): GameRegistry {
   const games = new GameRegistry();
   games.register(counterTestGame);
+  games.register(fakeRoomTestGame);
   return games;
 }
 
 export interface TestServerOptions {
   /** The folder of the built browser app. Left out, the server has no browser app to serve. */
   readonly webAppDir?: string;
-  /** The games the server offers. Left out, it offers only the counter test game. */
+  /** The games the server offers. Left out, it offers the counter and fake room test games. */
   readonly games?: GameRegistry;
+  /** Left out, 4, like the default setting. */
+  readonly maxRoomGameRuns?: number;
 }
 
 /** A server with an in-memory database. */
 export async function startTestServer(options: TestServerOptions = {}): Promise<TestServer> {
   const webAppDir = options.webAppDir ?? join(tmpdir(), 'no-web-app-here');
-  const games = options.games ?? createCounterGameRegistry();
+  const games = options.games ?? createTestGameRegistry();
+  const scheduler = new ManualScheduler();
   const database = openInMemoryDatabase();
   const app = await buildApp({
     database,
     games,
     saveSlotsPerGame: 3,
+    maxRoomGameRuns: options.maxRoomGameRuns ?? 4,
+    stepScheduler: scheduler,
     webAppDir,
     logRequests: false,
   });
-  return { app, database };
+  return { app, database, scheduler };
 }
 
 export function makeWebAppDir(): string {

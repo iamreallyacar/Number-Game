@@ -111,7 +111,7 @@ describe('move route', () => {
     });
     expect(moved.json()).toMatchObject({
       gameOver: true,
-      result: { playerId: 'Sam', score: 30, category: 'to-3', details: { count: 3 } },
+      result: { playerIds: ['Sam'], score: 30, category: 'to-3', details: { count: 3 } },
     });
 
     const opened = await app.inject({
@@ -123,7 +123,7 @@ describe('move route', () => {
     expect(opened.json()).toMatchObject({ error: 'save-gone' });
     const highScores = await app.inject({ method: 'GET', url: `${COUNTER_URL}/high-scores` });
     expect(highScores.json()).toMatchObject({
-      highScores: [{ playerId: 'Sam', score: 30, details: { count: 3 } }],
+      highScores: [{ playerIds: ['Sam'], score: 30, details: { count: 3 } }],
     });
   });
 

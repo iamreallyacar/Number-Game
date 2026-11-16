@@ -173,6 +173,26 @@ Removes the third game to make room for a real time multiplayer game, and clears
 - [x] T-91: Share the stored value checks and the stored format upgrade type through the new `packages/stored-values` package, trim each package index to what the apps use, and remove code that nothing uses.
 - [x] T-92: Remove `AUDIT.md`. Its open findings that still hold are the tasks in the Backlog below. Rename the server names it found confusing, and let the test server take the games it offers.
 
+## Phase 17: Survivor Game Version 1
+
+Adds the first room game. The rules are in `REQUIREMENTS/survivor-game/`.
+
+- [x] T-98: Describe room games in `ARCHITECTURE.md`: the second game interface on the server and in the browser, rooms, the WebSocket connection, and how a step travels. (PL-21, PL-22, SG-58 to SG-60)
+- [x] T-99: Create `packages/survivor-game` with the run state type, the player input type, and the balance file that holds every value of `balance.md`. Register it in the workspace list and the `Dockerfile`. (SB-01 to SB-11)
+- [x] T-100: Step function part 1: player movement and the rope. (SG-10 to SG-18)
+- [x] T-101: Step function part 2: the basic shot and its bullets. (SG-20 to SG-24)
+- [x] T-102: Step function part 3: enemies appearing, walking, touching, being beaten, and being removed, with the limit on enemies alive. (SG-25 to SG-33)
+- [x] T-103: Step function part 4: experience, levels, offers, upgrades and their limits, and the end of a run. (SG-34 to SG-43, SG-48)
+- [x] T-104: Server: the room game interface in the game registry, and routes to list, create, join, and start rooms, with the setting for runs in progress. (PL-21, SG-04 to SG-09)
+- [x] T-105: Server: the WebSocket connection, the loop that steps each run and reports its state, dropped players, rejoining, and the empty run time. (PL-22, SG-44 to SG-47, SG-58 to SG-60)
+- [x] T-106: Server: high scores that name several players, with a database migration, and the result of a run. (PS-23, SG-49)
+- [x] T-107: Browser: the room game interface in the browser game registry, and the game page with the leaderboard, the room list, and the waiting room. (PS-24, SG-05 to SG-07, SG-45)
+- [x] T-108: Browser: the canvas play screen with the view, the two layouts, and the rope. (SG-19, SG-51 to SG-53)
+- [x] T-109: Browser: the joystick and the keys, sent to the server as a direction. (SG-54)
+- [x] T-110: Browser: the offer cards, the status display, the lost connection notice, and the game over panel. (SG-50, SG-55 to SG-57)
+- [x] T-111: Add the Survivor Game to `README.md` and to the project overview in `CLAUDE.md`, and document the new setting. (SG-09)
+- [ ] T-112: Playtest solo and with several phones, then tune the values in `balance.md`. (OQ-28)
+
 ## Backlog
 
 Known gaps that are not planned yet. They come from the last audit and still hold.

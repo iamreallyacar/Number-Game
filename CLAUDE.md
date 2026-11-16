@@ -50,7 +50,7 @@
 ## PROJECT OVERVIEW
 
 - Title: Number Game
-- Description: Self-hosted game dashboard for a local network. It has two games: the Number Game, a grid puzzle where pairs of numbers are cleared, and the Block Game, a grid puzzle where shapes are placed to fill and clear rows and columns
+- Description: Self-hosted game dashboard for a local network. It has three games: the Number Game, a grid puzzle where pairs of numbers are cleared, the Block Game, a grid puzzle where shapes are placed to fill and clear rows and columns, and the Survivor Game, a real-time team game where up to four players fight off enemies together
 - Stack: TypeScript (strict), Svelte with Vite, Node.js with Fastify, SQLite, Docker compose
 
 ## DIRECTORY

@@ -3,11 +3,11 @@
   import type { Component } from 'svelte';
   import { describeError } from '../api/api-request.js';
   import { startGame } from '../api/game-server-api.js';
-  import type { BrowserGame, NewGameOptionsFormProps } from '../games/browser-game.js';
+  import type { NewGameOptionsFormProps, SavedBrowserGame } from '../games/browser-game.js';
   import PlayerPicker from './PlayerPicker.svelte';
 
   interface Props {
-    readonly game: BrowserGame;
+    readonly game: SavedBrowserGame;
     /** The empty slot the new game starts in. */
     readonly slotNumber: number;
     readonly onStarted: (saveId: string) => void;

@@ -6,9 +6,17 @@
     readonly finalResult: string;
     readonly newGamePath: string;
     readonly dashboardPath: string;
+    /** The text of the link to `newGamePath`. */
+    readonly newGameLabel?: string;
   }
 
-  const { reason, finalResult, newGamePath, dashboardPath }: Props = $props();
+  const {
+    reason,
+    finalResult,
+    newGamePath,
+    dashboardPath,
+    newGameLabel = 'New Game',
+  }: Props = $props();
 </script>
 
 <!-- Shown in place of a game's controls when the game has ended (PS-12). -->
@@ -18,7 +26,7 @@
   <p class="final-result">{finalResult}</p>
   <p>The result is added to the high scores.</p>
   <div class="button-row">
-    <a class="button primary" href={newGamePath}>New Game</a>
+    <a class="button primary" href={newGamePath}>{newGameLabel}</a>
     <a class="button" href={dashboardPath}>Dashboard</a>
   </div>
 </section>

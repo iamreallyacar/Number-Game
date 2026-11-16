@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
     plugins: [svelte()],
     // Sound clips stay separate files, so the player can fetch and decode them like any other.
     build: { assetsInlineLimit: 0 },
-    server: { proxy: { '/api': `http://localhost:${serverPort}` } },
+    // Room games keep a WebSocket open under /api, so the proxy must pass upgrades as well.
+    server: { proxy: { '/api': { target: `http://localhost:${serverPort}`, ws: true } } },
   };
 });

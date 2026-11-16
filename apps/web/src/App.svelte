@@ -8,6 +8,7 @@
   import NotFoundPage from './pages/NotFoundPage.svelte';
   import OutdatedPlayLinkPage from './pages/OutdatedPlayLinkPage.svelte';
   import PlayPage from './pages/PlayPage.svelte';
+  import RoomPage from './pages/RoomPage.svelte';
   import { startRouter } from './routing/router.js';
   import { parseRoute } from './routing/routes.js';
 
@@ -39,8 +40,18 @@
         <NotFoundPage />
       {:else if route.page === 'game'}
         <GamePage {game} />
+      {:else if route.page === 'room'}
+        {#if game.kind === 'room'}
+          <RoomPage {game} roomId={route.roomId} />
+        {:else}
+          <NotFoundPage />
+        {/if}
       {:else if route.page === 'play'}
-        <PlayPage {game} slotNumber={route.slotNumber} saveId={route.saveId} />
+        {#if game.kind === 'saved'}
+          <PlayPage {game} slotNumber={route.slotNumber} saveId={route.saveId} />
+        {:else}
+          <NotFoundPage />
+        {/if}
       {:else}
         <OutdatedPlayLinkPage {game} />
       {/if}

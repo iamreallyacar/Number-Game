@@ -12,6 +12,7 @@
     "packages/game-server-api",
     "packages/number-game",
     "packages/block-game",
+    "packages/survivor-game",
     "apps/server",
     "apps/web"
   ],

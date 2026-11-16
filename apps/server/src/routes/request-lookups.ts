@@ -30,7 +30,7 @@ export function findGameSlot(
   { games, saveSlotsPerGame }: SlotLookupDependencies,
   params: SlotParams,
 ): GameSlot {
-  const game = games.getGame(params.gameId);
+  const game = games.getSavedGame(params.gameId);
   if (params.slotNumber > saveSlotsPerGame) {
     throw new HttpError(
       404,

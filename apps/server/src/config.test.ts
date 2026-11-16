@@ -8,6 +8,7 @@ describe('readConfig', () => {
       port: 3000,
       dataDir: './data',
       saveSlotsPerGame: 10,
+      maxRoomGameRuns: 4,
     });
   });
 
@@ -17,12 +18,14 @@ describe('readConfig', () => {
       PORT: '8080',
       DATA_DIR: '/srv/data',
       SAVE_SLOTS_PER_GAME: '4',
+      MAX_ROOM_GAME_RUNS: '2',
     };
     expect(readConfig(env)).toEqual({
       host: '127.0.0.1',
       port: 8080,
       dataDir: '/srv/data',
       saveSlotsPerGame: 4,
+      maxRoomGameRuns: 2,
     });
   });
 
@@ -31,6 +34,9 @@ describe('readConfig', () => {
     { env: { PORT: '70000' }, message: 'PORT' },
     { env: { PORT: '3000.5' }, message: 'PORT' },
     { env: { SAVE_SLOTS_PER_GAME: '0' }, message: 'SAVE_SLOTS_PER_GAME' },
+    { env: { MAX_ROOM_GAME_RUNS: '0' }, message: 'MAX_ROOM_GAME_RUNS' },
+    { env: { MAX_ROOM_GAME_RUNS: '1001' }, message: 'MAX_ROOM_GAME_RUNS' },
+    { env: { MAX_ROOM_GAME_RUNS: 'many' }, message: 'MAX_ROOM_GAME_RUNS' },
     { env: { DATA_DIR: '  ' }, message: 'DATA_DIR is set but empty' },
   ])('stops with a clear error for $env', ({ env, message }) => {
     expect(() => readConfig(env)).toThrow(ConfigError);

@@ -65,7 +65,7 @@ export function registerMoveRoutes(app: TypedFastify, dependencies: MoveRouteDep
       runInTransaction(database, () => {
         highScores.insertResult({
           gameId: game.id,
-          playerId: save.playerId,
+          playerIds: [save.playerId],
           score,
           category,
           ...outcome.storedSummaryDetails,
@@ -75,7 +75,7 @@ export function registerMoveRoutes(app: TypedFastify, dependencies: MoveRouteDep
       });
       return {
         gameOver: true,
-        result: { playerId: save.playerId, score, category, details, finishedAt: now },
+        result: { playerIds: [save.playerId], score, category, details, finishedAt: now },
       };
     },
   );

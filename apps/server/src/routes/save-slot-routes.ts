@@ -47,7 +47,7 @@ export function registerSaveSlotRoutes(
     '/api/games/:gameId/slots',
     { schema: { params: gameParamsSchema, response: { 200: slotListResponseSchema } } },
     (request) => {
-      const game = games.getGame(request.params.gameId);
+      const game = games.getSavedGame(request.params.gameId);
       const savesBySlot = new Map(saves.listSaves(game.id).map((save) => [save.slotNumber, save]));
       const slots = Array.from({ length: saveSlotsPerGame }, (_, index) => {
         const slotNumber = index + 1;

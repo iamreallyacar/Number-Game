@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { parseRoute, routePath, type PageRoute } from './routes.js';
+import {
+  parseRoute,
+  readRoomPagePlayerId,
+  roomPagePath,
+  routePath,
+  type PageRoute,
+} from './routes.js';
 
 const SAVE_ID = '0f8fad5b-d9cb-469f-a165-70867728950e';
 
@@ -12,6 +18,14 @@ describe('parseRoute', () => {
       gameId: 'number-game',
       slotNumber: 3,
       saveId: SAVE_ID,
+    });
+  });
+
+  it('reads a room page from its path', () => {
+    expect(parseRoute('/games/survivor-game/rooms/room-1')).toEqual({
+      page: 'room',
+      gameId: 'survivor-game',
+      roomId: 'room-1',
     });
   });
 
@@ -46,6 +60,9 @@ describe('parseRoute', () => {
       `/games/number-game/slots/2x/saves/${SAVE_ID}`,
       `/games/number-game/slots/2/saves/${SAVE_ID}/extra`,
       '/games/%E0%A4%A',
+      '/games/survivor-game/rooms',
+      '/games/survivor-game/rooms/room-1/extra',
+      '/games/survivor-game/rooms/%E0%A4%A',
     ]) {
       expect(parseRoute(path)).toEqual({ page: 'not-found' });
     }
@@ -58,9 +75,29 @@ describe('routePath', () => {
       { page: 'dashboard' },
       { page: 'game', gameId: 'a game/with slash' },
       { page: 'play', gameId: 'number-game', slotNumber: 12, saveId: SAVE_ID },
+      { page: 'room', gameId: 'survivor-game', roomId: 'a room/with slash' },
     ];
     for (const route of routes) {
       expect(parseRoute(routePath(route))).toEqual(route);
     }
+  });
+});
+
+describe('room page links', () => {
+  it('carry the player ID in the query and read it back', () => {
+    const link = roomPagePath('survivor-game', 'room-1', 'Sam & Co');
+    const [path, search] = link.split('?');
+    expect(parseRoute(path ?? '')).toEqual({
+      page: 'room',
+      gameId: 'survivor-game',
+      roomId: 'room-1',
+    });
+    expect(readRoomPagePlayerId(`?${search ?? ''}`)).toBe('Sam & Co');
+  });
+
+  it('read no player ID from a link that names none', () => {
+    expect(roomPagePath('survivor-game', 'room-1', null)).toBe('/games/survivor-game/rooms/room-1');
+    expect(readRoomPagePlayerId('')).toBeNull();
+    expect(readRoomPagePlayerId('?playerId=')).toBeNull();
   });
 });

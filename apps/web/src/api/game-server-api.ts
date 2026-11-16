@@ -15,7 +15,7 @@ import {
 import { requestJson, requestWithoutBody } from './api-request.js';
 import { getDeviceId } from './device-id.js';
 
-function gamePath(gameId: string): string {
+export function gamePath(gameId: string): string {
   return `/api/games/${encodeURIComponent(gameId)}`;
 }
 

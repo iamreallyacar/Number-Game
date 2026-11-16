@@ -1,8 +1,9 @@
 import { BLOCK_GAME_CATEGORY, BLOCK_GAME_ID } from '@local/block-game';
-import type { BrowserGame } from '../browser-game.js';
+import type { SavedBrowserGame } from '../browser-game.js';
 import { describeBlockGameDetails } from './describe-block-game-details.js';
 
-export const blockGameBrowserModule: BrowserGame = {
+export const blockGameBrowserModule: SavedBrowserGame = {
+  kind: 'saved',
   id: BLOCK_GAME_ID,
   name: 'Block Game',
   description:

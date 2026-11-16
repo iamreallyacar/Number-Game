@@ -1,9 +1,10 @@
 import { DIFFICULTY_IDS, NUMBER_GAME_ID } from '@local/number-game';
-import type { BrowserGame } from '../browser-game.js';
+import type { SavedBrowserGame } from '../browser-game.js';
 import { describeNumberGameDetails } from './describe-number-game-details.js';
 import { DIFFICULTY_LABELS } from './difficulty-labels.js';
 
-export const numberGameBrowserModule: BrowserGame = {
+export const numberGameBrowserModule: SavedBrowserGame = {
+  kind: 'saved',
   id: NUMBER_GAME_ID,
   name: 'Number Game',
   description:

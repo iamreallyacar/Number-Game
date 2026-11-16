@@ -22,3 +22,13 @@ export {
   type OpenedSave,
   type SlotListing,
 } from './save-slot-schemas.js';
+export {
+  leaveRoomResponseSchema,
+  roomListResponseSchema,
+  roomPlayerRequestSchema,
+  roomReadQuerySchema,
+  roomResponseSchema,
+  roomSchema,
+  type Room,
+  type RoomStatus,
+} from './room-schemas.js';

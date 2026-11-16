@@ -7,7 +7,7 @@ import {
 import { Type } from 'typebox';
 import type { HighScoresStore, StoredGameResult } from '../database/high-scores-store.js';
 import type { PlayersStore } from '../database/players-store.js';
-import type { GameRegistry, RegisteredGame } from '../games/game-registry.js';
+import type { AnyRegisteredGame, GameRegistry } from '../games/game-registry.js';
 import { HttpError } from '../http-error.js';
 import { gameParamsSchema } from '../request-schemas.js';
 import type { TypedFastify } from '../typed-fastify.js';
@@ -22,9 +22,9 @@ export interface HighScoreRouteDependencies {
 const DEFAULT_HIGH_SCORE_LIMIT = 20;
 const MAX_HIGH_SCORE_LIMIT = 100;
 
-function describeResult(game: RegisteredGame, result: StoredGameResult): GameResult {
+function describeResult(game: AnyRegisteredGame, result: StoredGameResult): GameResult {
   return {
-    playerId: result.playerId,
+    playerIds: [...result.playerIds],
     score: result.score,
     category: result.category,
     details: game.readSummaryDetails(result),
@@ -32,7 +32,7 @@ function describeResult(game: RegisteredGame, result: StoredGameResult): GameRes
   };
 }
 
-function checkCategory(game: RegisteredGame, category: string): void {
+function checkCategory(game: AnyRegisteredGame, category: string): void {
   if (!game.categories.includes(category)) {
     throw new HttpError(
       400,

@@ -89,6 +89,47 @@ export const MIGRATIONS: readonly string[] = [
   DELETE FROM save_slots WHERE game_id = 'disk-game';
   DELETE FROM high_scores WHERE game_id = 'disk-game';
   `,
+  // A result can name several players (PS-23), so who is on a result moves to its own table, with
+  // one row for each player in the order they joined. Every existing result gets one row for its
+  // player. The player column is dropped by rebuilding high_scores. The players are staged first
+  // because dropping the old table must happen before the new table can hold the foreign key.
+  `
+  CREATE TABLE high_scores_without_player (
+    high_score_id INTEGER PRIMARY KEY,
+    game_id TEXT NOT NULL,
+    score INTEGER NOT NULL,
+    category TEXT NOT NULL,
+    details_json TEXT NOT NULL,
+    details_version INTEGER NOT NULL,
+    finished_at TEXT NOT NULL
+  ) STRICT;
+
+  INSERT INTO high_scores_without_player
+    (high_score_id, game_id, score, category, details_json, details_version, finished_at)
+  SELECT high_score_id, game_id, score, category, details_json, details_version, finished_at
+  FROM high_scores;
+
+  CREATE TABLE staged_result_players AS
+  SELECT high_score_id, player_id FROM high_scores;
+
+  DROP TABLE high_scores;
+  ALTER TABLE high_scores_without_player RENAME TO high_scores;
+  CREATE INDEX high_scores_by_game_and_score ON high_scores (game_id, category, score DESC);
+
+  CREATE TABLE high_score_players (
+    high_score_id INTEGER NOT NULL REFERENCES high_scores (high_score_id) ON DELETE CASCADE,
+    player_id TEXT NOT NULL REFERENCES players (player_id),
+    position INTEGER NOT NULL,
+    PRIMARY KEY (high_score_id, position)
+  ) STRICT;
+
+  CREATE INDEX high_score_players_by_player ON high_score_players (player_id);
+
+  INSERT INTO high_score_players (high_score_id, player_id, position)
+  SELECT high_score_id, player_id, 0 FROM staged_result_players;
+
+  DROP TABLE staged_result_players;
+  `,
 ];
 
 function readSchemaVersion(database: DatabaseSync): number {
