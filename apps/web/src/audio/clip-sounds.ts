@@ -37,10 +37,39 @@ import gongxiUrl from './clips/cheer-gongxi-cmn.mp3';
 import bangUrl from './clips/cheer-bang-cmn.mp3';
 import gungheiFaatcoiUrl from './clips/cheer-gunghei-faatcoi-yue.mp3';
 import zengUrl from './clips/cheer-zeng-yue.mp3';
+import cheerXinnianKuaileYueUrl from './clips/cheer-xinnian-kuaile-yue.mp3';
+import cheerYifanFengshunYueUrl from './clips/cheer-yifan-fengshun-yue.mp3';
+import cheerGungheiYueUrl from './clips/cheer-gunghei-yue.mp3';
+import cheerFaatdaatYueUrl from './clips/cheer-faatdaat-yue.mp3';
+import cheerFaatcoiYueUrl from './clips/cheer-faatcoi-yue.mp3';
+import cheerHanguenYueUrl from './clips/cheer-hanguen-yue.mp3';
+import cheerPingonYueUrl from './clips/cheer-pingon-yue.mp3';
+import cheerGatseongYueUrl from './clips/cheer-gatseong-yue.mp3';
+import cheerSeonleiYueUrl from './clips/cheer-seonlei-yue.mp3';
+import cheerHingwongYueUrl from './clips/cheer-hingwong-yue.mp3';
+import cheerFukheiYueUrl from './clips/cheer-fukhei-yue.mp3';
+import cheerSingleiYueUrl from './clips/cheer-singlei-yue.mp3';
+import cheerChenggongCmnUrl from './clips/cheer-chenggong-cmn.mp3';
+import cheerKaixinCmnUrl from './clips/cheer-kaixin-cmn.mp3';
+import cheerXingfuCmnUrl from './clips/cheer-xingfu-cmn.mp3';
+import cheerShunliCmnUrl from './clips/cheer-shunli-cmn.mp3';
+import cheerSinChhunNanUrl from './clips/cheer-sin-chhun-nan.mp3';
+import cheerPoUnNanUrl from './clips/cheer-po-un-nan.mp3';
+import gameOverDousiYueUrl from './clips/game-over-dousi-yue.mp3';
+import gameOverSibaaiYueUrl from './clips/game-over-sibaai-yue.mp3';
+import gameOverHoseikYueUrl from './clips/game-over-hoseik-yue.mp3';
+import gameOverSatmongYueUrl from './clips/game-over-satmong-yue.mp3';
+import gameOverNaangwoYueUrl from './clips/game-over-naangwo-yue.mp3';
+import gameOverYunwongYueUrl from './clips/game-over-yunwong-yue.mp3';
+import gameOverLaapsaapYueUrl from './clips/game-over-laapsaap-yue.mp3';
+import gameOverShibaiCmnUrl from './clips/game-over-shibai-cmn.mp3';
+import gameOverShangxinCmnUrl from './clips/game-over-shangxin-cmn.mp3';
+import gameOverShuCmnUrl from './clips/game-over-shu-cmn.mp3';
+import gameOverMafanCmnUrl from './clips/game-over-mafan-cmn.mp3';
 import wrongBuzzerUrl from './clips/wrong-buzzer.mp3';
 import woodKnockUrl from './clips/wood-knock.mp3';
 
-/** A comic groan in Chinese, picked at random, for when any game ends. */
+/** A comic groan or a word of regret in Chinese, picked at random, for when any game ends. */
 export const GAME_OVER_SOUND: OneOfSound = oneOfSound([
   clipSound(caoUrl),
   clipSound(aiyoUrl),
@@ -58,6 +87,17 @@ export const GAME_OVER_SOUND: OneOfSound = oneOfSound([
   clipSound(sileUrl),
   clipSound(seilaaUrl),
   clipSound(tianaUrl),
+  clipSound(gameOverDousiYueUrl),
+  clipSound(gameOverSibaaiYueUrl),
+  clipSound(gameOverHoseikYueUrl),
+  clipSound(gameOverSatmongYueUrl),
+  clipSound(gameOverNaangwoYueUrl),
+  clipSound(gameOverYunwongYueUrl),
+  clipSound(gameOverLaapsaapYueUrl),
+  clipSound(gameOverShibaiCmnUrl),
+  clipSound(gameOverShangxinCmnUrl),
+  clipSound(gameOverShuCmnUrl),
+  clipSound(gameOverMafanCmnUrl),
 ]);
 
 /**
@@ -65,7 +105,8 @@ export const GAME_OVER_SOUND: OneOfSound = oneOfSound([
  * lines, or a cleared stage. The pool holds a Cantonese "maan seoi" (long live) and "faat", Mandarin
  * shouts of "fa" and "fa cai", Hokkien and Teochew shouts of "huat", "ong lai", "chin ho", "ho", and
  * "chai sin", Mandarin shouts of "li hai", "gong xi", and "bang", and Cantonese shouts of
- * "gung hei faat coi" and "zeng". Each clip carries its words in Chinese, written in simplified
+ * "gung hei faat coi" and "zeng". It also holds Cantonese, Mandarin, and Hokkien blessings of two
+ * or more words, such as "san nin faai lok", "yat faan fung seon", "cheng gong", and "sin chhun". Each clip carries its words in Chinese, written in simplified
  * characters for Mandarin and traditional characters for the other languages, so a screen can show
  * them beside the points.
  */
@@ -86,6 +127,24 @@ export const CHEER_SOUND: OneOfSound = oneOfSound([
   spokenClipSound(bangUrl, '棒'),
   spokenClipSound(gungheiFaatcoiUrl, '恭喜發財'),
   spokenClipSound(zengUrl, '正'),
+  spokenClipSound(cheerXinnianKuaileYueUrl, '新年快樂'),
+  spokenClipSound(cheerYifanFengshunYueUrl, '一帆風順'),
+  spokenClipSound(cheerGungheiYueUrl, '恭喜'),
+  spokenClipSound(cheerFaatdaatYueUrl, '發達'),
+  spokenClipSound(cheerFaatcoiYueUrl, '發財'),
+  spokenClipSound(cheerHanguenYueUrl, '幸運'),
+  spokenClipSound(cheerPingonYueUrl, '平安'),
+  spokenClipSound(cheerGatseongYueUrl, '吉祥'),
+  spokenClipSound(cheerSeonleiYueUrl, '順利'),
+  spokenClipSound(cheerHingwongYueUrl, '興旺'),
+  spokenClipSound(cheerFukheiYueUrl, '福氣'),
+  spokenClipSound(cheerSingleiYueUrl, '勝利'),
+  spokenClipSound(cheerChenggongCmnUrl, '成功'),
+  spokenClipSound(cheerKaixinCmnUrl, '开心'),
+  spokenClipSound(cheerXingfuCmnUrl, '幸福'),
+  spokenClipSound(cheerShunliCmnUrl, '顺利'),
+  spokenClipSound(cheerSinChhunNanUrl, '新春'),
+  spokenClipSound(cheerPoUnNanUrl, '補運'),
 ]);
 
 /** A game buzzer, for a move the rules refuse. */

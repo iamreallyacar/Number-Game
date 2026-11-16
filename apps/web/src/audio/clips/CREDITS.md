@@ -38,6 +38,35 @@ Every clip was shortened, normalised in loudness, converted to mono mp3, and in 
 | `game-over-tiana-cmn.mp3` | https://commons.wikimedia.org/wiki/File:Zh-tiān.ogg and https://commons.wikimedia.org/wiki/File:Zh-a.ogg | Wei Gao, Vion Nicolas | CC BY 2.0 FR | Two words joined, trimmed, normalised |
 | `game-over-seilaa-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Luilui6666-死.wav and https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Luilui6666-啦.wav | Luilui6666 (Lingua Libre) | CC BY-SA 4.0 | Two words joined, trimmed, normalised |
 | `game-over-aai-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Luilui6666-唉.wav | Luilui6666 (Lingua Libre) | CC BY-SA 4.0 | Trimmed, normalised |
+| `cheer-xinnian-kuaile-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Wandering_Maiden-新年快樂.wav | Wandering Maiden (Lingua Libre) | CC BY-SA 4.0 | Pitched up, echo |
+| `cheer-yifan-fengshun-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Luilui6666-一帆风顺.wav | Luilui6666 (Lingua Libre) | CC BY-SA 4.0 | Pitched up, echo |
+| `cheer-gunghei-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Luilui6666-恭喜.wav | Luilui6666 (Lingua Libre) | CC BY-SA 4.0 | Pitched up, echo |
+| `cheer-faatdaat-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Jonashtand-發達.wav | Jonashtand (Lingua Libre) | CC BY-SA 4.0 | Pitched up, echo |
+| `cheer-faatcoi-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Luilui6666-发财.wav | Luilui6666 (Lingua Libre) | CC BY-SA 4.0 | Pitched up, echo |
+| `cheer-hanguen-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Luilui6666-幸运.wav | Luilui6666 (Lingua Libre) | CC BY-SA 4.0 | Pitched up, echo |
+| `cheer-pingon-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Luilui6666-平安.wav | Luilui6666 (Lingua Libre) | CC BY-SA 4.0 | Pitched up, echo |
+| `cheer-gatseong-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Luilui6666-吉祥.wav | Luilui6666 (Lingua Libre) | CC BY-SA 4.0 | Pitched up, echo |
+| `cheer-seonlei-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Luilui6666-顺利.wav | Luilui6666 (Lingua Libre) | CC BY-SA 4.0 | Pitched up, echo |
+| `cheer-hingwong-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Luilui6666-兴旺.wav | Luilui6666 (Lingua Libre) | CC BY-SA 4.0 | Pitched up, echo |
+| `cheer-fukhei-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Luilui6666-福气.wav | Luilui6666 (Lingua Libre) | CC BY-SA 4.0 | Pitched up, echo |
+| `cheer-singlei-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Jonashtand-勝利.wav | Jonashtand (Lingua Libre) | CC BY-SA 4.0 | Pitched up, echo |
+| `cheer-chenggong-cmn.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9192_(cmn)-CanonNi-成功.wav | CanonNi (Lingua Libre) | CC0 | Pitched up, echo |
+| `cheer-kaixin-cmn.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9192_(cmn)-CanonNi-开心.wav | CanonNi (Lingua Libre) | CC0 | Pitched up, echo |
+| `cheer-xingfu-cmn.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9192_(cmn)-CanonNi-幸福.wav | CanonNi (Lingua Libre) | CC0 | Pitched up, echo |
+| `cheer-shunli-cmn.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9192_(cmn)-CanonNi-顺利.wav | CanonNi (Lingua Libre) | CC0 | Pitched up, echo |
+| `cheer-sin-chhun-nan.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q36495_(nan)-簡單先生-sin-chhun.wav | 簡單先生 (Lingua Libre) | CC0 | Pitched up, echo |
+| `cheer-po-un-nan.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q36495_(nan)-簡單先生-pó͘-ūn.wav | 簡單先生 (Lingua Libre) | CC0 | Pitched up, echo |
+| `game-over-dousi-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Luilui6666-倒霉.wav | Luilui6666 (Lingua Libre) | CC BY-SA 4.0 | Trimmed, normalised |
+| `game-over-sibaai-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Jonashtand-失敗.wav | Jonashtand (Lingua Libre) | CC BY-SA 4.0 | Trimmed, normalised |
+| `game-over-hoseik-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Luilui6666-可惜.wav | Luilui6666 (Lingua Libre) | CC BY-SA 4.0 | Trimmed, normalised |
+| `game-over-satmong-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Luilui6666-失望.wav | Luilui6666 (Lingua Libre) | CC BY-SA 4.0 | Trimmed, normalised |
+| `game-over-naangwo-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Luilui6666-难过.wav | Luilui6666 (Lingua Libre) | CC BY-SA 4.0 | Trimmed, normalised |
+| `game-over-yunwong-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Luilui6666-冤枉.wav | Luilui6666 (Lingua Libre) | CC BY-SA 4.0 | Trimmed, normalised |
+| `game-over-laapsaap-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Justinrleung-垃圾.wav | Justinrleung (Lingua Libre) | CC BY-SA 4.0 | Trimmed, normalised |
+| `game-over-shibai-cmn.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9192_(cmn)-CanonNi-失败.wav | CanonNi (Lingua Libre) | CC0 | Trimmed, normalised |
+| `game-over-shangxin-cmn.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9192_(cmn)-CanonNi-伤心.wav | CanonNi (Lingua Libre) | CC0 | Trimmed, normalised |
+| `game-over-shu-cmn.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9192_(cmn)-CanonNi-输.wav | CanonNi (Lingua Libre) | CC0 | Trimmed, normalised |
+| `game-over-mafan-cmn.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9192_(cmn)-CanonNi-麻烦.wav | CanonNi (Lingua Libre) | CC0 | Trimmed, normalised |
 | `wrong-buzzer.mp3` | https://commons.wikimedia.org/wiki/File:Buzzer.wav | David Pride | CC0 | Cut to half a second, normalised |
 | `wood-knock.mp3` | https://commons.wikimedia.org/wiki/File:Knocking_on_wood_or_door.ogg | stephan | Public domain | One knock cut out, normalised |
 
