@@ -16,7 +16,7 @@
   import { onDestroy } from 'svelte';
   import { getSoundPlayer } from '../../audio/sound-player.js';
   import type { PlayScreenProps } from '../browser-game.js';
-  import { DISK_GAME_SOUNDS } from './disk-game-sounds.js';
+  import { DISK_GAME_PRELOADED_SOUNDS, DISK_GAME_SOUNDS } from './disk-game-sounds.js';
   import DiskGameActionBar from './DiskGameActionBar.svelte';
   import DiskGameBoard from './DiskGameBoard.svelte';
   import DiskGameOverPanel from './DiskGameOverPanel.svelte';
@@ -53,6 +53,7 @@
   let nextStageClearEffectId = 0;
 
   const soundPlayer = getSoundPlayer();
+  soundPlayer.preload(DISK_GAME_PRELOADED_SOUNDS);
 
   const gameOver = $derived(isGameOver(gameState));
   // While a stage clear is shown, the board still shows the sorted pegs of the stage before.

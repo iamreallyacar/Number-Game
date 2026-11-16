@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { createEmptyCells } from './board.js';
 import { canPlaceWholeHand } from './fair-hand.js';
+import type { BoardGrid } from './game-state.js';
+import { placeAndClearLines } from './place-and-clear.js';
+import { shapeFitsAt } from './shape-fit.js';
 import { CHECKERBOARD_ROWS, cellsFromRows } from './test-support.js';
 
 const EMPTY_BOARD = { cells: createEmptyCells() };
@@ -51,6 +54,43 @@ describe('canPlaceWholeHand', () => {
     expect(canPlaceWholeHand(SINGLE_SQUARE_GAP_BOARD, ['square-3', 'square-3', 'single'])).toBe(
       false,
     );
+  });
+
+  it('counts a hand as not fair when the search limit runs out before a way is found', () => {
+    // Found in simulated play: the 4 x 4 square only fits after the right lines are cleared, and
+    // the search uses up its tried placements on other orders first.
+    const boardWhereTheWayIsFoundLate = {
+      cells: cellsFromRows([
+        '..........',
+        '..........',
+        '...00.....',
+        '00000000..',
+        '0000000.0.',
+        '.....00...',
+        '..........',
+        '0000...00.',
+        '.000.....0',
+        '.0......00',
+      ]),
+    };
+    expect(
+      canPlaceWholeHand(boardWhereTheWayIsFoundLate, [
+        'line-3-horizontal',
+        'line-2-vertical',
+        'square-4',
+      ]),
+    ).toBe(false);
+
+    const wayThatExists = [
+      { shapeId: 'line-3-horizontal', topRow: 7, leftColumn: 4 },
+      { shapeId: 'line-2-vertical', topRow: 6, leftColumn: 9 },
+      { shapeId: 'square-4', topRow: 6, leftColumn: 4 },
+    ] as const;
+    let board: BoardGrid = boardWhereTheWayIsFoundLate;
+    for (const { shapeId, topRow, leftColumn } of wayThatExists) {
+      expect(shapeFitsAt(board, shapeId, topRow, leftColumn)).toBe(true);
+      board = { cells: placeAndClearLines(board, shapeId, topRow, leftColumn).cells };
+    }
   });
 
   it('counts two copies of one shape as needing two separate places', () => {

@@ -67,5 +67,5 @@ These requirements define how the Disk Game plays. Pegs are counted from left to
 
 Effects only show what happened. They never change the rules, the score, or what is saved.
 
-- DK-22: Picking up, dropping, a refused drop, a hint, and clearing a stage each have a short sound. Sounds follow the mute button from PL-19.
+- DK-22: Picking up, dropping, a refused drop, a hint, clearing a stage, and game over each have a short sound. Dropping plays a wooden knock and game over plays a comic Chinese groan picked at random. Sounds follow the mute button from PL-19.
 - DK-23: Clearing a stage shows a short effect on the sorted peg and the points earned float up from it. Moving effects follow PL-20.

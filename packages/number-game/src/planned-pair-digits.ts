@@ -6,100 +6,87 @@ import { createPlaceholderBoard, type SolutionPlan } from './solution-plan.js';
 import {
   drawRandomFraction,
   drawRandomItem,
-  drawShuffled,
   type RandomDraw,
   type RandomState,
 } from '@local/seeded-random';
 
-const IMPROVEMENT_STEP_COUNT = 20000;
+const IMPROVEMENT_STEP_COUNT = 50000;
 
-// How many improvement steps pass between checks for a board without any unplanned pair.
-const STEPS_BETWEEN_CONFLICT_CHECKS = 250;
-
-// Chance that an improvement step moves a conflicting pair to a random group, to escape dead ends.
-const RANDOM_WALK_CHANCE = 0.05;
+// The search starts hot, so it often accepts a move that adds unplanned pairs and can leave a dead
+// end, and cools step by step until it almost only accepts moves that do not add any.
+const START_TEMPERATURE = 2;
+const END_TEMPERATURE = 0.1;
 
 // No pair group may take more than this share of the planned pairs, so every number keeps appearing.
 const MAX_GROUP_SHARE = 0.3;
+
+const GROUP_COUNT = PAIR_GROUP_LEADERS.length;
 
 interface GroupAssignment {
   /** The group of each planned pair, as an index into the pair group leaders. Indexed like the plan. */
   readonly groupOfPlannedPair: number[];
   /** Per planned pair, the other planned pairs that own a cell it sees at the start, once per visible cell. */
   readonly visiblePlannedPairsOf: readonly (readonly number[])[];
+  /**
+   * Per planned pair and group, at plannedPairIndex * GROUP_COUNT + group: how many of the cells
+   * it sees at the start belong to planned pairs in that group.
+   */
+  readonly visibleCellsInGroup: number[];
   readonly useOfGroup: number[];
   readonly groupLimit: number;
 }
 
-const UNASSIGNED_GROUP = -1;
+function visibleCellsInGroupOf(
+  assignment: GroupAssignment,
+  plannedPairIndex: number,
+  group: number,
+): number {
+  return assignment.visibleCellsInGroup[plannedPairIndex * GROUP_COUNT + group] ?? 0;
+}
+
+function groupOf(assignment: GroupAssignment, plannedPairIndex: number): number {
+  const group = assignment.groupOfPlannedPair[plannedPairIndex];
+  if (group === undefined) {
+    throw new RangeError(`Planned pair ${String(plannedPairIndex)} is not in the plan`);
+  }
+  return group;
+}
+
+function changeVisibleCounts(
+  assignment: GroupAssignment,
+  plannedPairIndex: number,
+  group: number,
+  change: number,
+): void {
+  for (const visiblePairIndex of assignment.visiblePlannedPairsOf[plannedPairIndex] ?? []) {
+    const slot = visiblePairIndex * GROUP_COUNT + group;
+    assignment.visibleCellsInGroup[slot] = (assignment.visibleCellsInGroup[slot] ?? 0) + change;
+  }
+  assignment.useOfGroup[group] = (assignment.useOfGroup[group] ?? 0) + change;
+}
+
+function moveToGroup(assignment: GroupAssignment, plannedPairIndex: number, group: number): void {
+  changeVisibleCounts(assignment, plannedPairIndex, groupOf(assignment, plannedPairIndex), -1);
+  assignment.groupOfPlannedPair[plannedPairIndex] = group;
+  changeVisibleCounts(assignment, plannedPairIndex, group, 1);
+}
+
+function hasRoom(assignment: GroupAssignment, group: number): boolean {
+  return (assignment.useOfGroup[group] ?? 0) < assignment.groupLimit;
+}
 
 /**
  * Every number in one pair group pairs with every other, so two cells of different planned pairs
- * that see each other in the same group are an unplanned pair at the start. Counts those for each
- * group that a planned pair could take.
+ * that see each other in the same group are an unplanned pair at the start. Each one is seen from
+ * both of its planned pairs, so the sum over all planned pairs counts it twice.
  */
-function countUnplannedPairsPerGroup(
-  assignment: GroupAssignment,
-  plannedPairIndex: number,
-): number[] {
-  const counts = PAIR_GROUP_LEADERS.map(() => 0);
-  for (const visiblePairIndex of assignment.visiblePlannedPairsOf[plannedPairIndex] ?? []) {
-    const group = assignment.groupOfPlannedPair[visiblePairIndex];
-    if (group !== undefined && group !== UNASSIGNED_GROUP) {
-      counts[group] = (counts[group] ?? 0) + 1;
-    }
-  }
-  return counts;
-}
-
-function setGroup(assignment: GroupAssignment, plannedPairIndex: number, group: number): void {
-  const previousGroup = assignment.groupOfPlannedPair[plannedPairIndex];
-  if (previousGroup !== undefined && previousGroup !== UNASSIGNED_GROUP) {
-    assignment.useOfGroup[previousGroup] = (assignment.useOfGroup[previousGroup] ?? 0) - 1;
-  }
-  assignment.groupOfPlannedPair[plannedPairIndex] = group;
-  assignment.useOfGroup[group] = (assignment.useOfGroup[group] ?? 0) + 1;
-}
-
-/** Groups a planned pair can take: those with room left once the pair has left its own group. */
-function findAllowedGroups(assignment: GroupAssignment, plannedPairIndex: number): number[] {
-  const currentGroup = assignment.groupOfPlannedPair[plannedPairIndex];
-  return PAIR_GROUP_LEADERS.flatMap((_, group) =>
-    (assignment.useOfGroup[group] ?? 0) - (group === currentGroup ? 1 : 0) < assignment.groupLimit
-      ? [group]
-      : [],
+function countUnplannedPairs(assignment: GroupAssignment): number {
+  const twiceTheCount = assignment.groupOfPlannedPair.reduce(
+    (total, group, plannedPairIndex) =>
+      total + visibleCellsInGroupOf(assignment, plannedPairIndex, group),
+    0,
   );
-}
-
-/** Picks the allowed group with the fewest unplanned pairs, then the least used, then at random. */
-function drawBestGroup(
-  assignment: GroupAssignment,
-  plannedPairIndex: number,
-  randomState: RandomState,
-): RandomDraw<number> {
-  const unplannedPairsPerGroup = countUnplannedPairsPerGroup(assignment, plannedPairIndex);
-  const currentGroup = assignment.groupOfPlannedPair[plannedPairIndex];
-  const scoredGroups = findAllowedGroups(assignment, plannedPairIndex).map((group) => ({
-    group,
-    unplannedPairs: unplannedPairsPerGroup[group] ?? 0,
-    use: (assignment.useOfGroup[group] ?? 0) - (group === currentGroup ? 1 : 0),
-  }));
-  const fewestUnplannedPairs = Math.min(...scoredGroups.map((scored) => scored.unplannedPairs));
-  const fewestConflicting = scoredGroups.filter(
-    (scored) => scored.unplannedPairs === fewestUnplannedPairs,
-  );
-  const leastUse = Math.min(...fewestConflicting.map((scored) => scored.use));
-  const candidates = fewestConflicting
-    .filter((scored) => scored.use === leastUse)
-    .map((scored) => scored.group);
-  return drawRandomItem(randomState, candidates);
-}
-
-function hasUnplannedPair(assignment: GroupAssignment, plannedPairIndex: number): boolean {
-  const group = assignment.groupOfPlannedPair[plannedPairIndex];
-  return (assignment.visiblePlannedPairsOf[plannedPairIndex] ?? []).some(
-    (visiblePairIndex) => assignment.groupOfPlannedPair[visiblePairIndex] === group,
-  );
+  return twiceTheCount / 2;
 }
 
 function listVisiblePlannedPairs(plan: SolutionPlan, width: number): (readonly number[])[] {
@@ -125,65 +112,93 @@ function listVisiblePlannedPairs(plan: SolutionPlan, width: number): (readonly n
   );
 }
 
-function improveGroups(assignment: GroupAssignment, randomState: RandomState): RandomState {
-  const plannedPairIndexes = assignment.groupOfPlannedPair.map((_, index) => index);
+/** Gives every planned pair a random group that still has room. */
+function drawStartingAssignment(
+  plan: SolutionPlan,
+  width: number,
+  randomState: RandomState,
+): RandomDraw<GroupAssignment> {
+  const assignment: GroupAssignment = {
+    groupOfPlannedPair: [],
+    visiblePlannedPairsOf: listVisiblePlannedPairs(plan, width),
+    visibleCellsInGroup: Array<number>(plan.length * GROUP_COUNT).fill(0),
+    useOfGroup: Array<number>(GROUP_COUNT).fill(0),
+    groupLimit: Math.ceil(plan.length * MAX_GROUP_SHARE),
+  };
   let currentState = randomState;
-  for (let step = 0; step < IMPROVEMENT_STEP_COUNT; step++) {
-    if (
-      step % STEPS_BETWEEN_CONFLICT_CHECKS === 0 &&
-      !plannedPairIndexes.some((index) => hasUnplannedPair(assignment, index))
-    ) {
-      break;
-    }
-    const pickDraw = drawRandomItem(currentState, plannedPairIndexes);
-    currentState = pickDraw.randomState;
-    if (!hasUnplannedPair(assignment, pickDraw.value)) {
+  for (let plannedPairIndex = 0; plannedPairIndex < plan.length; plannedPairIndex++) {
+    const groupsWithRoom = PAIR_GROUP_LEADERS.flatMap((_, group) =>
+      hasRoom(assignment, group) ? [group] : [],
+    );
+    const groupDraw = drawRandomItem(currentState, groupsWithRoom);
+    assignment.groupOfPlannedPair.push(groupDraw.value);
+    changeVisibleCounts(assignment, plannedPairIndex, groupDraw.value, 1);
+    currentState = groupDraw.randomState;
+  }
+  return { value: assignment, randomState: currentState };
+}
+
+/**
+ * Moves planned pairs between groups by simulated annealing until at most the allowed count of
+ * unplanned pairs is left, or the steps run out. A move that adds unplanned pairs is still taken
+ * with a chance that shrinks as the temperature cools.
+ */
+function improveGroups(
+  assignment: GroupAssignment,
+  allowedUnplannedPairCount: number,
+  randomState: RandomState,
+): RandomState {
+  const plannedPairIndexes = assignment.groupOfPlannedPair.map((_, index) => index);
+  const groups = PAIR_GROUP_LEADERS.map((_, group) => group);
+  let unplannedPairCount = countUnplannedPairs(assignment);
+  let currentState = randomState;
+  for (
+    let step = 0;
+    step < IMPROVEMENT_STEP_COUNT && unplannedPairCount > allowedUnplannedPairCount;
+    step++
+  ) {
+    const pairDraw = drawRandomItem(currentState, plannedPairIndexes);
+    const groupDraw = drawRandomItem(pairDraw.randomState, groups);
+    const acceptDraw = drawRandomFraction(groupDraw.randomState);
+    currentState = acceptDraw.randomState;
+    const plannedPairIndex = pairDraw.value;
+    const currentGroup = groupOf(assignment, plannedPairIndex);
+    const newGroup = groupDraw.value;
+    if (newGroup === currentGroup || !hasRoom(assignment, newGroup)) {
       continue;
     }
-    const walkDraw = drawRandomFraction(currentState);
-    const groupDraw =
-      walkDraw.value < RANDOM_WALK_CHANCE
-        ? drawRandomItem(walkDraw.randomState, findAllowedGroups(assignment, pickDraw.value))
-        : drawBestGroup(assignment, pickDraw.value, walkDraw.randomState);
-    setGroup(assignment, pickDraw.value, groupDraw.value);
-    currentState = groupDraw.randomState;
+    const change =
+      visibleCellsInGroupOf(assignment, plannedPairIndex, newGroup) -
+      visibleCellsInGroupOf(assignment, plannedPairIndex, currentGroup);
+    const temperature =
+      START_TEMPERATURE * (END_TEMPERATURE / START_TEMPERATURE) ** (step / IMPROVEMENT_STEP_COUNT);
+    if (change <= 0 || acceptDraw.value < Math.exp(-change / temperature)) {
+      moveToGroup(assignment, plannedPairIndex, newGroup);
+      unplannedPairCount += change;
+    }
   }
   return currentState;
 }
 
 /**
  * Gives the two cells of every planned pair numbers that pair (NG-35), choosing the pair group of
- * each planned pair so that few unplanned pairs see each other on the starting board. Groups are
- * picked one pair at a time in a random order, then improved by re-picking the group of pairs that
- * sit in an unplanned visible pair.
+ * each planned pair so that few unplanned pairs see each other on the starting board. The search
+ * stops once at most the allowed count of unplanned pairs is left, which lets the caller aim for a
+ * count of opening pairs.
  */
 export function assignPlannedPairDigits(
   width: number,
   plan: SolutionPlan,
+  allowedUnplannedPairCount: number,
   randomState: RandomState,
 ): RandomDraw<Cell[]> {
-  const assignment: GroupAssignment = {
-    groupOfPlannedPair: plan.map(() => UNASSIGNED_GROUP),
-    visiblePlannedPairsOf: listVisiblePlannedPairs(plan, width),
-    useOfGroup: PAIR_GROUP_LEADERS.map(() => 0),
-    groupLimit: Math.ceil(plan.length * MAX_GROUP_SHARE),
-  };
-
-  const orderDraw = drawShuffled(
-    randomState,
-    plan.map((_, plannedPairIndex) => plannedPairIndex),
-  );
-  let currentState = orderDraw.randomState;
-  for (const plannedPairIndex of orderDraw.value) {
-    const groupDraw = drawBestGroup(assignment, plannedPairIndex, currentState);
-    setGroup(assignment, plannedPairIndex, groupDraw.value);
-    currentState = groupDraw.randomState;
-  }
-  currentState = improveGroups(assignment, currentState);
+  const startingDraw = drawStartingAssignment(plan, width, randomState);
+  const assignment = startingDraw.value;
+  let currentState = improveGroups(assignment, allowedUnplannedPairCount, startingDraw.randomState);
 
   const cells = Array<Cell>(width * width).fill(null);
   for (const [plannedPairIndex, plannedPair] of plan.entries()) {
-    const groupLeader = PAIR_GROUP_LEADERS[assignment.groupOfPlannedPair[plannedPairIndex] ?? -1];
+    const groupLeader = PAIR_GROUP_LEADERS[groupOf(assignment, plannedPairIndex)];
     if (groupLeader === undefined) {
       throw new Error(`Planned pair ${String(plannedPairIndex)} was left without a pair group`);
     }

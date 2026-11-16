@@ -120,14 +120,30 @@ describe('generateStageBoard', () => {
   );
 
   it.each(DIFFICULTY_IDS)(
-    'opens most %s boards inside the count of pairs the preset asks for',
+    'opens every %s board inside the count of pairs the preset asks for',
     (difficulty) => {
       const { min, max } = DIFFICULTY_PRESETS[difficulty].startingOpenPairsRange;
-      const counts = seedsOf(SEED_COUNT).map((seed) =>
-        countOpeningPairs(BOARD_WIDTH, difficulty, seed),
-      );
-      const insideCount = counts.filter((count) => count >= min && count <= max).length;
-      expect(insideCount / counts.length).toBeGreaterThanOrEqual(0.8);
+      for (const seed of seedsOf(SEED_COUNT)) {
+        const count = countOpeningPairs(BOARD_WIDTH, difficulty, seed);
+        expect(count).toBeGreaterThanOrEqual(min);
+        expect(count).toBeLessThanOrEqual(max);
+      }
+    },
+    SLOW_TEST_TIMEOUT_MS,
+  );
+
+  it.each(DIFFICULTY_IDS)(
+    'leaves a pair with line of sight after any first match on %s boards',
+    (difficulty) => {
+      for (const seed of seedsOf(SEED_COUNT)) {
+        const cells = generateStageBoard(BOARD_WIDTH, DIFFICULTY_PRESETS[difficulty], seed).value;
+        const openingPairs = findAllValidPairs(cells, BOARD_WIDTH);
+        expect(openingPairs.length).toBeGreaterThan(0);
+        for (const { firstIndex, secondIndex } of openingPairs) {
+          const afterMatch = clearPair(cells, BOARD_WIDTH, firstIndex, secondIndex).cells;
+          expect(findAllValidPairs(afterMatch, BOARD_WIDTH).length).toBeGreaterThan(0);
+        }
+      }
     },
     SLOW_TEST_TIMEOUT_MS,
   );

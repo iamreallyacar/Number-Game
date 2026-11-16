@@ -27,14 +27,14 @@ Saved games keep a `GameState` as JSON, and high scores keep the summary details
 | `cell.ts` | The `Digit` and `Cell` types |
 | `board.ts` | Row and column math, counting numbers, finding which numbers are on the board, clearing a pair, and removing empty rows |
 | `difficulty.ts` | Easy, Normal, and Hard presets |
-| `stage-board.ts` | Builds a new stage board from a planned solution, up to a fixed number of times, and keeps the board closest to the opening pair range of the difficulty |
-| `solution-plan.ts` | Plans an order of matches that clears a starting board of placeholders, preferring matches that are blocked at the start as much as the difficulty asks |
-| `planned-pair-digits.ts` | Gives each planned match a pair group, so few unplanned pairs see each other at the start, and draws the numbers |
+| `stage-board.ts` | Builds a new stage board from a planned solution, up to a fixed number of times, and keeps the first board inside the opening pair range of the difficulty, or else the closest |
+| `solution-plan.ts` | Plans an order of matches that clears a starting board of placeholders, preferring matches that are blocked at the start as much as the difficulty asks, and counts the planned matches open at the start |
+| `planned-pair-digits.ts` | Gives each planned match a pair group by simulated annealing, until no more unplanned pairs see each other at the start than the caller allows, and draws the numbers |
 | `new-game.ts` | Starts a game from a difficulty and a seed chosen by the caller |
 | `scoring.ts` | Points for matches, empty rows, and stage clears |
 | `pair.ts` and `line-of-sight.ts` | Whether two numbers are a pair, pair groups, and which numbers a cell can see looking forward or backward |
 | `match.ts` | Applies a match, removes empty rows, adds points, and moves to the next stage when the board is cleared |
-| `add-numbers.ts` | Applies Add Numbers: counts the numbers to add, builds several sets, and keeps the one that clears the most when played ahead |
+| `add-numbers.ts` | Applies Add Numbers: counts the numbers to add, builds the sets, and keeps the one that clears the most when played ahead. The aim chance and the count of sets are the same on every preset |
 | `added-numbers-candidate.ts` | Builds one set of numbers to add, aimed at numbers they will see, leaving every pair group even |
 | `play-ahead.ts` | Plays a board ahead with simple matching, up to a match budget, and counts the numbers cleared |
 | `stage-clear.ts` | Adds the stage bonus and fills a new board |

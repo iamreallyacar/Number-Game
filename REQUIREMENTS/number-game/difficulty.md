@@ -11,14 +11,12 @@ The player picks a difficulty preset when starting a new game. Each preset chang
 | --- | --- | --- | --- |
 | Add Numbers uses per stage | 8 | 5 | 3 |
 | Hints per stage | Unlimited | 3 | None |
-| Pairs with line of sight on a starting board | 18 to 28 | 8 to 14 | 2 to 6 |
-| Chance that an added number is aimed | 80 percent | 50 percent | 35 percent |
-| Sets of added numbers tried | 12 | 1 | 1 |
+| Pairs with line of sight on a starting board | 5 or 6 | 3 or 4 | 1 or 2 |
 
 ## Number Generation
 
-- DF-04: A starting board aims for the count of pairs with line of sight shown in the table (see NG-35). The game builds a few boards and keeps the one closest to that range, so a board can sometimes fall just outside it.
-- DF-05: Add Numbers uses the aim chance and the count of sets tried shown in the table (see NG-36). More sets give clearly more helpful numbers. In simulated play the aim chance changed the result much less.
+- DF-04: A starting board opens with the count of pairs with line of sight shown in the table (see NG-35), for the first stage and every later one. The game keeps building boards until one lands in that range, up to 60 tries, and otherwise keeps the closest. In simulated play every one of 3000 boards per preset landed in the range, mostly at its top end. A typical board took about 8 ms to build on Easy and Normal and 14 ms on Hard on a desktop computer, and the slowest took about 175 ms, so a phone may take a few times longer.
+- DF-05: Add Numbers works the same on every preset: each new number is aimed with a 50 percent chance, and 1 set of new numbers is built (see NG-36). Only the count of uses per stage changes between presets. In simulated play, trying more sets made every preset much easier, and the aim chance changed the result much less.
 
 ## Hints
 

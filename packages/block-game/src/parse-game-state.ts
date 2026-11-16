@@ -98,6 +98,13 @@ export function parseGameState(value: unknown): GameState {
   if (streak > shapesPlaced) {
     fail('streak cannot be longer than the number of shapes placed');
   }
+  const emptySlotCount = slots.filter((shapeId) => shapeId === null).length;
+  if (emptySlotCount !== shapesPlaced % SLOT_COUNT) {
+    fail(
+      `${String(emptySlotCount)} empty slots do not match ${String(shapesPlaced)} shapes placed, ` +
+        `since every hand of ${String(SLOT_COUNT)} is used up before the next is dealt`,
+    );
+  }
   const randomState = record.get('randomState');
   if (!isRandomState(randomState)) {
     fail('randomState must be a whole number from 0 to 4294967295');

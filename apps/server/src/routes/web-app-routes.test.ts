@@ -1,3 +1,5 @@
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { makeWebAppDir, startTestServer } from '../test-support.js';
 
@@ -7,6 +9,17 @@ describe('web app routes', () => {
     const response = await app.inject({ method: 'GET', url: '/app.js' });
     expect(response.statusCode).toBe(200);
     expect(response.body).toContain('console.log');
+  });
+
+  it('serves sound clips with an audio content type instead of the index page', async () => {
+    const webAppDir = makeWebAppDir();
+    mkdirSync(join(webAppDir, 'assets'));
+    writeFileSync(join(webAppDir, 'assets', 'shout-1a2b3c.mp3'), 'not real audio');
+    const { app } = await startTestServer(webAppDir);
+    const response = await app.inject({ method: 'GET', url: '/assets/shout-1a2b3c.mp3' });
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['content-type']).toBe('audio/mpeg');
+    expect(response.body).toBe('not real audio');
   });
 
   it('serves the index page for browser app pages', async () => {

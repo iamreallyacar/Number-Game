@@ -136,4 +136,18 @@ Makes the Block Game harder without ever dealing a hand that cannot be placed. T
 - [x] T-73: Deal hands of 3: a slot empties when its shape is placed, a new hand comes when all 3 are empty, a move on an empty slot is refused, and the game ends when no shape left in the hand fits. (BG-04, BG-05, BG-13, BG-19)
 - [x] T-74: Give every shape a starting and a late weight, and move the deal weights from one to the other over the first 200 placements. (BG-09, BG-10)
 - [x] T-75: Only deal fair hands: check that all 3 shapes can be placed in some order, pick a new hand up to 30 times, and fall back to 3 single cells. (BG-22, BG-23)
-- [ ] T-76: Review the Block Game challenge work with a fresh reviewer, measure it with simulated play, and fix what is found. (OQ-24)
+- [x] T-76: Review the Block Game challenge work with a fresh reviewer, measure it with simulated play, and fix what is found. (OQ-24)
+
+## Phase 13: Sound Upgrade
+
+Replaces the plain tones with recorded clips.
+
+- [x] T-77: Let the shared sound player play audio clips as well as tones, and add licensed clips with a credits file: a cheer when the Number Game clears a pair, a different cheer when the Block Game clears a line, and a random funny exclamation on game over in every game. (PL-18, NG-31, BG-18, DK-22)
+
+## Phase 14: Number Game Tightening
+
+Makes the starting boards less generous and takes Add Numbers out of the difficulty presets.
+
+- [x] T-78: Start each board with fewer pairs with line of sight: 5 or 6 on Easy, 3 or 4 on Normal, and 1 or 2 on Hard. The board must still be clearable, and clearing pairs must still reveal new ones. (NG-35, DF-04)
+- [x] T-79: Make Add Numbers work the same on every preset, with one aim chance and one count of sets tried. Only the count of uses per stage differs between presets. (NG-36, DF-02, DF-05)
+- [x] T-80: Measure the new values with simulated play on every preset, and update `difficulty.md` and the open questions to match. (DF-04, DF-05, OQ-21)

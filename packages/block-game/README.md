@@ -33,7 +33,7 @@ Saved games keep a `GameState` as JSON, and high scores keep the summary details
 | `shape-catalogue.ts` | Every shape with its id, cells, colour, starting weight, and late weight. The weights are tuned here |
 | `board.ts` | Row and column math, and finding full rows and columns |
 | `shape-fit.ts` | Whether a shape fits at a position or anywhere, and which lines a placement would clear |
-| `fair-hand.ts` | `canPlaceWholeHand`, a depth first search for a way to place every shape of a hand in some order, clearing lines after each placement. It stops at the first success and skips repeated identical shapes |
+| `fair-hand.ts` | `canPlaceWholeHand`, a depth first search for a way to place every shape of a hand in some order, clearing lines after each placement. It stops at the first success, skips repeated identical shapes, and gives up at the search limit of BG-22 |
 | `place-and-clear.ts` | Fills a shape in and clears its full rows and columns. Used by the placement rule and by the fairness check |
 | `deal-weights.ts` | The 200 placement ramp and `dealWeightOf`, the current deal weight of a shape |
 | `deal-shapes.ts` | Weighted random shapes by the current deal weights, and `dealHand`, which deals the three shapes of the first hand (0 placements) and of every later hand on the board it is given. It redraws an unfair hand up to 30 times, then deals three single cells |

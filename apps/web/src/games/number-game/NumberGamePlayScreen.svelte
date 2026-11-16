@@ -23,7 +23,7 @@
   import NumberGameBoard from './NumberGameBoard.svelte';
   import NumberGameOverPanel from './NumberGameOverPanel.svelte';
   import NumberGameStatusBar from './NumberGameStatusBar.svelte';
-  import { NUMBER_GAME_SOUNDS } from './number-game-sounds.js';
+  import { NUMBER_GAME_PRELOADED_SOUNDS, NUMBER_GAME_SOUNDS } from './number-game-sounds.js';
   import { tapCell } from './tap-cell.js';
 
   const REJECTED_PAIR_SHOW_MS = 400;
@@ -52,6 +52,7 @@
   let nextMatchEffectId = 0;
 
   const soundPlayer = getSoundPlayer();
+  soundPlayer.preload(NUMBER_GAME_PRELOADED_SOUNDS);
 
   const gameOver = $derived(isGameOver(gameState));
   const stuck = $derived(isStuck(gameState));
@@ -117,7 +118,7 @@
       soundPlayer.play(NUMBER_GAME_SOUNDS.stageClear);
       return;
     }
-    soundPlayer.play(NUMBER_GAME_SOUNDS.matchRing);
+    soundPlayer.play(NUMBER_GAME_SOUNDS.matchShout);
     if (removedRowCount > 0) {
       soundPlayer.play(NUMBER_GAME_SOUNDS.rowRemoved);
     }
@@ -128,6 +129,9 @@
     gameState = nextState;
     selectedIndex = null;
     hintPair = null;
+    if (isGameOver(nextState)) {
+      soundPlayer.play(NUMBER_GAME_SOUNDS.gameOver);
+    }
     saveMove(move);
   }
 

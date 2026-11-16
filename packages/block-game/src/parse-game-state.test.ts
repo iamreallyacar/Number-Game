@@ -42,11 +42,11 @@ describe('parseGameState', () => {
     expect(parseGameState(roundTripThroughJson(result.state))).toEqual(result.state);
   });
 
-  it.each<{ problem: string; slots: ShapeSlots }>([
-    { problem: 'one empty slot', slots: ['single', null, 'square-2'] },
-    { problem: 'two empty slots', slots: [null, null, 'square-2'] },
-  ])('accepts a hand with $problem', ({ slots }) => {
-    const value = { ...validState, slots };
+  it.each<{ problem: string; slots: ShapeSlots; shapesPlaced: number }>([
+    { problem: 'one empty slot', slots: ['single', null, 'square-2'], shapesPlaced: 7 },
+    { problem: 'two empty slots', slots: [null, null, 'square-2'], shapesPlaced: 8 },
+  ])('accepts a hand with $problem', ({ slots, shapesPlaced }) => {
+    const value = { ...validState, slots, shapesPlaced };
     expect(parseGameState(roundTripThroughJson(value))).toEqual(value);
   });
 
@@ -112,6 +112,16 @@ describe('parseGameState', () => {
       problem: 'a streak longer than the shapes placed',
       value: { ...validState, streak: 7 },
       message: 'streak cannot be longer',
+    },
+    {
+      problem: 'an empty slot right after a new hand was due',
+      value: { ...validState, slots: ['single', null, 'square-2'] },
+      message: 'do not match 6 shapes placed',
+    },
+    {
+      problem: 'a full hand partway through a hand',
+      value: { ...validState, shapesPlaced: 7 },
+      message: 'do not match 7 shapes placed',
     },
     {
       problem: 'a bad random state',

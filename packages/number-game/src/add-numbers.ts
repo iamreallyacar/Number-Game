@@ -1,11 +1,16 @@
 import { buildAddedNumbersCandidate } from './added-numbers-candidate.js';
 import { countNumbers, padToFullRows } from './board.js';
 import type { Cell, Digit } from './cell.js';
-import { DIFFICULTY_PRESETS } from './difficulty.js';
 import { BOARD_WIDTH, type GameState } from './game-state.js';
 import { pairGroupsWithOddCount } from './pair.js';
 import { countNumbersClearedByPlayAhead } from './play-ahead.js';
 import type { RandomDraw } from '@local/seeded-random';
+
+/** Chance that each added number is aimed at a number it will see, the same on every preset (NG-36, DF-05). */
+export const ADD_NUMBERS_AIM_CHANCE = 0.5;
+
+/** How many sets of added numbers are built and played ahead before one is kept, the same on every preset (NG-36, DF-05). */
+export const ADD_NUMBERS_CANDIDATE_COUNT = 1;
 
 export type AddNumbersRefusal = 'no-uses-left';
 
@@ -30,20 +35,19 @@ export function countNumbersToAdd(cells: readonly Cell[]): number {
  * keeps the set that clears the most numbers. The earliest set wins a tie (NG-36).
  */
 function chooseBestAddedNumbers(state: GameState): RandomDraw<Digit[]> {
-  const { addNumbersAimChance, addNumbersCandidateCount } = DIFFICULTY_PRESETS[state.difficulty];
   const count = countNumbersToAdd(state.cells);
   const lastNumberIndex = state.cells.findLastIndex((cell) => cell !== null);
   const cellsUpToLastNumber = state.cells.slice(0, lastNumberIndex + 1);
   let bestDigits: Digit[] | null = null;
   let bestScore = -1;
   let currentState = state.randomState;
-  for (let attempt = 0; attempt < addNumbersCandidateCount; attempt++) {
+  for (let attempt = 0; attempt < ADD_NUMBERS_CANDIDATE_COUNT; attempt++) {
     const candidate = buildAddedNumbersCandidate(
       currentState,
       state.cells,
       BOARD_WIDTH,
       count,
-      addNumbersAimChance,
+      ADD_NUMBERS_AIM_CHANCE,
     );
     currentState = candidate.randomState;
     const score = countNumbersClearedByPlayAhead(
@@ -56,7 +60,7 @@ function chooseBestAddedNumbers(state: GameState): RandomDraw<Digit[]> {
     }
   }
   if (bestDigits === null) {
-    throw new Error('A difficulty preset must try at least one set of added numbers');
+    throw new Error('Add Numbers must try at least one set of added numbers');
   }
   return { value: bestDigits, randomState: currentState };
 }

@@ -3,13 +3,13 @@ import { DIGITS } from './cell.js';
 import { findAllValidPairs } from './find-pair.js';
 import { isPair, pairGroupNumberOf, pairGroupsWithOddCount } from './pair.js';
 import { assignPlannedPairDigits } from './planned-pair-digits.js';
-import { planSolution } from './solution-plan.js';
+import { countPlannedPairsOpenAtStart, planSolution } from './solution-plan.js';
 
 describe('assignPlannedPairDigits', () => {
   it('gives both cells of every planned pair numbers that pair, and fills the whole board', () => {
     for (let seed = 0; seed < 20; seed++) {
       const plan = planSolution(10, 0.8, seed).value;
-      const { value: cells } = assignPlannedPairDigits(10, plan, seed);
+      const { value: cells } = assignPlannedPairDigits(10, plan, 0, seed);
       for (const { firstIndex, secondIndex } of plan) {
         const first = cells[firstIndex];
         const second = cells[secondIndex];
@@ -31,7 +31,7 @@ describe('assignPlannedPairDigits', () => {
   it('uses every number from 1 to 9 and does not let one pair group dominate', () => {
     for (let seed = 0; seed < 20; seed++) {
       const plan = planSolution(10, 0.9, seed).value;
-      const { value: cells } = assignPlannedPairDigits(10, plan, seed);
+      const { value: cells } = assignPlannedPairDigits(10, plan, 0, seed);
       expect(new Set(cells)).toEqual(new Set(DIGITS));
       const pairsPerGroup = plan.map((pair) => {
         const digit = cells[pair.firstIndex];
@@ -49,13 +49,36 @@ describe('assignPlannedPairDigits', () => {
       { firstIndex: 1, secondIndex: 2 },
     ];
     for (let seed = 0; seed < 20; seed++) {
-      const { value: cells } = assignPlannedPairDigits(2, plan, seed);
+      const { value: cells } = assignPlannedPairDigits(2, plan, 0, seed);
       expect(findAllValidPairs(cells, 2)).toHaveLength(2);
     }
   });
 
+  it('leaves no more unplanned pairs than allowed, and stops searching once the allowance is met', () => {
+    const countUnplannedPairs = (allowedUnplannedPairCount: number, seed: number): number => {
+      const plan = planSolution(10, 1, seed).value;
+      const { value: cells } = assignPlannedPairDigits(10, plan, allowedUnplannedPairCount, seed);
+      return findAllValidPairs(cells, 10).length - countPlannedPairsOpenAtStart(10, plan);
+    };
+    const seeds = Array.from({ length: 20 }, (_, seed) => seed);
+    for (const seed of seeds) {
+      expect(countUnplannedPairs(6, seed)).toBeLessThanOrEqual(6);
+    }
+    const totalWithoutAllowance = seeds.reduce(
+      (total, seed) => total + countUnplannedPairs(0, seed),
+      0,
+    );
+    const totalWithAllowance = seeds.reduce(
+      (total, seed) => total + countUnplannedPairs(10, seed),
+      0,
+    );
+    expect(totalWithAllowance).toBeGreaterThan(totalWithoutAllowance);
+  });
+
   it('returns the same cells from the same random state', () => {
     const plan = planSolution(10, 0.9, 3).value;
-    expect(assignPlannedPairDigits(10, plan, 3)).toEqual(assignPlannedPairDigits(10, plan, 3));
+    expect(assignPlannedPairDigits(10, plan, 0, 3)).toEqual(
+      assignPlannedPairDigits(10, plan, 0, 3),
+    );
   });
 });

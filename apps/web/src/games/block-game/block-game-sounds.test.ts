@@ -4,14 +4,33 @@ import { lineClearSound } from './block-game-sounds.js';
 // Each bell is a main tone plus a quiet overtone.
 const TONES_PER_BELL = 2;
 
+function bellToneCount(clearedLineCount: number, streak: number): number {
+  const sound = lineClearSound(clearedLineCount, streak);
+  if (sound.kind !== 'layered') {
+    throw new Error('The line clear sound should layer a shout over the bells.');
+  }
+  const bells = sound.layers.find((layer) => layer.kind === 'tones');
+  if (bells?.kind !== 'tones') {
+    throw new Error('The line clear sound should include the bells.');
+  }
+  return bells.tones.length;
+}
+
 describe('lineClearSound', () => {
   it('rings one more bell for each extra line', () => {
-    expect(lineClearSound(1, 1)).toHaveLength(1 * TONES_PER_BELL);
-    expect(lineClearSound(3, 1)).toHaveLength(3 * TONES_PER_BELL);
+    expect(bellToneCount(1, 1)).toBe(1 * TONES_PER_BELL);
+    expect(bellToneCount(3, 1)).toBe(3 * TONES_PER_BELL);
   });
 
   it('rings one more bell during a streak, up to a limit', () => {
-    expect(lineClearSound(2, 2)).toHaveLength(3 * TONES_PER_BELL);
-    expect(lineClearSound(9, 9)).toHaveLength(5 * TONES_PER_BELL);
+    expect(bellToneCount(2, 2)).toBe(3 * TONES_PER_BELL);
+    expect(bellToneCount(9, 9)).toBe(5 * TONES_PER_BELL);
+  });
+
+  it('shouts over the bells', () => {
+    const sound = lineClearSound(1, 1);
+    expect(sound.kind === 'layered' && sound.layers.some((layer) => layer.kind === 'clip')).toBe(
+      true,
+    );
   });
 });

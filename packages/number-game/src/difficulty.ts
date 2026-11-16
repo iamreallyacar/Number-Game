@@ -14,10 +14,6 @@ export interface DifficultyPreset {
    * board. A higher chance gives fewer opening pairs and longer chains.
    */
   readonly startingBoardChainChance: number;
-  /** Chance that each number added by Add Numbers is aimed at a number it will see (NG-36). */
-  readonly addNumbersAimChance: number;
-  /** How many sets of added numbers are built and played ahead before one is kept (NG-36). */
-  readonly addNumbersCandidateCount: number;
 }
 
 // The values from REQUIREMENTS/number-game/difficulty.md. Lowering one needs a stored state upgrade,
@@ -26,26 +22,20 @@ export const DIFFICULTY_PRESETS: Readonly<Record<DifficultyId, DifficultyPreset>
   easy: {
     addNumbersUsesPerStage: 8,
     hintsPerStage: 'unlimited',
-    startingOpenPairsRange: { min: 18, max: 28 },
-    startingBoardChainChance: 0.75,
-    addNumbersAimChance: 0.8,
-    addNumbersCandidateCount: 12,
+    startingOpenPairsRange: { min: 5, max: 6 },
+    startingBoardChainChance: 0.92,
   },
   normal: {
     addNumbersUsesPerStage: 5,
     hintsPerStage: 3,
-    startingOpenPairsRange: { min: 8, max: 14 },
-    startingBoardChainChance: 0.93,
-    addNumbersAimChance: 0.5,
-    addNumbersCandidateCount: 1,
+    startingOpenPairsRange: { min: 3, max: 4 },
+    startingBoardChainChance: 0.97,
   },
   hard: {
     addNumbersUsesPerStage: 3,
     hintsPerStage: 0,
-    startingOpenPairsRange: { min: 2, max: 6 },
+    startingOpenPairsRange: { min: 1, max: 2 },
     startingBoardChainChance: 1,
-    addNumbersAimChance: 0.35,
-    addNumbersCandidateCount: 1,
   },
 };
 

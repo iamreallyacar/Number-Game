@@ -10,8 +10,61 @@ export interface Tone {
   readonly fadeSeconds: number;
 }
 
-/** A short sound made of tones, such as the ring when a pair is cleared. */
-export type SoundCue = readonly Tone[];
+/** A sound built from tones, such as the ring when a pair is cleared. */
+export interface ToneSound {
+  readonly kind: 'tones';
+  readonly tones: readonly Tone[];
+}
+
+/** A recorded audio file. The file is fetched and decoded once, then played from memory. */
+export interface ClipSound {
+  readonly kind: 'clip';
+  readonly url: string;
+  /** Loudness of the clip from 0 up, where 1 plays the file as it is. */
+  readonly gain: number;
+}
+
+/** One of several sounds, picked at random each time it plays, so a frequent sound stays fresh. */
+export interface OneOfSound {
+  readonly kind: 'one-of';
+  readonly options: readonly Sound[];
+}
+
+/** Sounds that start together, such as a shout over a run of bells. */
+export interface LayeredSound {
+  readonly kind: 'layered';
+  readonly layers: readonly Sound[];
+}
+
+export type Sound = ToneSound | ClipSound | OneOfSound | LayeredSound;
+
+export function toneSound(tones: readonly Tone[]): ToneSound {
+  return { kind: 'tones', tones };
+}
+
+export function clipSound(url: string, gain = 1): ClipSound {
+  return { kind: 'clip', url, gain };
+}
+
+export function oneOfSound(options: readonly Sound[]): OneOfSound {
+  if (options.length === 0) {
+    throw new Error('A one-of sound needs at least one option.');
+  }
+  return { kind: 'one-of', options };
+}
+
+export function layeredSound(layers: readonly Sound[]): LayeredSound {
+  return { kind: 'layered', layers };
+}
+
+/** What a sound player needs from the browser, so tests can replace it. */
+export interface SoundPlayerEnvironment {
+  readonly storage: Storage;
+  readonly createAudioContext: () => AudioContext;
+  readonly fetchClipBytes: (url: string) => Promise<ArrayBuffer>;
+  /** Returns a whole number from 0 up to, but not including, optionCount. */
+  readonly chooseOptionIndex: (optionCount: number) => number;
+}
 
 const SOUND_MUTED_STORAGE_KEY = 'game-dashboard.sound-muted';
 // A very fast start makes a click, so each tone swells in over a short moment instead.
@@ -21,19 +74,19 @@ const TONE_ATTACK_SECONDS = 0.015;
 const SILENT_GAIN = 0.0001;
 
 /**
- * Plays sound cues made in the browser, so the games need no audio files (PL-18). The mute
- * choice is kept in local storage, so it stays on this device only (PL-19).
+ * Plays tones made in the browser and recorded clips (PL-18). The mute choice is kept in local
+ * storage, so it stays on this device only (PL-19).
  */
 export class SoundPlayer {
-  readonly #storage: Storage;
-  readonly #createAudioContext: () => AudioContext;
+  readonly #environment: SoundPlayerEnvironment;
+  readonly #clipBytes = new Map<string, Promise<ArrayBuffer>>();
+  readonly #clipBuffers = new Map<string, Promise<AudioBuffer | null>>();
   #audioContext: AudioContext | null = null;
   #muted: boolean;
 
-  constructor(storage: Storage, createAudioContext: () => AudioContext) {
-    this.#storage = storage;
-    this.#createAudioContext = createAudioContext;
-    this.#muted = storage.getItem(SOUND_MUTED_STORAGE_KEY) === 'true';
+  constructor(environment: SoundPlayerEnvironment) {
+    this.#environment = environment;
+    this.#muted = environment.storage.getItem(SOUND_MUTED_STORAGE_KEY) === 'true';
   }
 
   get muted(): boolean {
@@ -42,31 +95,132 @@ export class SoundPlayer {
 
   setMuted(muted: boolean): void {
     this.#muted = muted;
-    this.#storage.setItem(SOUND_MUTED_STORAGE_KEY, String(muted));
+    this.#environment.storage.setItem(SOUND_MUTED_STORAGE_KEY, String(muted));
   }
 
-  play(cue: SoundCue): void {
+  /**
+   * Starts fetching every clip inside the sounds, so the first play is not silent. Fetching needs
+   * no audio context, so it is safe before the first tap. Decoding waits for the first play.
+   */
+  preload(sounds: readonly Sound[]): void {
+    for (const url of collectClipUrls(sounds)) {
+      this.#fetchClipBytes(url).catch((error: unknown) => {
+        console.error(`Could not preload the sound clip ${url}.`, error);
+      });
+    }
+  }
+
+  play(sound: Sound): void {
     if (this.#muted) {
       return;
     }
     // The audio context is made on the first sound, which always comes from a tap. Browsers only
     // allow sound to start after the player has interacted with the page.
-    this.#audioContext ??= this.#createAudioContext();
+    this.#audioContext ??= this.#environment.createAudioContext();
     const audioContext = this.#audioContext;
     if (audioContext.state === 'suspended') {
       audioContext.resume().catch((error: unknown) => {
         console.error('The browser refused to start sound.', error);
       });
     }
-    const cueStartSeconds = audioContext.currentTime;
-    for (const tone of cue) {
-      playTone(audioContext, tone, cueStartSeconds);
+    this.#playOnContext(audioContext, sound);
+  }
+
+  #playOnContext(audioContext: AudioContext, sound: Sound): void {
+    switch (sound.kind) {
+      case 'tones': {
+        const soundStartSeconds = audioContext.currentTime;
+        for (const tone of sound.tones) {
+          playTone(audioContext, tone, soundStartSeconds);
+        }
+        return;
+      }
+      case 'clip':
+        this.#playClip(audioContext, sound);
+        return;
+      case 'one-of': {
+        const optionIndex = this.#environment.chooseOptionIndex(sound.options.length);
+        const option = sound.options[optionIndex];
+        if (option === undefined) {
+          throw new Error(`No sound option at index ${String(optionIndex)}.`);
+        }
+        this.#playOnContext(audioContext, option);
+        return;
+      }
+      case 'layered':
+        for (const layer of sound.layers) {
+          this.#playOnContext(audioContext, layer);
+        }
+        return;
     }
+  }
+
+  #playClip(audioContext: AudioContext, clip: ClipSound): void {
+    this.#decodeClip(audioContext, clip.url)
+      .then((buffer) => {
+        // The player may have been muted while the clip was still loading.
+        if (buffer === null || this.#muted) {
+          return;
+        }
+        const source = audioContext.createBufferSource();
+        source.buffer = buffer;
+        const volume = audioContext.createGain();
+        volume.gain.value = clip.gain;
+        source.connect(volume).connect(audioContext.destination);
+        source.start();
+      })
+      .catch((error: unknown) => {
+        console.error(`Could not play the sound clip ${clip.url}.`, error);
+      });
+  }
+
+  /** Resolves to null when the clip cannot be loaded; the reason has been logged once. */
+  #decodeClip(audioContext: AudioContext, url: string): Promise<AudioBuffer | null> {
+    let buffer = this.#clipBuffers.get(url);
+    if (buffer === undefined) {
+      buffer = this.#fetchClipBytes(url)
+        .then((bytes) => audioContext.decodeAudioData(bytes))
+        .catch((error: unknown) => {
+          console.error(`Could not load the sound clip ${url}.`, error);
+          return null;
+        });
+      this.#clipBuffers.set(url, buffer);
+    }
+    return buffer;
+  }
+
+  #fetchClipBytes(url: string): Promise<ArrayBuffer> {
+    let bytes = this.#clipBytes.get(url);
+    if (bytes === undefined) {
+      bytes = this.#environment.fetchClipBytes(url);
+      this.#clipBytes.set(url, bytes);
+    }
+    return bytes;
   }
 }
 
-function playTone(audioContext: AudioContext, tone: Tone, cueStartSeconds: number): void {
-  const startSeconds = cueStartSeconds + tone.startSeconds;
+function collectClipUrls(sounds: readonly Sound[]): Set<string> {
+  const urls = new Set<string>();
+  for (const sound of sounds) {
+    switch (sound.kind) {
+      case 'tones':
+        break;
+      case 'clip':
+        urls.add(sound.url);
+        break;
+      case 'one-of':
+        collectClipUrls(sound.options).forEach((url) => urls.add(url));
+        break;
+      case 'layered':
+        collectClipUrls(sound.layers).forEach((url) => urls.add(url));
+        break;
+    }
+  }
+  return urls;
+}
+
+function playTone(audioContext: AudioContext, tone: Tone, soundStartSeconds: number): void {
+  const startSeconds = soundStartSeconds + tone.startSeconds;
   const endSeconds = startSeconds + tone.fadeSeconds;
   const oscillator = new OscillatorNode(audioContext, {
     type: tone.waveform,
@@ -81,10 +235,23 @@ function playTone(audioContext: AudioContext, tone: Tone, cueStartSeconds: numbe
   oscillator.stop(endSeconds);
 }
 
+async function fetchClipBytesFromNetwork(url: string): Promise<ArrayBuffer> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Fetching ${url} failed with status ${String(response.status)}.`);
+  }
+  return response.arrayBuffer();
+}
+
 let sharedSoundPlayer: SoundPlayer | null = null;
 
 /** The one sound player of the page, shared by the mute button and every game. */
 export function getSoundPlayer(): SoundPlayer {
-  sharedSoundPlayer ??= new SoundPlayer(window.localStorage, () => new AudioContext());
+  sharedSoundPlayer ??= new SoundPlayer({
+    storage: window.localStorage,
+    createAudioContext: () => new AudioContext(),
+    fetchClipBytes: fetchClipBytesFromNetwork,
+    chooseOptionIndex: (optionCount) => Math.floor(Math.random() * optionCount),
+  });
   return sharedSoundPlayer;
 }

@@ -15,7 +15,11 @@
   import { onDestroy } from 'svelte';
   import { getSoundPlayer } from '../../audio/sound-player.js';
   import type { PlayScreenProps } from '../browser-game.js';
-  import { BLOCK_GAME_SOUNDS, lineClearSound } from './block-game-sounds.js';
+  import {
+    BLOCK_GAME_PRELOADED_SOUNDS,
+    BLOCK_GAME_SOUNDS,
+    lineClearSound,
+  } from './block-game-sounds.js';
   import BlockGameBoard from './BlockGameBoard.svelte';
   import BlockGameOverPanel from './BlockGameOverPanel.svelte';
   import BlockGameShape from './BlockGameShape.svelte';
@@ -70,6 +74,7 @@
   let nextClearEffectId = 0;
 
   const soundPlayer = getSoundPlayer();
+  soundPlayer.preload(BLOCK_GAME_PRELOADED_SOUNDS);
 
   const gameOver = $derived(isGameOver(gameState));
   const slotFits = $derived(

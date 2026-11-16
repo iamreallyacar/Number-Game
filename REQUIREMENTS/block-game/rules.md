@@ -59,7 +59,7 @@ These requirements define how the Block Game plays. Rows are counted from top to
 | Plus | 1 | 5 | 1 | 4 |
 
 - BG-10: Each shape of a hand is picked at random with a chance in proportion to its current weight. A game starts on the starting weights, where small shapes are common and big or awkward shapes are rare. The weights move in even steps toward the late weights with every shape placed, and reach them after 200 placements, where they stay. The same shape can appear more than once in a hand. The weights and the 200 are starting values and may be tuned after playtesting.
-- BG-22: A hand is only dealt if it is fair. A hand is fair when there is at least one way to place all 3 of its shapes on the current board, in some order, counting the lines each placement clears. If the picked hand is not fair, the game picks a whole new hand, up to 30 times.
+- BG-22: A hand is only dealt if it is fair. A hand is fair when there is at least one way to place all 3 of its shapes on the current board, in some order, counting the lines each placement clears. If the picked hand is not fair, the game picks a whole new hand, up to 30 times. The search for a way stops after trying 1000 placements for one hand, and a hand it has not shown to be fair by then counts as not fair. This keeps every deal quick, and the browser and the server always agree because the limit is a count and not a time.
 - BG-23: If none of the 30 hands is fair, the hand is 3 single cells. This hand is always fair, because a board with no full line has at least 10 empty cells.
 
 ## Clearing Lines
@@ -84,7 +84,7 @@ These requirements define how the Block Game plays. Rows are counted from top to
 Effects only show what happened. They never change the rules, the score, or what is saved.
 
 - BG-17: When lines are cleared, the cleared cells show a short effect and the points earned float up from the board.
-- BG-18: Sounds follow the mute button from PL-19.
+- BG-18: Sounds follow the mute button from PL-19. Clearing lines shouts "wan sui" over a run of bells that grows with the number of lines and the streak, placing a shape plays a wooden knock, and game over plays a comic Chinese groan picked at random.
 
 ## Game Over
 

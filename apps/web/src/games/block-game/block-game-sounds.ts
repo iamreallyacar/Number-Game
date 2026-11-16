@@ -1,9 +1,16 @@
-import type { SoundCue, Tone } from '../../audio/sound-player.js';
+import {
+  clipSound,
+  layeredSound,
+  toneSound,
+  type ClipSound,
+  type Sound,
+  type Tone,
+} from '../../audio/sound-player.js';
+import { GAME_OVER_SOUND, WOOD_KNOCK_SOUND } from '../../audio/clip-sounds.js';
+import wanSuiUrl from '../../audio/clips/wan-sui.mp3';
 
 // Notes from the F major chord, so every sound fits with the others when they overlap. A different
 // chord from the Number Game gives this game a voice of its own.
-const NOTE_F3_HZ = 174.61;
-const NOTE_C4_HZ = 261.63;
 const NOTE_A4_HZ = 440.0;
 const NOTE_C5_HZ = 523.25;
 const NOTE_F5_HZ = 698.46;
@@ -33,11 +40,14 @@ function bell(frequencyHz: number, startSeconds: number, peakGain: number): Tone
   ];
 }
 
+// A Cantonese "maan seoi", the cheer "long live", shouted when lines are cleared.
+const WAN_SUI_SHOUT: ClipSound = clipSound(wanSuiUrl);
+
 export type BlockGameSoundName = 'pickUp' | 'place' | 'invalidDrop' | 'gameOver';
 
 /** The Block Game sound for each event that always sounds the same (BG-18). */
-export const BLOCK_GAME_SOUNDS: Readonly<Record<BlockGameSoundName, SoundCue>> = {
-  pickUp: [
+export const BLOCK_GAME_SOUNDS: Readonly<Record<BlockGameSoundName, Sound>> = {
+  pickUp: toneSound([
     {
       frequencyHz: NOTE_A4_HZ,
       waveform: 'sine',
@@ -45,43 +55,30 @@ export const BLOCK_GAME_SOUNDS: Readonly<Record<BlockGameSoundName, SoundCue>> =
       startSeconds: 0,
       fadeSeconds: 0.06,
     },
-  ],
-  // A low soft knock, like a wooden block set down.
-  place: [
-    {
-      frequencyHz: NOTE_C4_HZ,
-      waveform: 'triangle',
-      peakGain: 0.18,
-      startSeconds: 0,
-      fadeSeconds: 0.12,
-    },
-    {
-      frequencyHz: NOTE_F3_HZ,
-      waveform: 'sine',
-      peakGain: 0.15,
-      startSeconds: 0,
-      fadeSeconds: 0.18,
-    },
-  ],
-  invalidDrop: [
+  ]),
+  place: WOOD_KNOCK_SOUND,
+  invalidDrop: toneSound([
     { frequencyHz: 196, waveform: 'triangle', peakGain: 0.12, startSeconds: 0, fadeSeconds: 0.12 },
     { frequencyHz: 147, waveform: 'triangle', peakGain: 0.12, startSeconds: 0.1, fadeSeconds: 0.2 },
-  ],
-  gameOver: [
-    ...bell(NOTE_C5_HZ, 0, 0.18),
-    ...bell(NOTE_A4_HZ, 0.18, 0.18),
-    ...bell(NOTE_F3_HZ * 2, 0.36, 0.2),
-  ],
+  ]),
+  gameOver: GAME_OVER_SOUND,
 };
 
 /**
- * The line clear sound: a rising run of bells, one more for each extra line and for a streak of 2
- * or more, so bigger clears sound bigger (BG-17, BG-18).
+ * The line clear sound: a cheer over a rising run of bells, one more for each extra line and for a
+ * streak of 2 or more, so bigger clears sound bigger (BG-17, BG-18).
  */
-export function lineClearSound(clearedLineCount: number, streak: number): SoundCue {
+export function lineClearSound(clearedLineCount: number, streak: number): Sound {
   const streakBonus = streak >= 2 ? 1 : 0;
   const noteCount = Math.min(clearedLineCount + streakBonus, LINE_CLEAR_NOTES_HZ.length);
-  return LINE_CLEAR_NOTES_HZ.slice(0, Math.max(noteCount, 1)).flatMap((frequencyHz, noteIndex) =>
-    bell(frequencyHz, noteIndex * LINE_CLEAR_NOTE_GAP_SECONDS, 0.2),
+  const bells = LINE_CLEAR_NOTES_HZ.slice(0, Math.max(noteCount, 1)).flatMap(
+    (frequencyHz, noteIndex) => bell(frequencyHz, noteIndex * LINE_CLEAR_NOTE_GAP_SECONDS, 0.2),
   );
+  return layeredSound([toneSound(bells), WAN_SUI_SHOUT]);
 }
+
+/** Every sound the game can play, for the play screen to preload. */
+export const BLOCK_GAME_PRELOADED_SOUNDS: readonly Sound[] = [
+  ...Object.values(BLOCK_GAME_SOUNDS),
+  lineClearSound(1, 1),
+];

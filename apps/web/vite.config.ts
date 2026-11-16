@@ -12,6 +12,8 @@ export default defineConfig(({ mode }) => {
   const serverPort = env['PORT'] ?? DEFAULT_SERVER_PORT;
   return {
     plugins: [svelte()],
+    // Sound clips stay separate files, so the player can fetch and decode them like any other.
+    build: { assetsInlineLimit: 0 },
     server: { proxy: { '/api': `http://localhost:${serverPort}` } },
   };
 });

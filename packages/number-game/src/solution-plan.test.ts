@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { clearPair, removeEmptyRows } from './board.js';
 import type { Cell } from './cell.js';
 import { hasLineOfSight } from './line-of-sight.js';
-import { createPlaceholderBoard, planSolution, type SolutionPlan } from './solution-plan.js';
+import {
+  countPlannedPairsOpenAtStart,
+  createPlaceholderBoard,
+  planSolution,
+  type SolutionPlan,
+} from './solution-plan.js';
 
 /** Plays the plan on placeholders, following each cell by its starting index through removed rows. */
 function replayPlan(width: number, plan: SolutionPlan): void {
@@ -55,14 +60,28 @@ describe('planSolution', () => {
   });
 
   it('plans fewer matches that see each other on the starting board when the chain chance is higher', () => {
-    const startingBoard = createPlaceholderBoard(10);
-    const countOpenMatches = (chainChance: number, seed: number): number =>
-      planSolution(10, chainChance, seed).value.filter((pair) =>
-        hasLineOfSight(startingBoard, 10, pair.firstIndex, pair.secondIndex),
-      ).length;
     for (let seed = 0; seed < 10; seed++) {
-      expect(countOpenMatches(1, seed)).toBeLessThan(countOpenMatches(0, seed) / 4);
+      expect(countPlannedPairsOpenAtStart(10, planSolution(10, 1, seed).value)).toBeLessThan(
+        countPlannedPairsOpenAtStart(10, planSolution(10, 0, seed).value) / 4,
+      );
     }
+  });
+
+  it('always opens with at least the first planned match', () => {
+    for (let seed = 0; seed < 20; seed++) {
+      expect(
+        countPlannedPairsOpenAtStart(10, planSolution(10, 1, seed).value),
+      ).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  it('counts the planned matches that see each other on the starting board', () => {
+    const plan = [
+      { firstIndex: 0, secondIndex: 1 },
+      { firstIndex: 2, secondIndex: 13 },
+      { firstIndex: 3, secondIndex: 23 },
+    ];
+    expect(countPlannedPairsOpenAtStart(10, plan)).toBe(2);
   });
 
   it('plans the same matches from the same random state and leaves a new state', () => {

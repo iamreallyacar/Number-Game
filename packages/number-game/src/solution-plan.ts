@@ -2,7 +2,7 @@ import { clearPair, columnOf, rowOf } from './board.js';
 import type { Cell, Digit } from './cell.js';
 import type { CellPair } from './find-pair.js';
 import type { CellIndex } from './game-state.js';
-import { findForwardVisibleCells } from './line-of-sight.js';
+import { findForwardVisibleCells, hasLineOfSight } from './line-of-sight.js';
 import {
   drawRandomFraction,
   drawRandomItem,
@@ -27,6 +27,14 @@ export function createPlaceholderBoard(width: number): Cell[] {
     throw new Error(`A ${String(width)} wide board has an odd count of cells and cannot be paired`);
   }
   return Array<Cell>(cellCount).fill(PLACEHOLDER_DIGIT);
+}
+
+/** How many planned matches can already see each other on the starting board, before any match is made. */
+export function countPlannedPairsOpenAtStart(width: number, plan: SolutionPlan): number {
+  const startingBoard = createPlaceholderBoard(width);
+  return plan.filter((pair) =>
+    hasLineOfSight(startingBoard, width, pair.firstIndex, pair.secondIndex),
+  ).length;
 }
 
 function pairKey(firstIndex: CellIndex, secondIndex: CellIndex, cellCount: number): number {

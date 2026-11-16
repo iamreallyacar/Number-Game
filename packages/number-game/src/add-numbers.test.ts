@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { applyAddNumbers, countNumbersToAdd } from './add-numbers.js';
-import { clearPair, countNumbers, padToFullRows } from './board.js';
+import { countNumbers, padToFullRows } from './board.js';
 import type { Cell } from './cell.js';
 import { findValidPair } from './find-pair.js';
 import { BOARD_WIDTH, type GameState } from './game-state.js';
@@ -184,32 +184,20 @@ describe('applyAddNumbers on many boards', () => {
   });
 });
 
-describe('applyAddNumbers aiming', () => {
-  function averageNumbersCleared(difficulty: 'easy' | 'hard'): number {
-    let totalCleared = 0;
-    const seedCount = 150;
-    for (let seed = 0; seed < seedCount; seed++) {
+describe('applyAddNumbers on every preset', () => {
+  it('adds the same numbers on every preset from the same board and random state', () => {
+    for (let seed = 0; seed < SEED_COUNT; seed++) {
       const cells = padToFullRows(cellsFromRows(randomBoardRows(BOARD_WIDTH, seed)), BOARD_WIDTH);
-      const result = pressAddNumbers(makeTestState({ cells, difficulty, randomState: seed }));
-      totalCleared +=
-        countNumbers(result.cells) - countNumbers(playOutGreedily(result.cells, BOARD_WIDTH));
+      if (countNumbers(cells) === 0) {
+        continue;
+      }
+      const [easyCells, ...otherCells] = DIFFICULTIES.map(
+        (difficulty) =>
+          pressAddNumbers(makeTestState({ cells, difficulty, randomState: seed })).cells,
+      );
+      for (const presetCells of otherCells) {
+        expect(presetCells).toEqual(easyCells);
+      }
     }
-    return totalCleared / seedCount;
-  }
-
-  function playOutGreedily(startCells: readonly Cell[], width: number): Cell[] {
-    let cells = [...startCells];
-    for (
-      let pair = findValidPair(cells, width);
-      pair !== null;
-      pair = findValidPair(cells, width)
-    ) {
-      cells = clearPair(cells, width, pair.firstIndex, pair.secondIndex).cells;
-    }
-    return cells;
-  }
-
-  it('clears clearly more numbers with a greedy play-ahead on easy than on hard', () => {
-    expect(averageNumbersCleared('easy')).toBeGreaterThan(averageNumbersCleared('hard') + 2);
   });
 });

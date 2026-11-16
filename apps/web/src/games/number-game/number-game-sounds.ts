@@ -1,4 +1,15 @@
-import type { SoundCue, Tone } from '../../audio/sound-player.js';
+import {
+  clipSound,
+  oneOfSound,
+  toneSound,
+  type OneOfSound,
+  type Sound,
+  type Tone,
+} from '../../audio/sound-player.js';
+import { GAME_OVER_SOUND, WRONG_BUZZER_SOUND } from '../../audio/clip-sounds.js';
+import huatFaatUrl from '../../audio/clips/huat-faat.mp3';
+import huatFaUrl from '../../audio/clips/huat-fa.mp3';
+import huatFacaiUrl from '../../audio/clips/huat-facai.mp3';
 
 // Notes from the C major chord, so every sound fits with the others when they overlap.
 const NOTE_C4_HZ = 261.63;
@@ -26,22 +37,34 @@ function bell(frequencyHz: number, startSeconds: number, peakGain: number): Tone
   ];
 }
 
+// Cheers for prosperity: a Cantonese "faat", a Mandarin "fa" and a Mandarin "fa cai". They are
+// picked at random because a match is the most frequent event in the game.
+const HUAT_SHOUT: OneOfSound = oneOfSound([
+  clipSound(huatFaatUrl),
+  clipSound(huatFaUrl),
+  clipSound(huatFacaiUrl),
+]);
+
 export type NumberGameSoundName =
-  'select' | 'matchRing' | 'rowRemoved' | 'wrongMatch' | 'addNumbers' | 'hint' | 'stageClear';
+  | 'select'
+  | 'matchShout'
+  | 'rowRemoved'
+  | 'wrongMatch'
+  | 'addNumbers'
+  | 'hint'
+  | 'stageClear'
+  | 'gameOver';
 
 /** The Number Game sound for each event (NG-31). */
-export const NUMBER_GAME_SOUNDS: Readonly<Record<NumberGameSoundName, SoundCue>> = {
-  select: [
+export const NUMBER_GAME_SOUNDS: Readonly<Record<NumberGameSoundName, Sound>> = {
+  select: toneSound([
     { frequencyHz: 440, waveform: 'sine', peakGain: 0.15, startSeconds: 0, fadeSeconds: 0.07 },
-  ],
-  matchRing: bell(NOTE_C5_HZ, 0, 0.25),
-  // Played on top of the match ring, a little later, so a removed row rings twice.
-  rowRemoved: bell(NOTE_G5_HZ, 0.08, 0.2),
-  wrongMatch: [
-    { frequencyHz: 196, waveform: 'triangle', peakGain: 0.12, startSeconds: 0, fadeSeconds: 0.12 },
-    { frequencyHz: 147, waveform: 'triangle', peakGain: 0.12, startSeconds: 0.1, fadeSeconds: 0.2 },
-  ],
-  addNumbers: [
+  ]),
+  matchShout: HUAT_SHOUT,
+  // Played on top of the match shout, a little later, so a removed row also rings.
+  rowRemoved: toneSound(bell(NOTE_G5_HZ, 0.08, 0.2)),
+  wrongMatch: WRONG_BUZZER_SOUND,
+  addNumbers: toneSound([
     {
       frequencyHz: NOTE_C4_HZ,
       waveform: 'sine',
@@ -56,8 +79,8 @@ export const NUMBER_GAME_SOUNDS: Readonly<Record<NumberGameSoundName, SoundCue>>
       startSeconds: 0.07,
       fadeSeconds: 0.2,
     },
-  ],
-  hint: [
+  ]),
+  hint: toneSound([
     { frequencyHz: NOTE_E5_HZ, waveform: 'sine', peakGain: 0.1, startSeconds: 0, fadeSeconds: 0.3 },
     {
       frequencyHz: NOTE_G5_HZ,
@@ -66,11 +89,15 @@ export const NUMBER_GAME_SOUNDS: Readonly<Record<NumberGameSoundName, SoundCue>>
       startSeconds: 0.1,
       fadeSeconds: 0.35,
     },
-  ],
-  stageClear: [
+  ]),
+  stageClear: toneSound([
     ...bell(NOTE_C5_HZ, 0, 0.22),
     ...bell(NOTE_E5_HZ, 0.1, 0.22),
     ...bell(NOTE_G5_HZ, 0.2, 0.22),
     ...bell(NOTE_C6_HZ, 0.3, 0.25),
-  ],
+  ]),
+  gameOver: GAME_OVER_SOUND,
 };
+
+/** Every sound the game can play, for the play screen to preload. */
+export const NUMBER_GAME_PRELOADED_SOUNDS: readonly Sound[] = Object.values(NUMBER_GAME_SOUNDS);

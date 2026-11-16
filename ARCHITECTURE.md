@@ -116,7 +116,7 @@ Paths outside `/api/` serve the built browser app from `apps/web/dist`, and unkn
 | `api/device-id.ts` | The random device ID kept in local storage and sent in the `x-device-id` header |
 | `saving/move-sync.ts` | Sends moves to the server one at a time and in order, retries failed saves, and stops when the save was opened elsewhere or is gone |
 | `games/` | The browser game registry and each game's browser module |
-| `audio/` | The shared sound player. It makes short tones in the browser, so games need no audio files, and keeps the mute choice from the header button in local storage (PL-18, PL-19) |
+| `audio/` | The shared sound player. It plays tones made in the browser and recorded clips (bundled mp3 files with their credits in `audio/clips/CREDITS.md`, fetched once, decoded once, and preloaded by each play screen), and keeps the mute choice from the header button in local storage (PL-18, PL-19) |
 | `test-support/` | Helpers for the tests, such as a local storage kept in memory. Only tests use them |
 | `pages/` | One Svelte component per page: dashboard, game, play, outdated play link, and not found |
 | `components/` | Pieces of pages: the sound mute button, the game leaderboard, the save slot list, the new game setup, the player ID picker, the save status banner, the save gone notice, the top results table, and the personal bests list |
@@ -136,7 +136,7 @@ The play page loads the save and hands its state to the game's play screen. The 
 
 The Number Game play screen still calls the single rules (`applyMatch`, `applyAddNumbers`, `applyHint`) instead of `applyMove`, because it needs what only they return, such as whether a stage was cleared and which pair a hint shows. The moves it sends use the `NumberGameMove` type from the rules package.
 
-Sounds and effects only show what happened and never change the game state. The play screen picks the Number Game sound for each event from `number-game-sounds.ts` and plays it with the shared sound player. After a match it also hands the board a short-lived match effect: a burst on both cleared cells and the points earned, placed with the cell positions from before the move. (NG-30, NG-31)
+Sounds and effects only show what happened and never change the game state. The play screen picks the Number Game sound for each event, including game over, from `number-game-sounds.ts` and plays it with the shared sound player. After a match it also hands the board a short-lived match effect: a burst on both cleared cells and the points earned, placed with the cell positions from before the move. (NG-30, NG-31)
 
 The Disk Game play screen also calls the single rules (`applyDiskMove`, `applyUndo`, `applyHint`), because it needs the stage clear, and the move a hint shows. When a move clears a stage, the rules already hold the next stage's layout, so the play screen keeps showing the sorted pegs from the stage clear for a moment, with the points floating up, before it shows the new layout. Which peg a tap picks up from or drops onto is decided in `tap-peg.ts`. (DK-09, DK-23)
 

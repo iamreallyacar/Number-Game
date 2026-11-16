@@ -68,6 +68,7 @@ describe('Block Game server module', () => {
     const emptiedSlotState: GameState = {
       ...EMPTY_BOARD_STATE,
       slots: [null, 'square-2', 'single'],
+      shapesPlaced: 1,
     };
     expect(
       blockGameServerModule.applyMove(store(emptiedSlotState), PLACE_SINGLE_AT_CORNER),
