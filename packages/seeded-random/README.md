@@ -1,6 +1,6 @@
 # Seeded Random Package
 
-This package holds the seeded random number generator shared by the game rules packages, as plain TypeScript with no browser or server code. A game keeps the generator state inside its game state, so the browser and the server draw exactly the same values from the same state, and a save continues with the same upcoming values on any device. See Randomness in `ARCHITECTURE.md`.
+This package holds the seeded random number generator shared by the game rules packages, as plain TypeScript with no browser or server code. A game keeps the generator state inside its game state, so the browser and the server draw exactly the same values from the same state, and a save continues with the same upcoming values on any device. See Randomness in `ARCHITECTURE.md` Systems.
 
 ## Contract
 

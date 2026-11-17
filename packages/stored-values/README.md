@@ -1,6 +1,6 @@
 # Stored Values Package
 
-This package holds the small checks every game needs when it reads a value back from storage, as plain TypeScript with no browser or server code. The game rules packages use it to check stored game states and summary details, and the server uses its upgrade type to run each game's stored format upgrades. See Stored Formats in `ARCHITECTURE.md`.
+This package holds the small checks every game needs when it reads a value back from storage, as plain TypeScript with no browser or server code. The game rules packages use it to check stored game states and summary details, and the server uses its upgrade type to run each game's stored format upgrades. See Storage in `apps/server/README.md`.
 
 ## Contract
 

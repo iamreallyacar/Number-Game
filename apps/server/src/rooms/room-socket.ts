@@ -4,7 +4,7 @@ export interface RoomSocket {
   close(code: number, reason: string): void;
 }
 
-/** Close codes of the WebSocket connection of a room (see Room Games in ARCHITECTURE.md). */
+/** Close codes of the WebSocket connection of a room (see API.md). */
 export const CLOSE_CODES = {
   normal: 1000,
   goingAway: 1001,

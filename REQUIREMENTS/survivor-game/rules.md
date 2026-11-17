@@ -31,6 +31,7 @@ These requirements define how the Survivor Game plays in version 1. Survivor Gam
 - SG-07: If the host leaves before the start, the player who joined next becomes the host. A room with no players left is closed.
 - SG-08: A run is played in one sitting. It has no save slots and cannot be paused.
 - SG-09: The number of runs that can be in progress at once is a server setting, with a default of 4. Creating a room beyond it is refused with a clear message.
+- SG-61: A player who has not been seen in a waiting room for 30 seconds is removed from it as if they left, so a closed tab does not keep a room or a player ID taken.
 
 ## Arena and Movement
 

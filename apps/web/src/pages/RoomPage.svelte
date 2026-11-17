@@ -78,7 +78,7 @@
   let hasLeft = false;
 
   // Leaving the waiting room page through the app leaves the room. A closed tab cannot do this
-  // reliably, so the player stays in the room until they open it again and leave (see Room Games).
+  // reliably, so the player stays in the room until they open it again and leave (see Waiting room expiry in apps/server/README.md).
   onDestroy(() => {
     poller.stop();
     if (view?.kind === 'waiting' && playerId !== null && !hasLeft) {

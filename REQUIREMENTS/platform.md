@@ -41,6 +41,6 @@ These requirements cover everything around the games: the dashboard, how games p
 
 ## Self-Hosting by Others
 
-- PL-14: Someone who clones the repository can start the project by following setup steps in the README.
+- PL-14: Someone who clones the repository can start the project by following setup steps in GUIDE.md.
 - PL-15: The project provides a packaged way to run it, such as a container image with a compose file, so setup takes only a few commands.
 - PL-16: The repository includes an MIT license file so others know how they may use it.

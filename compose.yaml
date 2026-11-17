@@ -1,4 +1,4 @@
-# Settings come from .env next to this file. See the Configuration section of README.md.
+# Settings come from .env next to this file. See the Configuration section of GUIDE.md.
 services:
   number-game:
     build: .
