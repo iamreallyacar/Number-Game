@@ -33,10 +33,6 @@
 - Bullet points and numbered lists should be combined if they share a subject and trigger
 - Documents should not hold duplicate information. Each piece of information should only have one source of truth
 
-## DOCUMENTATION CONTENT GUIDE
-
-- `README.md`: purpose, scope
-
 ## RESPONSE STYLE
 
 - Language: responses should be written in easy to understand high school level language where possible
