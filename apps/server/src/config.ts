@@ -10,7 +10,7 @@ export class ConfigError extends Error {
   override readonly name = 'ConfigError';
 }
 
-// Defaults match the Configuration table in README.md and .env.example.
+// Defaults match the Configuration table in GUIDE.md and .env.example.
 const DEFAULT_SETTINGS = {
   HOST: '0.0.0.0',
   PORT: '3000',

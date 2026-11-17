@@ -3,7 +3,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { defineConfig, loadEnv } from 'vite';
 
 const REPO_ROOT = fileURLToPath(new URL('../../', import.meta.url));
-// Same default as the server's PORT setting in README.md.
+// Same default as the server's PORT setting in GUIDE.md.
 const DEFAULT_SERVER_PORT = '3000';
 
 export default defineConfig(({ mode }) => {

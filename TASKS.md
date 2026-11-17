@@ -1,17 +1,27 @@
 # Tasks
 
+## Milestones
+
+Not written yet.
+
+## Handover
+
+The Number Game and the Block Game are finished. The Survivor Game is built and waits for playtesting and tuning (T-112).
+
+## Task list
+
 The work plan for the project. Tasks are grouped into phases that build on each other. Each task lists the requirement IDs it covers from the `REQUIREMENTS/` folder. A task is done when its code is written, its tests pass, and any docs it affects are updated.
 
-## Phase 1: Project Setup
+### Phase 1: Project Setup
 
 - [x] T-01: Create the git repository with a `.gitignore` and an MIT `LICENSE` file. (PL-16)
 - [x] T-02: Set up an npm workspace with three parts: `packages/number-game` for the game rules, `apps/server` for the server, and `apps/web` for the browser app. (PL-04)
 - [x] T-03: Add a shared TypeScript config with the strictest checks turned on, including `strict`, `noUncheckedIndexedAccess`, and `exactOptionalPropertyTypes`.
 - [x] T-04: Add ESLint with strict TypeScript rules, Prettier, and Vitest, and one command that runs type checks, lint, and tests for every part.
 - [x] T-05: Write `ARCHITECTURE.md` describing the three parts, how a game plugs into the dashboard, and how a move travels from the browser to the server and back. (PL-04, PL-05, PL-06)
-- [x] T-06: Add a `.env.example` with `HOST`, `PORT`, `DATA_DIR`, and `SAVE_SLOTS_PER_GAME`, and document each one in the README. (PL-12, PL-13, PS-16)
+- [x] T-06: Add a `.env.example` with `HOST`, `PORT`, `DATA_DIR`, and `SAVE_SLOTS_PER_GAME`, and document each one in `GUIDE.md`. (PL-12, PL-13, PS-16)
 
-## Phase 2: Number Game Rules
+### Phase 2: Number Game Rules
 
 All rules live in `packages/number-game` as plain TypeScript with no browser or server code. The browser and the server both use this package.
 
@@ -27,11 +37,11 @@ All rules live in `packages/number-game` as plain TypeScript with no browser or 
 - [x] T-16: Define the three difficulty presets and the Easy starting board that is built to contain many pairs. (DF-01, DF-02)
 - [x] T-17: Check that a stored game state is well formed, so a broken save is rejected with a clear error instead of being loaded.
 
-## Phase 3: Server
+### Phase 3: Server
 
 The server is the source of truth. The browser sends moves, the server applies them with the rules package and saves the result.
 
-- [x] T-18: Set up a Fastify server that reads its settings at startup, uses the default from the README for any setting that is not set, and stops with a clear error if a value is invalid. Add a health check route. (PL-10, PL-12)
+- [x] T-18: Set up a Fastify server that reads its settings at startup, uses the default from `GUIDE.md` for any setting that is not set, and stops with a clear error if a value is invalid. Add a health check route. (PL-10, PL-12)
 - [x] T-19: Create the SQLite tables for players, save slots, and high scores, with a migration step that runs at startup. Store the database file in `DATA_DIR`.
 - [x] T-20: Add a game registry on the server, so each game registers its own routes and rules without changes to shared code. (PL-04, PL-05, PL-06)
 - [x] T-21: Player routes: list player IDs and create a new one, rejecting duplicates. (PS-01, PS-02, PS-03)
@@ -42,7 +52,7 @@ The server is the source of truth. The browser sends moves, the server applies t
 - [x] T-26: High score routes: top results filtered by difficulty, and each player's personal best per difficulty. (PS-14, PS-15)
 - [x] T-27: Serve the built browser app from the same server, so only one port is needed. (PL-11)
 
-## Phase 4: Browser App
+### Phase 4: Browser App
 
 - [x] T-28: Set up the Svelte app with page routing and a layout that works on phone portrait screens and laptops. Replace the placeholder `build` and `typecheck` scripts in `apps/web` with Vite and `svelte-check`, and add Svelte support to ESLint and Prettier. (PL-07, PL-08)
 - [x] T-29: Dashboard page that lists games from a browser-side game registry, with a way back from every game. (PL-01, PL-02, PL-03, PL-05)
@@ -56,20 +66,20 @@ The server is the source of truth. The browser sends moves, the server applies t
 - [x] T-37: Show a clear message when a save fails and keep retrying, and when the game was opened on another device. (PS-08, PS-18)
 - [x] T-38: High score page with a difficulty filter. (PS-14, PS-15)
 
-## Phase 5: Packaging and Release
+### Phase 5: Packaging and Release
 
 - [x] T-39: Write a Dockerfile and a compose file that stores the database in a mounted folder so saves survive updates. (PL-15)
-- [x] T-40: Write setup steps in the README for running in a Proxmox VM or LXC container and opening the game from a phone. (PL-10, PL-11, PL-14)
+- [x] T-40: Write setup steps in `GUIDE.md` for running in a Proxmox VM or LXC container and opening the game from a phone. (PL-10, PL-11, PL-14)
 - [ ] T-41: Playtest on a phone and a laptop, then tune the scoring values and difficulty presets. (NG-23, DF-01)
 
-## Audit Follow-up
+### Audit Follow-up
 
 Findings from the first audit. Its file, `AUDIT.md`, was removed in T-92.
 
 - [x] T-42: Version stored game states and summary details, share the server API schemas, move each game's contract into its rules package, test shared server code with a fake game, and split the documents per game. (audit findings A-01 to A-05, A-07 to A-10)
 - [x] T-43: Load each game's play screen and new game options form only when they are first needed. (audit finding A-06)
 
-## Phase 6: Playtest Improvements
+### Phase 6: Playtest Improvements
 
 - [x] T-44: Draw grid lines between every row and column of the board. (NG-29)
 - [x] T-45: Add a shared sound player that makes short tones in the browser, and a mute button in the site header that is remembered on the device. (PL-18, PL-19)
@@ -78,7 +88,7 @@ Findings from the first audit. Its file, `AUDIT.md`, was removed in T-92.
 - [x] T-48: Add Numbers only adds numbers that are still on the board, so a number cleared off completely stays gone until the next stage. (NG-17, NG-33)
 - [x] T-49: Keep every pair group even: balance new stage boards, leave the last cell empty on odd sized boards, and make Add Numbers even out odd groups. (NG-02, NG-17, NG-34)
 
-## Phase 7: Block Game
+### Phase 7: Block Game
 
 The second game. Its requirements are in `REQUIREMENTS/block-game/rules.md`.
 
@@ -89,11 +99,11 @@ The second game. Its requirements are in `REQUIREMENTS/block-game/rules.md`.
 - [x] T-54: Browser module: dashboard entry, board size form, play screen with drag and drop, landing preview, score and streak, clear effects, sounds, and the game over screen. (BG-03, BG-07, BG-16 to BG-18, BG-20, BG-21)
 - [ ] T-55: Playtest the Block Game on a phone and a laptop, then tune the shape weights and scoring values. (BG-10, BG-14)
 
-## Phase 8: Fixes
+### Phase 8: Fixes
 
 - [x] T-56: Give every save its own save id and put it in the play page link, so an old link or an open tab for an ended or deleted game cannot open or change a newer game in the same slot, or move its device lock. Old links without a save id open no game. (PS-19, PS-20, PS-21)
 
-## Phase 9: Disk Game
+### Phase 9: Disk Game
 
 The third game. It was removed again in Phase 16, together with its requirements file.
 
@@ -103,17 +113,17 @@ The third game. It was removed again in Phase 16, together with its requirements
 - [x] T-60: Browser module: dashboard entry, starting disk count form, play screen with tap to pick up and drop, refused drop feedback, undo and hint buttons, score and moves left, stage clear effect, sounds, and the game over screen. (DK-03, DK-09, DK-10, DK-14, DK-18, DK-20, DK-22, DK-23)
 - [x] T-61: Playtest the Disk Game on a phone and a laptop, then tune the reroll rule, the move budget factor, the hint cost, and the scoring values. Dropped, because the Disk Game was removed in T-89. (DK-07, DK-13, DK-16, DK-17, OQ-20)
 
-## Close-out
+### Close-out
 
 The project was closed on 2026-11-11 after it was deployed and used on a home server. The playtest and tuning tasks T-41 and T-55 stay unticked, because no tuning pass was made. The scoring values, difficulty presets, and shape weights are kept as shipped.
 
-## Phase 10: Polishing
+### Phase 10: Polishing
 
 Small improvements made after the close-out.
 
 - [x] T-62: Cut the clicks needed to start playing. Replace the game menu, New Game, Load Game, and High Scores pages with one game page that shows the leaderboard and the save slots. An empty slot starts a new game and a used slot continues its game. (PS-04, PS-09, PS-14, PS-22)
 
-## Phase 11: Number Generation
+### Phase 11: Number Generation
 
 Replaces the random starting board and the random Add Numbers with generators that shape how hard the game is.
 
@@ -124,7 +134,7 @@ Replaces the random starting board and the random Add Numbers with generators th
 - [x] T-67: Review the number generation work with a fresh reviewer and fix what it finds.
 - [x] T-68: Remove board widths 11 and 12 so the board is always 10 wide: drop the width option, the width in the game state and summary, and delete the saves and high scores made on the removed widths. (NG-01, NG-02, PS-05, PS-09)
 
-## Phase 12: Block Game Challenge
+### Phase 12: Block Game Challenge
 
 Makes the Block Game harder without ever dealing a hand that cannot be placed. The tasks are done in order, and `npm run check` passes after each one.
 
@@ -137,13 +147,13 @@ Makes the Block Game harder without ever dealing a hand that cannot be placed. T
 - [x] T-75: Only deal fair hands: check that all 3 shapes can be placed in some order, pick a new hand up to 30 times, and fall back to 3 single cells. (BG-22, BG-23)
 - [x] T-76: Review the Block Game challenge work with a fresh reviewer, measure it with simulated play, and fix what is found. (OQ-24)
 
-## Phase 13: Sound Upgrade
+### Phase 13: Sound Upgrade
 
 Replaces the plain tones with recorded clips.
 
 - [x] T-77: Let the shared sound player play audio clips as well as tones, and add licensed clips with a credits file: a cheer when the Number Game clears a pair, a different cheer when the Block Game clears a line, and a random funny exclamation on game over in every game. (PL-18, NG-31, BG-18, DK-22)
 
-## Phase 14: Number Game Tightening
+### Phase 14: Number Game Tightening
 
 Makes the starting boards less generous and takes Add Numbers out of the difficulty presets.
 
@@ -151,7 +161,7 @@ Makes the starting boards less generous and takes Add Numbers out of the difficu
 - [x] T-79: Make Add Numbers work the same on every preset, with one aim chance and one count of sets tried. Only the count of uses per stage differs between presets. (NG-36, DF-02, DF-05)
 - [x] T-80: Measure the new values with simulated play on every preset, and update `difficulty.md` and the open questions to match. (DF-04, DF-05, OQ-21)
 
-## Phase 15: Wider Cheers and Groans
+### Phase 15: Wider Cheers and Groans
 
 Gives stage clears a Chinese cheer instead of plain bells, and widens the pools of cheers and game over groans.
 
@@ -165,16 +175,16 @@ Gives stage clears a Chinese cheer instead of plain bells, and widens the pools 
 - [x] T-88: Make the cheer words larger than the points and keep them in view for about 2 seconds. Drop the Number Game row removed ring, and play the game over sound alone when a move ends the game. (PL-18, NG-31)
 - [x] T-115: Add 18 cheers (12 Cantonese, 4 Mandarin, 2 Hokkien) and 11 groans (7 Cantonese, 4 Mandarin) to the pools, favouring two word phrases, and credit them in `CREDITS.md`. Commons has only two longer blessings, 新年快樂 and 一帆風順, both Cantonese, and no usable Hokkien groan. (NG-31, BG-18)
 
-## Phase 16: Disk Game Removal and Cleanup
+### Phase 16: Disk Game Removal and Cleanup
 
 Removes the third game to make room for a real time multiplayer game, and clears out code that was copied between the two games that stay.
 
 - [x] T-89: Remove the Disk Game: its rules package, server module, browser module, requirements, tests, and every mention in the documents. Delete its saves and high scores with a database migration. (OQ-20)
 - [x] T-90: Share the code that was copied between the Number Game and the Block Game in the browser: the game over panel, the status bar, the points and cheer words that float up, the bell tones, and the board position type. (PL-18, PL-20)
 - [x] T-91: Share the stored value checks and the stored format upgrade type through the new `packages/stored-values` package, trim each package index to what the apps use, and remove code that nothing uses.
-- [x] T-92: Remove `AUDIT.md`. Its open findings that still hold are the tasks in the Backlog below. Rename the server names it found confusing, and let the test server take the games it offers.
+- [x] T-92: Remove `AUDIT.md`. Its open findings that still hold are the tasks in `REQUIREMENTS/BACKLOG.md`. Rename the server names it found confusing, and let the test server take the games it offers.
 
-## Phase 17: Survivor Game Version 1
+### Phase 17: Survivor Game Version 1
 
 Adds the first room game. The rules are in `REQUIREMENTS/survivor-game/`.
 
@@ -194,19 +204,9 @@ Adds the first room game. The rules are in `REQUIREMENTS/survivor-game/`.
 - [x] T-111: Add the Survivor Game to `README.md` and to the project overview in `CLAUDE.md`, and document the new setting. (SG-09)
 - [ ] T-112: Playtest solo and with several phones, then tune the values in `balance.md`. (OQ-28)
 
-## Phase 18: Add Numbers Rescue
+### Phase 18: Add Numbers Rescue
 
 Makes Add Numbers help a player who is left with a few numbers that cannot see each other.
 
 - [x] T-113: Add at least one row of numbers on every press, and on a small board keep a set of new numbers that a search can clear completely. Remove the played-ahead check, which the search replaces. (NG-17, NG-36, DF-05, OQ-21)
 - [ ] T-114: Playtest Add Numbers on a small board on each preset, then tune the small board limit and the count of sets tried. (DF-05, OQ-21)
-
-## Backlog
-
-Known gaps that are not planned yet. They come from the last audit and still hold.
-
-- [ ] T-93: List a save that cannot be read as broken, with no summary, so it can still be deleted. Today one such save makes the whole slot list of its game fail, and one unreadable high score does the same to the high score table.
-- [ ] T-94: Give the Block Game a way to play without dragging, such as tapping a slot and then a cell, so it works with a keyboard and a screen reader.
-- [ ] T-95: Make the sound button say clearly whether its label is the current state or the action, for example with `aria-pressed` and a fixed label.
-- [ ] T-96: Add tests for `router.ts`, the Svelte components, and the Block Game pointer handling.
-- [ ] T-97: Keep each fact in one document: the game summaries are in `README.md` and the rules files, and the high score categories are in `ARCHITECTURE.md` and the rules files.
