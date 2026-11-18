@@ -2,47 +2,47 @@
 
 ## GUIDELINES
 
-- Task decomposition: always decompose tasks before writing them into the task list
-- Relevant contexts: discover any relevant documentation or code before starting any tasks
-- Assumptions: if you had to make any assumptions to carry out a task, clearly state the assumptions you had to make
-- Transparency: before beginning any work, clearly state the goal you are working towards
-- Failures: if you fail to resolve an error more than three times within a session, cleanly remove any new code that may have introduced the error, stop, and report the problem to the user
-- Clean solutions: if an idea, requirement, or implementation is not very well thought out and pose risks for technical debt in the future, stop before implementing, investigate better solutions, explain the risks to the user, and propose your alternative solutions
-- Contradictions: if instructions or documentation files relevant to the assigned task has contradictions that obstructs the task, investigate the contradiction, explain it to the user, and provide the user suggestions
-- Knowledge gaps: if instructions or documentation files relevant to the assigned task has knowledge gaps that obstructs the task, has no obvious options, and assumptions would be difficult to change down the line, investigate the knowledge gap, explain it to the user and provide the user suggestions
-- Subagents: if a task has clear parts that can be completed in isolated sessions with no issues, you may opt to deploy subagents to keep the session context clean. Every subagent runs on Sonnet: always pass model "sonnet" explicitly when launching one, never Opus or Fable, unless the user names a different model for that task. Subagents may also be utilized to perform review at the end of tasks with a fresh and less biased context
-- Long waits: subagents never wait on slow work such as bulk downloads, long builds, or rate-limited services, because a subagent cannot idle and must poll, and every poll costs a full turn. Split the work instead: a subagent prepares a script and its inputs, the main agent runs the script as a background task and idles until it is notified, then a subagent handles the results. The script writes its full log to a file and prints only a short summary, works sequentially with pauses when the service is rate limited, and only one script runs against the same service at a time
-- Test driven development: tests should be written before code. When requirement changes, tests should be changed before code.
+- Purpose check: Before starting a task, check it against the project's purpose as described in its README. If the task conflicts with that purpose or doesn't move the project toward it, stop, explain why, and wait for my answer, even if I asked for the task directly.
+- Simple, maintainable design: Prefer the simplest solution that stays easy to change later. If a request or approach risks technical debt or hard-to-maintain code, stop before implementing, explain the risk, propose a cleaner alternative, and wait for my answer.
+- Resolve ambiguity: If instructions or docs relevant to the task contradict each other or leave a gap that blocks the work, investigate, explain the issue, propose options, and wait for my answer. For minor or easily reversible gaps, make a reasonable assumption and note it instead.
+- When to stop: The three checks above apply to work that would be costly to redo. For small, easily reversible changes, skip the stop, go ahead, and mention any concern in your summary.
+- Small, safe tasks: Decompose work into small, independently verifiable tasks. Each task should be small enough to review in a few minutes and end in a working, tested state.
+- Tests first: For new behavior and bug fixes, write tests that define the expected behavior as a contract before implementing. Confirm they fail, then write code until they pass. For refactors, make sure tests covering the affected behavior exist and pass before and after the change. Docs, config, and trivial changes need no new tests.
+- Test changes: Never edit tests to make the implementation pass. If a test seems wrong or the requirement has changed, stop and tell me instead of changing it.
+- Meaningful tests: Only write tests that would fail if real behavior broke. Test observable behavior and meaningful edge cases, not implementation details or trivial code. Use mocks only for slow or external dependencies, and never write tests that only check what a mock returns. A few tests that catch real bugs beat many that don't.
+- Subagents: Use subagents for self-contained parts of a task, to keep the main context clean, and for an unbiased review once a task is done. Always pass model: "sonnet" explicitly, unless I name a different model for that task.
+- Long waits, who does what: Subagents must not wait on slow work (bulk downloads, long builds, rate-limited services), since every poll costs a full turn. A subagent or the main agent writes the script, the main agent runs it in the background and waits for the notification, and a subagent processes the results.
+- Long waits, how scripts behave: Scripts log everything to a file, print only a short summary, and pause when rate limited. Only one script runs against a given service at a time.
 
-## CODING STYLE GUIDE
+## CODE STYLE
 
-- Function and variables should be given specific and distinguishable names
-- Comments should only be written for things the code cannot explain itself
-- Files and functions should each do one job at one level of detail; split code out when it represents its own concept or is reused elsewhere
-- Fail loudly: errors should show up clearly, be acknowledged, and not suppressed away
-- Strict typing: use the strictest type checking the language and project tooling support, annotate function signatures and public interfaces, and avoid escape hatches such as any, untyped casts, or ignore directives unless a comment explains why they are needed
-- Config variables: values that may change between environments, deployments, or project version should be read from configs instead of being hardcoded, never commit secrets, and document each new variable where the project documents its config
+- Precedence: The guidelines above take priority over these rules when they pull in different directions. In an existing codebase, follow its established conventions where they differ from these rules; apply these rules to new code, and don't change existing code to match them unless that's the task. If existing code breaks the error rule below, mention it rather than fixing it unasked.
+- Naming: Give functions and variables specific names that can't be confused with each other.
+- Comments: Comments explain why, not what. Don't add comments that restate the code, and don't remove existing comments unless they're wrong.
+- Structure: Each file and function does one job at one level of detail. Split code out when it is its own concept or is actually reused, not in anticipation, even when that might make later changes easier; a few clear inline lines beat a helper used once.
+- Errors: Never swallow errors or replace missing values with silent defaults. Handle an error only when there is a real recovery, such as a retry or a documented fallback, and log it when you do; otherwise let it propagate with enough context to diagnose it.
+- Typing: Use the strictest type settings the project already has, and start new projects strict. Don't tighten an existing project's type config unless that's the task. Annotate function signatures and public interfaces, and avoid escape hatches such as any, untyped casts, or ignore directives unless a comment explains why they are needed.
+- Config: Read values that differ between environments or deployments from config instead of hardcoding them; use named constants for other fixed values. A config value may have a default only if the default is documented. Never put secrets in code or tracked files. Document each new config variable where the project documents its config, or in a .env.example if there's no such place.
 
-## DOCUMENTATION STYLE GUIDE
+## DOCUMENTATION STYLE
 
-- Applies to every markdown file
-- First heading is always title of the markdown file
-- Line break before and after each heading except for the first
-- Line break before and after lists
-- Headings, plain text, bullet points, numbered lists, and tables
-- No bold, italics, underline, or strike through
-- Bullet points and numbered lists should be combined if they share a subject and trigger
-- Documents should not hold duplicate information. Each piece of information should only have one source of truth
+- Scope: These rules apply to every markdown file. They don't apply to chat replies, which follow the response style below. In an existing project, follow its established markdown conventions where they differ from these rules.
+- Structure: The first heading is the document's title. Put a blank line before and after every heading except the first, and before and after every list.
+- Elements: Use only headings, plain text, bullet points, numbered lists, tables, links, and code blocks. No bold, italics, underline, or strikethrough.
+- Lists: Merge list items that cover the same subject and apply in the same situation.
+- Single source of truth: Each piece of information lives in exactly one place. Elsewhere, link or refer to it instead of restating it, and when it changes, update only that place.
 
-## COMMIT MESSAGE STYLE GUIDE
+## COMMIT MESSAGE STYLE
 
-- 
+- Precedence: If the repository already uses a different commit message format, follow it.
+- Summary line: Start with a summary of about 50 characters or less, written as a command ("Add retry to payment client"), with no period at the end.
+- Body: After a blank line, explain why the change was made and anything surprising about it, such as trade-offs or side effects. Don't restate what the diff already shows. If the reason isn't known, keep the body short or leave it out rather than guessing.
+- One change per commit: Each commit covers one logical change. If the summary needs "and", split it into separate commits.
+- Subagent handoff: When a subagent writes the message, pass it the reason for the change along with the diff, since it can't work out the reason from the code.
 
-## RESPONSE STYLE GUIDE
+## RESPONSE STYLE
 
-- Language: responses should be written in easy to understand high school level language where possible
-- Start your responses with the goal of the assigned task
-- Within your responses, group your actions sequentially into sections, explain the actions you carried out within each sections and why you performed them.
+- Language: Write responses in easy-to-understand, high-school-level language where possible.
 
 ## VERIFICATION TOOLS
 
@@ -50,36 +50,37 @@
 
 ## DIRECTORY
 
-- `CLAUDE.md`: instructions for agents working in this project
-    - Guidelines
-    - Coding style guide
-    - Documentation style guide
-    - Commit message style guide
-    - Response style guide
-    - Verification tools
-    - Directory
-- `README.md`: general overview of the project
-    - Project overview (title, description, stack)
-    - Purpose
-    - Scope
-- `GUIDE.md`: guidance for users
-    - User setup, including how to clone and set up to begin using the project
-    - Developer setup: developer setup including steps to clone and set up the project for development
-- `ARCHITECTURE.md`: how the code is divided, the rules it must follow, how data moves through it while it runs, and where new code goes
-    - Structure: mermaid diagram and description of code architecture that describes how responsibility is divided in the code base
-    - Design: design choices and rules that must be followed as a result
-    - Data flow: mermaid diagram to show data flow and description of how data flows when the project runs
-    - Systems: one short section per system naming the part that owns it, the rules it keeps, and where its detailed documentation lives
-    - Extending: where to add new systems
-- `TASKS.md`: progress tracking for agents and developers
-    - Milestones
-    - Handover
-    - Task list
-- `REQUIREMENTS/`: requirement folder
-    - `REQUIREMENTS/README.md`: index of the requirement files, with one line on what each file covers
-    - `REQUIREMENTS/BACKLOG.md`: ideas and work that are not part of the current version and not yet planned as tasks
-- `API.md`: the interfaces between the project's parts and to the outside world: routes, messages, request and answer shapes, error format, and the conventions they follow
+- `CLAUDE.md`: rules for agents working in the project
+    - GUIDELINES
+    - CODE STYLE
+    - DOCUMENTATION STYLE
+    - COMMIT MESSAGE STYLE
+    - RESPONSE STYLE
+    - VERIFICATION TOOLS: the commands that build, test, lint, and type-check the project
+    - DIRECTORY
+- `README.md`: what the project is and why it exists; the first heading is the project name
+    - OVERVIEW: a short description and the stack
+    - PURPOSE: the problem the project solves, used for the purpose check in GUIDELINES
+    - SCOPE: a high-level list of what the project does and does not do; details live in `REQUIREMENTS/`
+- `GUIDE.md`: how to get the project running
+    - USER SETUP: steps to clone, install, and start using the project
+    - DEVELOPER SETUP: extra steps needed for development, on top of user setup
+- `ARCHITECTURE.md`: how the code is organized and why
+    - STRUCTURE: a mermaid diagram and description of how responsibility is divided in the code base
+    - DESIGN: design choices and the rules that follow from them
+    - DATA FLOW: a mermaid diagram and description of how data moves when the project runs
+    - SYSTEMS: one short section per system naming the part that owns it, the rules it keeps, and where its detailed documentation lives
+    - EXTENDING: where to add new systems
+- `TASKS.md`: current progress; read at the start of each session and update before it ends
+    - MILESTONES: the larger goals for the current version, in order
+    - HANDOVER: where the last session stopped and what the next session needs to know
+    - TASK LIST: planned tasks and their status
+- `REQUIREMENTS/`: what the current version must do, one file per feature or area
+    - `REQUIREMENTS/README.md`: index of the requirement files, with one line on what each covers
+    - `REQUIREMENTS/BACKLOG.md`: ideas and work not in the current version and not yet planned as tasks
+- `API.md` (optional): the interfaces between the project's parts and to the outside world: routes, messages, request and response shapes, error format, and the conventions specific to them
 - `TESTING.md`: how the project is tested: test levels and what each covers, tools, fixtures and helpers, known gaps, and pitfalls when writing tests
+
 - `packages/`: code shared by the server and the browser app, with one rules package per game. Each package has a `README.md`
 - `apps/server/`: the Fastify server
 - `apps/web/`: the Svelte browser app

@@ -67,7 +67,7 @@ Every clip was shortened, normalised in loudness, converted to mono mp3, and in 
 | `game-over-shangxin-cmn.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9192_(cmn)-CanonNi-伤心.wav | CanonNi (Lingua Libre) | CC0 | Trimmed, normalised |
 | `game-over-shu-cmn.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9192_(cmn)-CanonNi-输.wav | CanonNi (Lingua Libre) | CC0 | Trimmed, normalised |
 | `game-over-mafan-cmn.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9192_(cmn)-CanonNi-麻烦.wav | CanonNi (Lingua Libre) | CC0 | Trimmed, normalised |
-| `wrong-buzzer.mp3` | https://commons.wikimedia.org/wiki/File:Buzzer.wav | David Pride | CC0 | Cut to half a second, normalised |
+| `wrong-match-faansyu-yue.mp3` | https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Luilui6666-番.wav and https://commons.wikimedia.org/wiki/File:LL-Q9186_(yue)-Jonashtand-薯仔.wav | Luilui6666, Jonashtand (Lingua Libre) | CC BY-SA 4.0 | First syllable of 薯仔 cut out and pitched up to match the 番 speaker, two words joined, normalised |
 | `wood-knock.mp3` | https://commons.wikimedia.org/wiki/File:Knocking_on_wood_or_door.ogg | stephan | Public domain | One knock cut out, normalised |
 
 ## Licences

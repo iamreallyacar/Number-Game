@@ -66,7 +66,7 @@ import gameOverShibaiCmnUrl from './clips/game-over-shibai-cmn.mp3';
 import gameOverShangxinCmnUrl from './clips/game-over-shangxin-cmn.mp3';
 import gameOverShuCmnUrl from './clips/game-over-shu-cmn.mp3';
 import gameOverMafanCmnUrl from './clips/game-over-mafan-cmn.mp3';
-import wrongBuzzerUrl from './clips/wrong-buzzer.mp3';
+import wrongMatchFaansyuYueUrl from './clips/wrong-match-faansyu-yue.mp3';
 import woodKnockUrl from './clips/wood-knock.mp3';
 
 /** A comic groan or a word of regret in Chinese, picked at random, for when any game ends. */
@@ -147,8 +147,8 @@ export const CHEER_SOUND: OneOfSound = oneOfSound([
   spokenClipSound(cheerPoUnNanUrl, '補運'),
 ]);
 
-/** A game buzzer, for a move the rules refuse. */
-export const WRONG_BUZZER_SOUND: ClipSound = clipSound(wrongBuzzerUrl, 0.7);
+/** A Cantonese "faan syu" (sweet potato, slang for a dummy), for a move the rules refuse. */
+export const WRONG_MATCH_SOUND: ClipSound = clipSound(wrongMatchFaansyuYueUrl);
 
 /** A wooden knock, for a piece set down. */
 export const WOOD_KNOCK_SOUND: ClipSound = clipSound(woodKnockUrl, 1);

@@ -7,6 +7,11 @@ describe('NUMBER_GAME_SOUNDS', () => {
     expect(NUMBER_GAME_SOUNDS.matchShout).toBe(CHEER_SOUND);
   });
 
+  it('says "faan syu" (sweet potato, a dummy) for a wrong match', () => {
+    const sound = NUMBER_GAME_SOUNDS.wrongMatch;
+    expect(sound.kind === 'clip' && sound.url).toContain('wrong-match-faansyu-yue');
+  });
+
   it.each(['stageClear'] as const)('plays a random cheer over the bells for %s', (soundName) => {
     const sound = NUMBER_GAME_SOUNDS[soundName];
     expect(sound.kind === 'layered' && sound.layers.includes(CHEER_SOUND)).toBe(true);

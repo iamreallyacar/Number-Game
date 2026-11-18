@@ -1,6 +1,6 @@
 import { bellTones } from '../../audio/bell-tones.js';
 import { layeredSound, toneSound, type Sound } from '../../audio/sound-player.js';
-import { CHEER_SOUND, GAME_OVER_SOUND, WRONG_BUZZER_SOUND } from '../../audio/clip-sounds.js';
+import { CHEER_SOUND, GAME_OVER_SOUND, WRONG_MATCH_SOUND } from '../../audio/clip-sounds.js';
 
 // Notes from the C major chord, so every sound fits with the others when they overlap.
 const NOTE_C4_HZ = 261.63;
@@ -21,7 +21,7 @@ export const NUMBER_GAME_SOUNDS: Readonly<Record<NumberGameSoundName, Sound>> = 
     { frequencyHz: 440, waveform: 'sine', peakGain: 0.15, startSeconds: 0, fadeSeconds: 0.07 },
   ]),
   matchShout: CHEER_SOUND,
-  wrongMatch: WRONG_BUZZER_SOUND,
+  wrongMatch: WRONG_MATCH_SOUND,
   addNumbers: toneSound([
     {
       frequencyHz: NOTE_C4_HZ,
