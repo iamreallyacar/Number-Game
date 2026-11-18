@@ -7,9 +7,9 @@ describe('NUMBER_GAME_SOUNDS', () => {
     expect(NUMBER_GAME_SOUNDS.matchShout).toBe(CHEER_SOUND);
   });
 
-  it('says "faan syu" (sweet potato, a dummy) for a wrong match', () => {
+  it('says a Mandarin "fan shu" (sweet potato) for a wrong match', () => {
     const sound = NUMBER_GAME_SOUNDS.wrongMatch;
-    expect(sound.kind === 'clip' && sound.url).toContain('wrong-match-faansyu-yue');
+    expect(sound.kind === 'clip' && sound.url).toContain('wrong-match-fanshu-cmn');
   });
 
   it.each(['stageClear'] as const)('plays a random cheer over the bells for %s', (soundName) => {
