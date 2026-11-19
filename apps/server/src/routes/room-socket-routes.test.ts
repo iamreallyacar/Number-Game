@@ -100,6 +100,26 @@ async function waitForRoom(
 }
 
 describe('room WebSocket route', () => {
+  it('hides a running room from the list while every player is connected', async () => {
+    const started = await startRunningRoom();
+    const listedRoomIds = async () => {
+      const list = await started.app.inject({ method: 'GET', url: FAKE_ROOMS_URL });
+      return list.json<{ rooms: { roomId: string }[] }>().rooms.map((room) => room.roomId);
+    };
+    expect(await listedRoomIds()).toEqual([started.roomId]);
+
+    const sam = await openSocket(started, socketPath(started.roomId, 'Sam'));
+    const ana = await openSocket(started, socketPath(started.roomId, 'Ana'));
+    await waitFor(() => sam.messages.length === 1 && ana.messages.length === 1);
+    expect(await listedRoomIds()).toEqual([]);
+
+    sam.socket.terminate();
+    await sam.closed;
+    expect(await listedRoomIds()).toEqual([started.roomId]);
+    ana.socket.terminate();
+    await started.app.close();
+  });
+
   it('sends the state right after connecting and then reports as the loop steps', async () => {
     const started = await startRunningRoom();
     const { socket, messages } = await openSocket(started, socketPath(started.roomId, 'Sam'));

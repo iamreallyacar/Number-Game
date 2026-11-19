@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryStorage } from '../test-support/memory-storage.js';
 import { ApiError } from './api-request.js';
+import { getDeviceId } from './device-id.js';
 import { deleteSave, openSave, sendMove, startGame, type SaveAddress } from './game-server-api.js';
 
 const SAVE_ID = '0f8fad5b-d9cb-469f-a165-70867728950e';
@@ -27,9 +28,12 @@ function requestedPaths(fetchSpy: ReturnType<typeof answerWith>): string[] {
 }
 
 describe('save routes in the browser', () => {
+  let storage: MemoryStorage;
+
   beforeEach(() => {
     // The device ID lives in local storage, which the tests keep in memory.
-    vi.stubGlobal('window', { localStorage: new MemoryStorage() });
+    storage = new MemoryStorage();
+    vi.stubGlobal('window', { localStorage: storage });
   });
 
   afterEach(() => {
@@ -59,6 +63,19 @@ describe('save routes in the browser', () => {
       `${SAVE_PATH}/moves`,
       SAVE_PATH,
     ]);
+  });
+
+  it('sends this device id when starting, opening, and moving, for the save lock', async () => {
+    const fetchSpy = answerWith(200, OPENED_SAVE);
+    await startGame({ gameId: 'number-game', slotNumber: 2, playerId: 'Sam', options: {} });
+    await openSave(ADDRESS);
+    fetchSpy.mockResolvedValueOnce(Response.json({ gameOver: false }));
+    await sendMove(ADDRESS, { type: 'hint' });
+    const deviceId = getDeviceId(storage);
+    expect(fetchSpy.mock.calls).toHaveLength(3);
+    for (const [, init] of fetchSpy.mock.calls) {
+      expect(init.headers).toMatchObject({ 'x-device-id': deviceId });
+    }
   });
 
   it('passes on save-gone when the slot no longer holds this save', async () => {

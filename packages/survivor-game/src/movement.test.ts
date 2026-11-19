@@ -3,7 +3,7 @@ import { PLAYER_SPEED, STEP_RATE } from './balance.js';
 import { movePlayers } from './movement.js';
 import { InvalidStepInputError, NO_INPUT, toUnitDirection } from './player-input.js';
 import { stepRun } from './step-run.js';
-import { makeRun } from './test-support.js';
+import { makePlayer, makeRun, withPlayers } from './test-support.js';
 
 describe('toUnitDirection', () => {
   it('turns any length into length 1', () => {
@@ -52,9 +52,25 @@ describe('moving in a step', () => {
     ).toBeCloseTo(PLAYER_SPEED / STEP_RATE);
   });
 
-  it('lets players pass through each other', () => {
-    const state = makeRun(['a', 'b']);
-    const inputs = new Map([['a', { ...NO_INPUT, direction: { x: 1, y: 0 } }]]);
-    expect(() => stepRun(state, inputs)).not.toThrow();
+  it('lets players pass through each other at full speed (SG-12)', () => {
+    const distancePerStep = PLAYER_SPEED / STEP_RATE;
+    const start = withPlayers(makeRun(['a', 'b']), [
+      makePlayer({ playerId: 'a', x: -100 }),
+      makePlayer({ playerId: 'b', x: 100 }),
+    ]);
+    const inputs = new Map([
+      ['a', { ...NO_INPUT, direction: { x: 1, y: 0 } }],
+      ['b', { ...NO_INPUT, direction: { x: -1, y: 0 } }],
+    ]);
+    // 200 apart closing at 2 * 160 per second, so they cross after 37.5 steps.
+    const steps = 45;
+    let state = start;
+    for (let step = 0; step < steps; step += 1) {
+      state = stepRun(state, inputs);
+    }
+    const [a, b] = state.players;
+    expect(a?.x).toBeCloseTo(-100 + steps * distancePerStep, 5);
+    expect(b?.x).toBeCloseTo(100 - steps * distancePerStep, 5);
+    expect(a?.x).toBeGreaterThan(b?.x ?? 0);
   });
 });

@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { fakeRoomTestGame } from '../fake-room-test-game.js';
+import { GameRegistry } from '../games/game-registry.js';
 import { COUNTER_URL, createPlayer, FAKE_ROOMS_URL, startTestServer } from '../test-support.js';
 
 async function startServerWithPlayers(maxRoomGameRuns?: number) {
@@ -22,6 +24,21 @@ async function createRoom(app: TestApp, playerId: string): Promise<string> {
 }
 
 describe('room routes', () => {
+  it('refuses to start a room with fewer players than the game needs', async () => {
+    const games = new GameRegistry();
+    games.register({ ...fakeRoomTestGame, id: 'fake-pair', minPlayers: 2 });
+    const { app } = await startTestServer({ games });
+    await createPlayer(app, 'Sam');
+    const roomsUrl = '/api/games/fake-pair/rooms';
+    const roomId = (await post(app, roomsUrl, 'Sam')).json<{ room: { roomId: string } }>().room
+      .roomId;
+    const response = await post(app, `${roomsUrl}/${roomId}/start`, 'Sam');
+    expect(response.statusCode).toBe(409);
+    expect(response.json()).toMatchObject({ error: 'not-enough-players' });
+    const room = await app.inject({ method: 'GET', url: `${roomsUrl}/${roomId}` });
+    expect(room.json()).toMatchObject({ room: { status: 'waiting' } });
+  });
+
   it('creates a room with the caller as host', async () => {
     const { app } = await startServerWithPlayers();
     const response = await post(app, FAKE_ROOMS_URL, 'sam');

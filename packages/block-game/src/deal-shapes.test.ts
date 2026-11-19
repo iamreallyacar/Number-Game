@@ -1,6 +1,7 @@
 import { createRandomState, type RandomState } from '@local/seeded-random';
 import { describe, expect, it } from 'vitest';
-import { createEmptyCells } from './board.js';
+import { cellIndexAt, countFullLines, createEmptyCells } from './board.js';
+import { placeAndClearLines } from './place-and-clear.js';
 import { dealHand, drawShapeId, MAX_FAIR_HAND_TRIES } from './deal-shapes.js';
 import { canPlaceWholeHand } from './fair-hand.js';
 import { BOARD_SIZE, type GameState } from './game-state.js';
@@ -9,7 +10,7 @@ import { createGame } from './new-game.js';
 import { applyPlacement } from './place-shape.js';
 import { shapeFitsAt } from './shape-fit.js';
 import { CHECKERBOARD_ROWS, cellsFromRows } from './test-support.js';
-import { SHAPE_IDS, type ShapeId } from './shape-catalogue.js';
+import { getShape, SHAPE_IDS, type ShapeId } from './shape-catalogue.js';
 
 const EMPTY_BOARD = { cells: createEmptyCells() };
 
@@ -112,22 +113,77 @@ describe('dealing fair hands', () => {
   });
 });
 
+const SIDE_STEPS = [
+  { rowStep: -1, columnStep: 0 },
+  { rowStep: 1, columnStep: 0 },
+  { rowStep: 0, columnStep: -1 },
+  { rowStep: 0, columnStep: 1 },
+];
+
 describe('playing with fair hands', () => {
-  function playFirstFittingShape(state: GameState): GameState | null {
+  // Clearing lines matters most. Touching filled cells or walls comes next, so the board stays
+  // tidy and games last long enough to reach the crowded boards where fair hands are hard to find.
+  function scorePlacement(
+    state: GameState,
+    shapeId: ShapeId,
+    topRow: number,
+    leftColumn: number,
+  ): number {
+    const shapeCells = getShape(shapeId).cells;
+    const isShapeBlock = (row: number, column: number): boolean =>
+      shapeCells.some(
+        (cell) => topRow + cell.rowOffset === row && leftColumn + cell.columnOffset === column,
+      );
+    let touchingSides = 0;
+    for (const cell of shapeCells) {
+      const row = topRow + cell.rowOffset;
+      const column = leftColumn + cell.columnOffset;
+      for (const { rowStep, columnStep } of SIDE_STEPS) {
+        const neighbourRow = row + rowStep;
+        const neighbourColumn = column + columnStep;
+        const isOffBoard =
+          neighbourRow < 0 ||
+          neighbourColumn < 0 ||
+          neighbourRow >= BOARD_SIZE ||
+          neighbourColumn >= BOARD_SIZE;
+        if (
+          !isShapeBlock(neighbourRow, neighbourColumn) &&
+          (isOffBoard || state.cells[cellIndexAt(neighbourRow, neighbourColumn)] !== null)
+        ) {
+          touchingSides++;
+        }
+      }
+    }
+    const clearedLines = countFullLines(
+      placeAndClearLines(state, shapeId, topRow, leftColumn).fullLines,
+    );
+    return clearedLines * 100 + touchingSides;
+  }
+
+  function playBestScoringShape(state: GameState): GameState | null {
+    let best: { slotIndex: number; topRow: number; leftColumn: number; score: number } | null =
+      null;
     for (const [slotIndex, shapeId] of state.slots.entries()) {
       if (shapeId === null) {
         continue;
       }
       for (let topRow = 0; topRow < BOARD_SIZE; topRow++) {
         for (let leftColumn = 0; leftColumn < BOARD_SIZE; leftColumn++) {
-          if (shapeFitsAt(state, shapeId, topRow, leftColumn)) {
-            const result = applyPlacement(state, slotIndex, topRow, leftColumn);
-            return result.accepted ? result.state : null;
+          if (!shapeFitsAt(state, shapeId, topRow, leftColumn)) {
+            continue;
+          }
+          const score = scorePlacement(state, shapeId, topRow, leftColumn);
+          if (best === null || score > best.score) {
+            best = { slotIndex, topRow, leftColumn, score };
           }
         }
       }
     }
-    return null;
+    if (best === null) {
+      return null;
+    }
+    const result = applyPlacement(state, best.slotIndex, best.topRow, best.leftColumn);
+    return result.accepted ? result.state : null;
   }
 
   it.each([1, 2, 3, 4, 5, 6])(
@@ -145,13 +201,15 @@ describe('playing with fair hands', () => {
           ).toBe(true);
           expect(isGameOver(state)).toBe(false);
         }
-        const nextState = playFirstFittingShape(state);
+        const nextState = playBestScoringShape(state);
         if (nextState === null) {
           break;
         }
         state = nextState;
       }
-      expect(state.shapesPlaced).toBeGreaterThan(6);
+      // The first-fit player ended after 23 to 53 placements; this one reaches 47 to 215, so the
+      // run must get well past the near-empty early game.
+      expect(state.shapesPlaced).toBeGreaterThan(40);
     },
   );
 });

@@ -103,30 +103,34 @@ describe('the rope table of SG-19', () => {
   });
 
   it('drifts slowly with the three when three push one way and one pushes the other', () => {
-    const steps = 120;
     const start = withPlayers(makeRun(['a', 'b', 'c', 'd']), [
       makePlayer({ playerId: 'a', x: 0 }),
       makePlayer({ playerId: 'b', x: 0 }),
       makePlayer({ playerId: 'c', x: 0 }),
       makePlayer({ playerId: 'd', x: 0 }),
     ]);
-    const state = stepMany(
-      start,
-      new Map([
-        ['a', walk(1)],
-        ['b', walk(1)],
-        ['c', walk(1)],
-        ['d', walk(-1)],
-      ]),
-      steps,
+    const inputs: StepInputs = new Map([
+      ['a', walk(1)],
+      ['b', walk(1)],
+      ['c', walk(1)],
+      ['d', walk(-1)],
+    ]);
+    // The rope pulls moving players back equally (SG-16), so the four's middle only moves by
+    // (3 - 1) / 4 = half a step of walking. The rope is taut after 37.5 steps, so measure after that.
+    const tautSteps = 60;
+    const measuredSteps = 60;
+    const taut = stepMany(start, inputs, tautSteps);
+    const later = stepMany(taut, inputs, measuredSteps);
+    const drift = playerX(later, 'a') - playerX(taut, 'a');
+    const fullSpeedDistance = measuredSteps * distancePerStep;
+    expect(drift).toBeGreaterThan(0);
+    expect(drift).toBeLessThanOrEqual(0.6 * fullSpeedDistance);
+    expect(Math.abs(playerX(later, 'd') - playerX(later, 'a'))).toBeLessThanOrEqual(
+      ROPE_LENGTH + 1e-6,
     );
-    const groupX = playerX(state, 'a');
-    expect(groupX).toBeGreaterThan(0);
-    expect(groupX).toBeLessThan(steps * distancePerStep);
-    expect(Math.abs(playerX(state, 'd') - groupX)).toBeLessThanOrEqual(ROPE_LENGTH + 1);
   });
 
-  it('keeps every pair of four players near the rope length', () => {
+  it('never leaves any two players farther apart than the rope length', () => {
     const state = stepMany(
       makeRun(['a', 'b', 'c', 'd']),
       new Map([
@@ -137,10 +141,15 @@ describe('the rope table of SG-19', () => {
       ]),
       200,
     );
-    for (const first of state.players) {
-      for (const second of state.players) {
-        expect(distanceBetween(first, second)).toBeLessThanOrEqual(ROPE_LENGTH + 1);
-      }
-    }
+    // With more than two players the settling passes in rope.ts can leave a tiny overshoot (below
+    // 0.0001 in simulated runs, about 1e-13 here), so allow a little for it.
+    const overshootTolerance = 1e-6;
+    state.players.forEach((first, firstIndex) => {
+      state.players.slice(firstIndex + 1).forEach((second) => {
+        expect(distanceBetween(first, second)).toBeLessThanOrEqual(
+          ROPE_LENGTH + overshootTolerance,
+        );
+      });
+    });
   });
 });

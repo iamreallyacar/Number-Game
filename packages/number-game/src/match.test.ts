@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DIFFICULTY_PRESETS } from './difficulty.js';
 import { applyMatch } from './match.js';
-import { EMPTY_ROW_POINTS, MATCH_POINTS, stageClearBonus } from './scoring.js';
 import { cellsFromRows, makeTestState } from './test-support.js';
 
 describe('applyMatch', () => {
@@ -10,7 +9,7 @@ describe('applyMatch', () => {
     const result = applyMatch(state, 0, 1);
     expect(result).toEqual({
       accepted: true,
-      state: { ...state, cells: cellsFromRows(['..11111111', '1111111111']), score: MATCH_POINTS },
+      state: { ...state, cells: cellsFromRows(['..11111111', '1111111111']), score: 10 },
       removedRowCount: 0,
       stageCleared: false,
     });
@@ -24,7 +23,8 @@ describe('applyMatch', () => {
     expect(result.accepted && result.state.cells).toEqual(
       cellsFromRows(['1111111111', '2222222222']),
     );
-    expect(result.accepted && result.state.score).toBe(MATCH_POINTS + EMPTY_ROW_POINTS);
+    // NG-23: 10 for the match plus 50 for the removed row.
+    expect(result.accepted && result.state.score).toBe(60);
     expect(result.accepted && result.removedRowCount).toBe(1);
   });
 
@@ -43,7 +43,8 @@ describe('applyMatch', () => {
     expect(result.stageCleared).toBe(true);
     expect(result.removedRowCount).toBe(2);
     expect(result.state.stage).toBe(3);
-    expect(result.state.score).toBe(100 + MATCH_POINTS + 2 * EMPTY_ROW_POINTS + stageClearBonus(2));
+    // 100 + 10 for the match + 2 rows of 50 + 500 * stage 2
+    expect(result.state.score).toBe(1210);
     expect(result.state.cells).toHaveLength(100);
     expect(result.state.addNumbersLeft).toBe(DIFFICULTY_PRESETS.normal.addNumbersUsesPerStage);
   });

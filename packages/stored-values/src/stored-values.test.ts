@@ -32,4 +32,19 @@ describe('isWholeNumberAtLeast', () => {
       expect(isWholeNumberAtLeast(value, 1)).toBe(false);
     },
   );
+
+  it.each([
+    { minimum: 0, accepted: [0, 1, 40], refused: [-1] },
+    { minimum: 5, accepted: [5, 6, 40], refused: [0, 1, 4] },
+  ])(
+    'accepts from a minimum of $minimum and refuses below it',
+    ({ minimum, accepted, refused }) => {
+      for (const value of accepted) {
+        expect(isWholeNumberAtLeast(value, minimum)).toBe(true);
+      }
+      for (const value of refused) {
+        expect(isWholeNumberAtLeast(value, minimum)).toBe(false);
+      }
+    },
+  );
 });

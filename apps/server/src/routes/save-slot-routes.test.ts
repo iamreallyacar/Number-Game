@@ -94,6 +94,35 @@ describe('save slot routes', () => {
     expect(created.json()).toMatchObject({ playerId: 'Sam' });
   });
 
+  it('hides a save stored above the slot limit from the list, open, move, and delete (OQ-19)', async () => {
+    const { app, database } = await startServerWithPlayer();
+    const saveId = storeSave(database, {
+      slotNumber: 4,
+      playerId: 'Sam',
+      state: { count: 1, target: 3 },
+    });
+    const listed = await app.inject({ method: 'GET', url: SLOTS_URL });
+    expect(
+      listed.json<{ slots: { slotNumber: number }[] }>().slots.map((slot) => slot.slotNumber),
+    ).toEqual([1, 2, 3]);
+    const attempts = [
+      { method: 'POST', url: `${saveUrl(4, saveId)}/open` },
+      {
+        method: 'POST',
+        url: `${saveUrl(4, saveId)}/moves`,
+        body: { move: { type: 'add', amount: 1 } },
+      },
+      { method: 'DELETE', url: saveUrl(4, saveId) },
+    ] as const;
+    for (const attempt of attempts) {
+      const response = await app.inject({ ...attempt, headers: DEVICE_A });
+      expect(response.statusCode).toBe(404);
+      expect(response.json()).toMatchObject({ error: 'unknown-slot' });
+    }
+    const stillStored = database.prepare('SELECT COUNT(*) AS n FROM save_slots').get();
+    expect(stillStored).toEqual({ n: 1 });
+  });
+
   it('refuses a slot that is in use', async () => {
     const { app } = await startServerWithPlayer();
     await app.inject({ method: 'POST', url: `${SLOTS_URL}/1`, headers: DEVICE_A, body: NEW_GAME });

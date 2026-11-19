@@ -5,7 +5,8 @@ import type { Cell } from './cell.js';
 import { findFewestNumbersLeft } from './clear-search.js';
 import { findValidPair } from './find-pair.js';
 import { BOARD_WIDTH, type GameState } from './game-state.js';
-import { pairGroupsWithOddCount } from './pair.js';
+import { hasLineOfSight } from './line-of-sight.js';
+import { isPair, pairGroupsWithOddCount } from './pair.js';
 import { cellsFromRows, makeTestState } from './test-support.js';
 
 describe('countNumbersToAdd', () => {
@@ -193,7 +194,16 @@ describe('applyAddNumbers on many boards', () => {
       expect(added.every((digit) => digitsBefore.has(digit))).toBe(true);
       expect(pressAddNumbers(state)).toEqual(result);
       if (result.addedCount > pairGroupsWithOddCount(cells).length) {
-        expect(findValidPair(result.cells, width)).not.toBeNull();
+        // NG-36: the first new number pairs with the last number on the board.
+        const lastDigit = cells[lastNumberIndex];
+        const firstAddedDigit = result.cells[lastNumberIndex + 1];
+        if (lastDigit == null || firstAddedDigit == null) {
+          throw new Error('Expected a last number on the board and a first added number');
+        }
+        expect(isPair(lastDigit, firstAddedDigit)).toBe(true);
+        expect(hasLineOfSight(result.cells, width, lastNumberIndex, lastNumberIndex + 1)).toBe(
+          true,
+        );
       }
     }
   });

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { counterTestGame } from '../counter-test-game.js';
 import { fakeRoomTestGame } from '../fake-room-test-game.js';
-import { HttpError } from '../http-error.js';
 import { GameRegistry } from './game-registry.js';
 
 describe('GameRegistry', () => {
@@ -20,7 +19,9 @@ describe('GameRegistry', () => {
   });
 
   it('gives a 404 error for an unknown game', () => {
-    expect(() => new GameRegistry().getGame('chess')).toThrow(HttpError);
+    expect(() => new GameRegistry().getGame('chess')).toThrow(
+      expect.objectContaining({ statusCode: 404, errorCode: 'unknown-game' }) as Error,
+    );
   });
 
   it('rejects a broken save with a clear error', () => {

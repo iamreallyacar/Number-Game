@@ -96,7 +96,10 @@ describe('fireBasicShots', () => {
     const player = makePlayer({ upgradeCounts: manyBullets(2) });
     const { bullets } = fireBasicShots([player], [makeEnemy({ x: 100, y: 0 })], [], 1);
     const angles = bullets.map((bullet) => Math.atan2(bullet.directionY, bullet.directionX));
-    expect((angles[0] ?? 0) + (angles[1] ?? 0)).toBeCloseTo(0);
+    const halfGap = ((BULLET_FAN_ANGLE_DEGREES / 2) * Math.PI) / 180;
+    expect(BULLET_FAN_ANGLE_DEGREES).toBe(10);
+    expect(angles[0]).toBeCloseTo(-halfGap);
+    expect(angles[1]).toBeCloseTo(halfGap);
   });
 
   it('gives every bullet the upgrades chosen at the moment of firing', () => {
@@ -112,10 +115,16 @@ describe('fireBasicShots', () => {
 });
 
 describe('basicShotStatsOf', () => {
-  it('shortens the interval by 10 percent of the last one for each fire rate choice', () => {
-    const counts = { ...createIndividualUpgradeCounts(), 'fire-rate': 8 };
-    const seconds = basicShotStatsOf(counts).shotIntervalSteps / STEP_RATE;
-    expect(seconds).toBeCloseTo(0.43, 1);
+  // The interval is rounded to whole steps. 0.9 s is exactly 27 steps, so rounding does not matter
+  // there. Eight choices give 12.91 steps, which only the rounding to nearest turns into 13.
+  it('shortens the interval by 10 percent of the last one for each fire rate choice (SB-07)', () => {
+    const withChoices = (count: number) => ({
+      ...createIndividualUpgradeCounts(),
+      'fire-rate': count,
+    });
+    expect(basicShotStatsOf(withChoices(0)).shotIntervalSteps).toBe(30);
+    expect(basicShotStatsOf(withChoices(1)).shotIntervalSteps).toBe(27);
+    expect(basicShotStatsOf(withChoices(8)).shotIntervalSteps).toBe(13);
   });
 });
 

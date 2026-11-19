@@ -81,6 +81,11 @@ describe('joystickDirection', () => {
     expect(joystickDirection(origin, { x: 100 + JOYSTICK_DEAD_ZONE_PX - 1, y: 100 })).toBeNull();
   });
 
+  it('gives a direction just past the dead zone', () => {
+    // A literal 11 px, not the constant plus one, so that a wider dead zone makes this fail.
+    expect(joystickDirection(origin, { x: 111, y: 100 })).toEqual({ x: 1, y: 0 });
+  });
+
   it('points the way the thumb is pulled', () => {
     expect(joystickDirection(origin, { x: 100, y: 160 })).toEqual({ x: 0, y: 1 });
   });
