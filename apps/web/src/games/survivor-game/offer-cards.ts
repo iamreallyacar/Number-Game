@@ -90,6 +90,16 @@ export class OfferChoiceGuard {
   }
 
   /**
+   * Call for every state reported for the own player. Once the offer has closed, the answer is
+   * done, so an identical offer opening later (same cards, same queue) is a new one.
+   */
+  handleReportedPlayer(player: ReportedPlayer): void {
+    if (player.openOffer === null) {
+      this.clear();
+    }
+  }
+
+  /**
    * A choice sent just before the connection dropped may never have been applied, and the server
    * shows the same offer again after reconnecting, so only an open connection keeps the guard.
    */

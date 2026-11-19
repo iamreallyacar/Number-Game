@@ -81,6 +81,17 @@ describe('OfferChoiceGuard', () => {
     expect(guard.choose(next, 0)).toBe('damage');
   });
 
+  it('allows a choice on an identical offer that opens after the answered one closed', () => {
+    const lastOffer = playerWith({
+      openOffer: ['damage', 'piercing', 'healing'],
+      waitingOfferCount: 0,
+    });
+    const guard = new OfferChoiceGuard();
+    expect(guard.choose(lastOffer, 0)).toBe('damage');
+    guard.handleReportedPlayer(playerWith({ openOffer: null }));
+    expect(guard.choose(lastOffer, 0)).toBe('damage');
+  });
+
   it('chooses nothing for a card that is not there or when there is no offer', () => {
     const guard = new OfferChoiceGuard();
     expect(guard.choose(offered, 5)).toBeNull();

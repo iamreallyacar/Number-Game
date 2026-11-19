@@ -126,6 +126,7 @@
       ownPlayerId: playerId,
       onState: (state) => {
         timeline.push(state, performance.now());
+        offerGuard.handleReportedPlayer(findOwnPlayer(state, playerId));
         latestState = state;
       },
       onRunEnded: (message) => {
