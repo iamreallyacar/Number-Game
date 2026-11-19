@@ -8,6 +8,14 @@ Not written yet.
 
 The Number Game and the Block Game are finished. The Survivor Game is built and waits for playtesting and tuning (T-112).
 
+The next session starts with the maintainability fixes in Phase 19 (T-119 to T-123). The findings and their file and line references are in the Open section of `AUDIT.md`. When a finding is fixed, move it to the Resolved table there, so that the file only lists open work.
+
+- Suggested order: the small ones first (T-120, T-121, T-119, T-122), then T-123, which touches all three play screens.
+- These are refactors, so check first that tests cover the behaviour being moved, and add them if not. M-1 and M-5 are in Svelte components, where the timing and CSS links have little test cover.
+- The web app part of the maintainability audit only read the three play screens. A deeper pass over the rest of `apps/web/src` may find more.
+- A small known nit: `runMigrations` registers `fold_player_id` with a `String()` conversion of its argument.
+- Earlier audit results that were ruled out are listed under Ruled out in `AUDIT.md`, so they need not be reported again.
+
 ## Task list
 
 The work plan for the project. Tasks are grouped into phases that build on each other. Each task lists the requirement IDs it covers from the `REQUIREMENTS/` folder. A task is done when its code is written, its tests pass, and any docs it affects are updated.
@@ -212,3 +220,14 @@ Makes Add Numbers help a player who is left with a few numbers that cannot see e
 
 - [x] T-113: Add at least one row of numbers on every press, and on a small board keep a set of new numbers that a search can clear completely. Remove the played-ahead check, which the search replaces. (NG-17, NG-36, DF-05, OQ-21)
 - [ ] T-114: Playtest Add Numbers on a small board on each preset, then tune the small board limit and the count of sets tried. (DF-05, OQ-21)
+
+### Phase 19: Second Audit Follow-up
+
+Findings from the requirement, test, bug, and maintainability audits of 2026-11-19, recorded in `AUDIT.md`.
+
+- [x] T-118: Audit the requirements for conflicts, the tests for correctness, and the code for bugs and maintainability, then fix the requirement conflicts, weak tests, and bugs. (audit findings B-1 to B-6, R-1 to R-6, T-1 to T-16, Q-1)
+- [ ] T-119: List every error code the server sends in `API.md`. (audit finding M-2)
+- [ ] T-120: Share the random seed range between the save slot and room routes. (audit finding M-3)
+- [ ] T-121: Move the check that refuses unknown fields into `stored-values` and use it in the five parsers. (audit finding M-4)
+- [ ] T-122: Give the board grid line width and the effect times one source each, shared with the CSS that must match them. (audit finding M-5)
+- [ ] T-123: Share the timed message and timed effect code of the three play screens. (audit finding M-1)
