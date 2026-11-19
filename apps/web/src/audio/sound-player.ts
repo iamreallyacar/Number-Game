@@ -189,6 +189,9 @@ export class SoundPlayer {
         .then((bytes) => audioContext.decodeAudioData(bytes))
         .catch((error: unknown) => {
           console.error(`Could not load the sound clip ${url}.`, error);
+          // Forgetting the failure lets the next play retry once the network is back.
+          this.#clipBytes.delete(url);
+          this.#clipBuffers.delete(url);
           return null;
         });
       this.#clipBuffers.set(url, buffer);
@@ -199,7 +202,11 @@ export class SoundPlayer {
   #fetchClipBytes(url: string): Promise<ArrayBuffer> {
     let bytes = this.#clipBytes.get(url);
     if (bytes === undefined) {
-      bytes = this.#environment.fetchClipBytes(url);
+      bytes = this.#environment.fetchClipBytes(url).catch((error: unknown) => {
+        // A failed preload must not stay cached, or the first play after it would be silent too.
+        this.#clipBytes.delete(url);
+        throw error;
+      });
       this.#clipBytes.set(url, bytes);
     }
     return bytes;

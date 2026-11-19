@@ -159,6 +159,31 @@ describe('SoundPlayer clips', () => {
     expect(audioContext.startedSources).toHaveLength(1);
   });
 
+  it('tries a clip again on the next play after its first fetch failed', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { soundPlayer, audioContext, fetchClipBytes } = setUp();
+    fetchClipBytes.mockRejectedValueOnce(new Error('Offline'));
+    soundPlayer.play(clipSound('/clip.mp3'));
+    await letPromisesSettle();
+    expect(audioContext.startedSources).toHaveLength(0);
+    soundPlayer.play(clipSound('/clip.mp3'));
+    await letPromisesSettle();
+    expect(fetchClipBytes).toHaveBeenCalledTimes(2);
+    expect(audioContext.startedSources).toHaveLength(1);
+  });
+
+  it('plays a clip on its first play after its preload failed', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { soundPlayer, audioContext, fetchClipBytes } = setUp();
+    fetchClipBytes.mockRejectedValueOnce(new Error('Offline'));
+    soundPlayer.preload([clipSound('/clip.mp3')]);
+    await letPromisesSettle();
+    soundPlayer.play(clipSound('/clip.mp3'));
+    await letPromisesSettle();
+    expect(fetchClipBytes).toHaveBeenCalledTimes(2);
+    expect(audioContext.startedSources).toHaveLength(1);
+  });
+
   it('reports a clip that cannot be decoded', async () => {
     const errorLog = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const { soundPlayer, audioContext } = setUp();
