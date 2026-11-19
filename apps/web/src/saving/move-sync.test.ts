@@ -4,6 +4,7 @@ import { MoveSync, RETRY_DELAYS_MS, type SaveStatus } from './move-sync.js';
 
 interface PendingSend {
   readonly move: unknown;
+  readonly moveNumber: number;
   succeed(): void;
   fail(error: unknown): void;
 }
@@ -11,10 +12,11 @@ interface PendingSend {
 /** A fake server where the test decides when and how each send finishes. */
 function createFakeSender() {
   const sends: PendingSend[] = [];
-  const sendMove = (move: unknown): Promise<unknown> =>
+  const sendMove = (move: unknown, moveNumber: number): Promise<unknown> =>
     new Promise((resolve, reject) => {
       sends.push({
         move,
+        moveNumber,
         succeed: () => {
           resolve({});
         },
@@ -46,7 +48,7 @@ describe('MoveSync', () => {
 
   it('sends moves one at a time and in order', async () => {
     const { sends, sendMove } = createFakeSender();
-    const sync = new MoveSync(sendMove, (status) => statuses.push(status));
+    const sync = new MoveSync(sendMove, 0, (status) => statuses.push(status));
     sync.saveMove('first');
     sync.saveMove('second');
     expect(sends.map((send) => send.move)).toEqual(['first']);
@@ -62,7 +64,7 @@ describe('MoveSync', () => {
 
   it('keeps retrying the same move after network failures and tells the player', async () => {
     const { sends, sendMove } = createFakeSender();
-    const sync = new MoveSync(sendMove, (status) => statuses.push(status));
+    const sync = new MoveSync(sendMove, 0, (status) => statuses.push(status));
     sync.saveMove('only');
     lastSend(sends).fail(new NetworkError('offline'));
     await vi.advanceTimersByTimeAsync(0);
@@ -79,7 +81,7 @@ describe('MoveSync', () => {
 
   it('stops saving when the game was opened on another device', async () => {
     const { sends, sendMove } = createFakeSender();
-    const sync = new MoveSync(sendMove, (status) => statuses.push(status));
+    const sync = new MoveSync(sendMove, 0, (status) => statuses.push(status));
     sync.saveMove('first');
     sync.saveMove('second');
     lastSend(sends).fail(new ApiError(409, 'opened-elsewhere', 'Opened elsewhere', null));
@@ -92,7 +94,7 @@ describe('MoveSync', () => {
 
   it('stops saving when the slot no longer holds this game', async () => {
     const { sends, sendMove } = createFakeSender();
-    const sync = new MoveSync(sendMove, (status) => statuses.push(status));
+    const sync = new MoveSync(sendMove, 0, (status) => statuses.push(status));
     sync.saveMove('first');
     sync.saveMove('second');
     lastSend(sends).fail(new ApiError(410, 'save-gone', 'The game has ended', null));
@@ -105,7 +107,7 @@ describe('MoveSync', () => {
 
   it('asks for a reload when the server refuses a move', async () => {
     const { sends, sendMove } = createFakeSender();
-    const sync = new MoveSync(sendMove, (status) => statuses.push(status));
+    const sync = new MoveSync(sendMove, 0, (status) => statuses.push(status));
     sync.saveMove('bad');
     lastSend(sends).fail(new ApiError(422, 'move-refused', 'Move refused', 'not-a-pair'));
     await vi.runAllTimersAsync();
@@ -115,7 +117,7 @@ describe('MoveSync', () => {
 
   it('still sends the queued moves after the game screen closes, without reporting', async () => {
     const { sends, sendMove } = createFakeSender();
-    const sync = new MoveSync(sendMove, (status) => statuses.push(status));
+    const sync = new MoveSync(sendMove, 0, (status) => statuses.push(status));
     sync.saveMove('first');
     sync.saveMove('second');
     sync.finishPendingMoves();
@@ -131,7 +133,7 @@ describe('MoveSync', () => {
 
   it('tries a waiting retry once more when the game screen closes, then gives up', async () => {
     const { sends, sendMove } = createFakeSender();
-    const sync = new MoveSync(sendMove, (status) => statuses.push(status));
+    const sync = new MoveSync(sendMove, 0, (status) => statuses.push(status));
     sync.saveMove('first');
     lastSend(sends).fail(new NetworkError('Offline'));
     await vi.advanceTimersByTimeAsync(0);
@@ -145,12 +147,47 @@ describe('MoveSync', () => {
 
   it('drops the queued moves when it is stopped', async () => {
     const { sends, sendMove } = createFakeSender();
-    const sync = new MoveSync(sendMove, (status) => statuses.push(status));
+    const sync = new MoveSync(sendMove, 0, (status) => statuses.push(status));
     sync.saveMove('first');
     sync.saveMove('second');
     sync.stop();
     lastSend(sends).succeed();
     await vi.runAllTimersAsync();
     expect(sends.map((send) => send.move)).toEqual(['first']);
+  });
+
+  it('numbers moves from the opened count and sends the next number after a success', async () => {
+    const { sends, sendMove } = createFakeSender();
+    const sync = new MoveSync(sendMove, 7, (status) => statuses.push(status));
+    sync.saveMove('first');
+    sync.saveMove('second');
+    expect(lastSend(sends).moveNumber).toBe(7);
+    lastSend(sends).succeed();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(sends.map((send) => send.moveNumber)).toEqual([7, 8]);
+  });
+
+  it('sends the same move number again when it retries after a network error', async () => {
+    const { sends, sendMove } = createFakeSender();
+    const sync = new MoveSync(sendMove, 3, (status) => statuses.push(status));
+    sync.saveMove('first');
+    lastSend(sends).fail(new NetworkError('Offline'));
+    await vi.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0]);
+    expect(sends.map((send) => send.moveNumber)).toEqual([3, 3]);
+    lastSend(sends).succeed();
+    await vi.advanceTimersByTimeAsync(0);
+    sync.saveMove('second');
+    expect(sends.map((send) => send.moveNumber)).toEqual([3, 3, 4]);
+  });
+
+  it('tells the player the game ended when a retried move finds the slot empty', async () => {
+    const { sends, sendMove } = createFakeSender();
+    const sync = new MoveSync(sendMove, 0, (status) => statuses.push(status));
+    sync.saveMove('last move of the game');
+    lastSend(sends).fail(new NetworkError('Offline'));
+    await vi.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0]);
+    lastSend(sends).fail(new ApiError(410, 'save-gone', 'The game has ended', null));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(statuses.at(-1)).toEqual({ kind: 'save-gone' });
   });
 });

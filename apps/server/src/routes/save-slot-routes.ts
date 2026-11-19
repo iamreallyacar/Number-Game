@@ -33,6 +33,7 @@ function describeOpenSave(game: RegisteredGame, save: StoredSave): OpenedSave {
     slotNumber: save.slotNumber,
     playerId: save.playerId,
     lastPlayedAt: save.lastPlayedAt,
+    moveCount: save.moveCount,
     state: game.readState(save),
   };
 }
@@ -91,6 +92,7 @@ export function registerSaveSlotRoutes(
         ...startedGame.storedState,
         lockedDeviceId: request.headers['x-device-id'],
         lastPlayedAt: new Date().toISOString(),
+        moveCount: 0,
       };
       if (!saves.insertSave(save)) {
         throw new HttpError(409, 'slot-in-use', `Slot ${String(slotNumber)} is already in use`);

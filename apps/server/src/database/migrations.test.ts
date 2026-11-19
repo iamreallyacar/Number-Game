@@ -267,4 +267,26 @@ describe('runMigrations', () => {
     const players = database.prepare('SELECT player_id FROM players ORDER BY player_id').all();
     expect(players).toHaveLength(3);
   });
+
+  it('gives every save that existed before move numbers a move count of 0', () => {
+    const database = new DatabaseSync(':memory:');
+    // Migration 8 calls this function, which runMigrations registers when it runs them itself.
+    database.function('fold_player_id', (playerId) => String(playerId).toLowerCase());
+    for (const migration of MIGRATIONS.slice(0, 8)) {
+      database.exec(migration);
+    }
+    database.exec('PRAGMA user_version = 8');
+    database.exec(`
+      INSERT INTO players (player_id, player_key, created_at) VALUES ('Sam', 'sam', '2026-01-01');
+      INSERT INTO save_slots
+        (game_id, slot_number, save_id, player_id, state_json, state_version, locked_device_id,
+         last_played_at)
+      VALUES ('counter', 1, 'save-1', 'Sam', '{"count":1}', 2, 'device-aaaa', '2026-01-01');
+    `);
+
+    runMigrations(database);
+
+    const saves = database.prepare('SELECT save_id, move_count FROM save_slots').all();
+    expect(saves).toEqual([{ save_id: 'save-1', move_count: 0 }]);
+  });
 });

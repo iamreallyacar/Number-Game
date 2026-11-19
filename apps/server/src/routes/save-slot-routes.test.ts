@@ -110,7 +110,7 @@ describe('save slot routes', () => {
       {
         method: 'POST',
         url: `${saveUrl(4, saveId)}/moves`,
-        body: { move: { type: 'add', amount: 1 } },
+        body: { move: { type: 'add', amount: 1 }, moveNumber: 0 },
       },
       { method: 'DELETE', url: saveUrl(4, saveId) },
     ] as const;
@@ -271,7 +271,7 @@ describe('save slot routes', () => {
       method: 'POST',
       url: `${saveUrl(1, newSaveId)}/moves`,
       headers: DEVICE_B,
-      body: { move: { type: 'add', amount: 1 } },
+      body: { move: { type: 'add', amount: 1 }, moveNumber: 0 },
     });
     expect(moveFromOwner.statusCode).toBe(200);
   });

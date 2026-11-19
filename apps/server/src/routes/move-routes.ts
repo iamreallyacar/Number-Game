@@ -46,6 +46,20 @@ export function registerMoveRoutes(app: TypedFastify, dependencies: MoveRouteDep
         );
       }
 
+      // The browser sends a move again when the answer to it was lost, so a move that was already
+      // applied is answered as done instead of being applied a second time.
+      const { moveNumber } = request.body;
+      if (moveNumber === save.moveCount - 1) {
+        return { gameOver: false };
+      }
+      if (moveNumber !== save.moveCount) {
+        throw new HttpError(
+          409,
+          'move-out-of-order',
+          `Expected move number ${String(save.moveCount)} but got ${String(moveNumber)}`,
+        );
+      }
+
       const outcome = game.applyMove(save, request.body.move);
       if (!outcome.accepted) {
         throw new HttpError(422, 'move-refused', `Move refused: ${outcome.reason}`, outcome.reason);
@@ -57,6 +71,7 @@ export function registerMoveRoutes(app: TypedFastify, dependencies: MoveRouteDep
           ...outcome.storedState,
           lockedDeviceId: deviceId,
           lastPlayedAt: now,
+          moveCount: save.moveCount + 1,
         });
         return { gameOver: false };
       }

@@ -10,7 +10,7 @@ import {
   storeSave,
 } from '../test-support.js';
 
-const ADD_ONE = { move: { type: 'add', amount: 1 } };
+const ADD_ONE = { move: { type: 'add', amount: 1 }, moveNumber: 0 };
 
 async function startServerWithSave(count: number) {
   const server = await startTestServer();
@@ -53,7 +53,7 @@ describe('move route', () => {
       method: 'POST',
       url: movesUrl,
       headers: DEVICE_A,
-      body: { move: { type: 'add', amount: 5 } },
+      body: { move: { type: 'add', amount: 5 }, moveNumber: 0 },
     });
     expect(moved.statusCode).toBe(422);
     expect(moved.json()).toEqual({
@@ -75,7 +75,7 @@ describe('move route', () => {
       method: 'POST',
       url: movesUrl,
       headers: DEVICE_A,
-      body: { move: { type: 'add', amount: 'one' } },
+      body: { move: { type: 'add', amount: 'one' }, moveNumber: 0 },
     });
     expect(moved.statusCode).toBe(400);
     expect(moved.json()).toMatchObject({ error: 'invalid-move' });
@@ -194,5 +194,73 @@ describe('move route', () => {
       headers: DEVICE_B,
     });
     expect(opened.json()).toMatchObject({ state: { count: 1, target: 5 } });
+  });
+
+  it('applies a move sent twice with the same move number only once', async () => {
+    const { app, movesUrl, openUrl } = await startServerWithSave(0);
+    const send = () =>
+      app.inject({ method: 'POST', url: movesUrl, headers: DEVICE_A, body: ADD_ONE });
+    const first = await send();
+    const repeated = await send();
+    expect(first.statusCode).toBe(200);
+    expect(repeated.statusCode).toBe(200);
+    expect(repeated.json()).toEqual({ gameOver: false });
+    const opened = await app.inject({ method: 'POST', url: openUrl, headers: DEVICE_A });
+    expect(opened.json()).toMatchObject({ state: { count: 1 }, moveCount: 1 });
+  });
+
+  it('numbers the next move after the repeated one normally', async () => {
+    const { app, movesUrl, openUrl } = await startServerWithSave(0);
+    const send = (moveNumber: number) =>
+      app.inject({
+        method: 'POST',
+        url: movesUrl,
+        headers: DEVICE_A,
+        body: { ...ADD_ONE, moveNumber },
+      });
+    await send(0);
+    await send(0);
+    expect((await send(1)).statusCode).toBe(200);
+    const opened = await app.inject({ method: 'POST', url: openUrl, headers: DEVICE_A });
+    expect(opened.json()).toMatchObject({ state: { count: 2 }, moveCount: 2 });
+  });
+
+  it.each([
+    ['ahead', 1],
+    ['two behind', 0],
+  ])('refuses a move number that is %s and changes nothing', async (_name, moveNumber) => {
+    const { app, movesUrl, openUrl } = await startServerWithSave(0);
+    const send = (number: number) =>
+      app.inject({
+        method: 'POST',
+        url: movesUrl,
+        headers: DEVICE_A,
+        body: { ...ADD_ONE, moveNumber: number },
+      });
+    if (moveNumber === 0) {
+      await send(0);
+      await send(1);
+    }
+    const before: unknown = (
+      await app.inject({ method: 'POST', url: openUrl, headers: DEVICE_A })
+    ).json();
+    const refused = await send(moveNumber === 0 ? 0 : 1);
+    expect(refused.statusCode).toBe(409);
+    expect(refused.json()).toMatchObject({ error: 'move-out-of-order' });
+    const after: unknown = (
+      await app.inject({ method: 'POST', url: openUrl, headers: DEVICE_A })
+    ).json();
+    expect(after).toEqual(before);
+  });
+
+  it('rejects a move that has no move number', async () => {
+    const { app, movesUrl } = await startServerWithSave(0);
+    const missing = await app.inject({
+      method: 'POST',
+      url: movesUrl,
+      headers: DEVICE_A,
+      body: { move: { type: 'add', amount: 1 } },
+    });
+    expect(missing.statusCode).toBe(400);
   });
 });

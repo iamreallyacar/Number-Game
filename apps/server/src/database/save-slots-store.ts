@@ -14,6 +14,8 @@ export interface StoredSave {
   /** The device that opened the save most recently. Only it may change the save (PS-18). */
   readonly lockedDeviceId: string;
   readonly lastPlayedAt: string;
+  /** How many moves were applied. A move is applied only when it carries this number (PS-07). */
+  readonly moveCount: number;
 }
 
 export interface SaveUpdate {
@@ -21,6 +23,7 @@ export interface SaveUpdate {
   readonly stateVersion: number;
   readonly lockedDeviceId: string;
   readonly lastPlayedAt: string;
+  readonly moveCount: number;
 }
 
 function toStoredSave(row: Record<string, SQLOutputValue>): StoredSave {
@@ -33,6 +36,7 @@ function toStoredSave(row: Record<string, SQLOutputValue>): StoredSave {
     stateVersion: readIntegerColumn(row, 'state_version'),
     lockedDeviceId: readTextColumn(row, 'locked_device_id'),
     lastPlayedAt: readTextColumn(row, 'last_played_at'),
+    moveCount: readIntegerColumn(row, 'move_count'),
   };
 }
 
@@ -59,8 +63,8 @@ export class SaveSlotsStore {
       .prepare(
         `INSERT INTO save_slots
            (game_id, slot_number, save_id, player_id, state_json, state_version,
-            locked_device_id, last_played_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            locked_device_id, last_played_at, move_count)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT DO NOTHING`,
       )
       .run(
@@ -72,6 +76,7 @@ export class SaveSlotsStore {
         save.stateVersion,
         save.lockedDeviceId,
         save.lastPlayedAt,
+        save.moveCount,
       );
     return readChangedRowCount(result) === 1;
   }
@@ -80,7 +85,8 @@ export class SaveSlotsStore {
     const result = this.database
       .prepare(
         `UPDATE save_slots
-         SET state_json = ?, state_version = ?, locked_device_id = ?, last_played_at = ?
+         SET state_json = ?, state_version = ?, locked_device_id = ?, last_played_at = ?,
+             move_count = ?
          WHERE save_id = ?`,
       )
       .run(
@@ -88,6 +94,7 @@ export class SaveSlotsStore {
         update.stateVersion,
         update.lockedDeviceId,
         update.lastPlayedAt,
+        update.moveCount,
         saveId,
       );
     if (readChangedRowCount(result) !== 1) {

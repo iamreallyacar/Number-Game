@@ -13,6 +13,7 @@ const OPENED_SAVE = {
   playerId: 'Sam',
   lastPlayedAt: '2026-01-01T00:00:00.000Z',
   state: {},
+  moveCount: 0,
 };
 
 function answerWith(status: number, body: unknown) {
@@ -55,7 +56,7 @@ describe('save routes in the browser', () => {
     const fetchSpy = answerWith(200, OPENED_SAVE);
     await openSave(ADDRESS);
     fetchSpy.mockResolvedValueOnce(Response.json({ gameOver: false }));
-    await sendMove(ADDRESS, { type: 'hint' });
+    await sendMove(ADDRESS, { type: 'hint' }, 0);
     fetchSpy.mockResolvedValueOnce(new Response(null, { status: 204 }));
     await deleteSave(ADDRESS);
     expect(requestedPaths(fetchSpy)).toEqual([
@@ -70,7 +71,7 @@ describe('save routes in the browser', () => {
     await startGame({ gameId: 'number-game', slotNumber: 2, playerId: 'Sam', options: {} });
     await openSave(ADDRESS);
     fetchSpy.mockResolvedValueOnce(Response.json({ gameOver: false }));
-    await sendMove(ADDRESS, { type: 'hint' });
+    await sendMove(ADDRESS, { type: 'hint' }, 0);
     const deviceId = getDeviceId(storage);
     expect(fetchSpy.mock.calls).toHaveLength(3);
     for (const [, init] of fetchSpy.mock.calls) {

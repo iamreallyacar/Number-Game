@@ -93,12 +93,16 @@ export async function deleteSave(address: SaveAddress): Promise<void> {
   await requestWithoutBody({ method: 'DELETE', path: savePath(address) });
 }
 
-export async function sendMove(address: SaveAddress, move: unknown): Promise<MoveResponse> {
+export async function sendMove(
+  address: SaveAddress,
+  move: unknown,
+  moveNumber: number,
+): Promise<MoveResponse> {
   return requestJson(
     {
       method: 'POST',
       path: `${savePath(address)}/moves`,
-      body: { move },
+      body: { move, moveNumber },
       deviceId: getDeviceId(),
     },
     moveResponseSchema,

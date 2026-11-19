@@ -37,6 +37,8 @@ export const openedSaveResponseSchema = Type.Object({
   slotNumber: Type.Integer(),
   playerId: Type.String(),
   lastPlayedAt: Type.String(),
+  /** How many moves were applied to this save. The next move is sent with this as its number. */
+  moveCount: Type.Integer({ minimum: 0 }),
   // Each game checks its own state shape before using it.
   state: Type.Unknown(),
 });

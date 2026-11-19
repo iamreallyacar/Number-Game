@@ -31,14 +31,16 @@
   async function openGame(): Promise<OpenedGame> {
     currentSync?.stop();
     saveStatus = { kind: 'saved' };
+    const [save, PlayScreen] = await Promise.all([openSave(saveAddress), game.loadPlayScreen()]);
+    // Made after the open answer, because the first move is numbered from the save's move count.
     const sync = new MoveSync(
-      (move) => sendMove(saveAddress, move),
+      (move, moveNumber) => sendMove(saveAddress, move, moveNumber),
+      save.moveCount,
       (status) => {
         saveStatus = status;
       },
     );
     currentSync = sync;
-    const [save, PlayScreen] = await Promise.all([openSave(saveAddress), game.loadPlayScreen()]);
     return { save, sync, PlayScreen };
   }
 

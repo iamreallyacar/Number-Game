@@ -137,6 +137,7 @@ export function storeSave(database: DatabaseSync, save: HandMadeSave): string {
     stateVersion: save.stateVersion ?? COUNTER_FORMAT_VERSION,
     lockedDeviceId: DEVICE_A['x-device-id'],
     lastPlayedAt: '2026-01-01T00:00:00.000Z',
+    moveCount: 0,
   });
   if (!inserted) {
     throw new Error(`Test slot ${String(save.slotNumber)} is already in use`);

@@ -141,6 +141,11 @@ export const MIGRATIONS: readonly string[] = [
   UPDATE players SET player_key = fold_player_id(player_id);
   CREATE UNIQUE INDEX players_by_player_key ON players (player_key);
   `,
+  // Saves that exist already have had their moves applied without numbers, and 0 is where the
+  // next numbered move starts, so a browser that opens one begins counting from there.
+  `
+  ALTER TABLE save_slots ADD COLUMN move_count INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 const PLAYER_KEY_MIGRATION_VERSION = 8;

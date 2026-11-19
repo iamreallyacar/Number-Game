@@ -74,7 +74,7 @@ sequenceDiagram
 1. The browser opens the save named in the page link, by slot and save id, and receives the full game state.
 2. The player makes a move, such as a match. The browser applies it right away with the rules package so the screen responds instantly.
 3. The browser sends the move, not the new state, to the server.
-4. The server checks that the slot still holds this save and that this device holds the lock, applies the same move to its stored state with the same rules package, and saves the result. It answers only whether the game is over, and the result that went into the high scores if it is.
+4. The server checks that the slot still holds this save, that this device holds the lock, and that the move number is the next one (a repeat of the last applied move is answered without applying it again), applies the same move to its stored state with the same rules package, and saves the result. It answers only whether the game is over, and the result that went into the high scores if it is.
 5. If the server refuses the move, the browser shows the reason and offers to reload the server state. If the slot no longer holds this save, it offers the save slots and the dashboard instead. (PS-07, PS-08, PS-18, PS-19)
 
 A room game run:

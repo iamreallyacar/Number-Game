@@ -6,6 +6,7 @@ import { createPlayer, DEVICE_A, startTestServer } from '../test-support.js';
 const SLOT_URL = `/api/games/${BLOCK_GAME_ID}/slots/1`;
 const PLACE_FIRST_SHAPE_AT_CORNER = {
   move: { type: 'place-shape', slotIndex: 0, topRow: 0, leftColumn: 0 },
+  moveNumber: 0,
 };
 
 async function startServerWithBlockGameInSlot() {
@@ -43,7 +44,10 @@ describe('Block Game through the routes', () => {
       method: 'POST',
       url: `${saveUrl}/moves`,
       headers: DEVICE_A,
-      body: { move: { type: 'place-shape', slotIndex: 0, topRow: 99, leftColumn: 0 } },
+      body: {
+        move: { type: 'place-shape', slotIndex: 0, topRow: 99, leftColumn: 0 },
+        moveNumber: 0,
+      },
     });
     expect(moved.statusCode).toBe(422);
     expect(moved.json()).toMatchObject({ error: 'move-refused', reason: 'out-of-bounds' });
@@ -62,7 +66,7 @@ describe('Block Game through the routes', () => {
       method: 'POST',
       url: `${saveUrl}/moves`,
       headers: DEVICE_A,
-      body: PLACE_FIRST_SHAPE_AT_CORNER,
+      body: { ...PLACE_FIRST_SHAPE_AT_CORNER, moveNumber: 1 },
     });
     expect(again.statusCode).toBe(422);
     expect(again.json()).toMatchObject({ error: 'move-refused', reason: 'slot-empty' });

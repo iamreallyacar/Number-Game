@@ -16,7 +16,7 @@ export type SaveStatus =
   /** The server refused a move. The game must be reloaded from the server. */
   | { readonly kind: 'out-of-sync'; readonly message: string };
 
-export type SendMove = (move: unknown) => Promise<unknown>;
+export type SendMove = (move: unknown, moveNumber: number) => Promise<unknown>;
 export type SaveStatusListener = (status: SaveStatus) => void;
 
 // Waits between retries of a failed save. The last wait repeats until the save goes through.
@@ -41,8 +41,13 @@ export class MoveSync {
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
   private status: SaveStatus = { kind: 'saved' };
 
+  /**
+   * `nextMoveNumber` is the move count the server gave when the save was opened. A move keeps its
+   * number across retries, because the server may have applied it before the answer was lost.
+   */
   constructor(
     private readonly sendMove: SendMove,
+    private nextMoveNumber: number,
     private readonly onStatusChange: SaveStatusListener,
   ) {}
 
@@ -109,7 +114,7 @@ export class MoveSync {
       this.setStatus({ kind: 'saving' });
     }
     try {
-      await this.sendMove(move);
+      await this.sendMove(move, this.nextMoveNumber);
     } catch (error) {
       this.isSending = false;
       this.handleFailedSave(error);
@@ -118,6 +123,7 @@ export class MoveSync {
     this.isSending = false;
     this.failedAttempts = 0;
     this.pendingMoves.shift();
+    this.nextMoveNumber++;
     if (this.hasStopped()) {
       return;
     }
