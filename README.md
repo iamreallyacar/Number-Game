@@ -8,7 +8,7 @@
 
 ## Purpose
 
-- Primary: host the Number Game on a local Proxmox server and play it from a phone or laptop browser.
+- Primary: host the game dashboard on a local Proxmox server and play its games from a phone or laptop browser.
 - Secondary: publish the project as a git repository that anyone can clone and host on their own server with minimal setup.
 - Ongoing: keep the dashboard easy to grow with more games.
 

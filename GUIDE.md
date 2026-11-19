@@ -44,7 +44,7 @@ The server reads these settings from environment variables. Copy `.env.example` 
 | `HOST` | `0.0.0.0` | Network address the server listens on. `0.0.0.0` lets phones and laptops on the network connect |
 | `PORT` | `3000` | Port the server listens on |
 | `DATA_DIR` | `./data` | Folder where the SQLite database with players, saves, and high scores is stored |
-| `SAVE_SLOTS_PER_GAME` | `10` | Number of save slots each game has. If it is lowered, saves in the slots above the new number are kept but cannot be reached until it is raised again |
+| `SAVE_SLOTS_PER_GAME` | `10` | Number of save slots each game has, from 1 to 100. If it is lowered, saves in the slots above the new number are kept but cannot be reached until it is raised again |
 | `MAX_ROOM_GAME_RUNS` | `4` | Most rooms of room games, from 1 to 1000, that exist at once, counting waiting rooms and runs in progress, shared by every room game. Each run is stepped many times a second, so raise it only as far as the server machine can keep up |
 
 With Docker, `compose.yaml` reads the same `.env` file, but some settings mean something slightly different:

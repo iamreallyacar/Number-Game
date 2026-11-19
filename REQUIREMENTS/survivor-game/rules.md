@@ -30,7 +30,7 @@ These requirements define how the Survivor Game plays in version 1. Survivor Gam
 - SG-06: The host starts the run. Nobody new can join after the start.
 - SG-07: If the host leaves before the start, the player who joined next becomes the host. A room with no players left is closed.
 - SG-08: A run is played in one sitting. It has no save slots and cannot be paused.
-- SG-09: The number of runs that can be in progress at once is a server setting, with a default of 4. Creating a room beyond it is refused with a clear message.
+- SG-09: The number of rooms that exist at once, counting waiting rooms and runs in progress, is a server setting (`MAX_ROOM_GAME_RUNS`) shared by every room game, with a default of 4. Creating a room beyond it is refused with a clear message.
 - SG-61: A player who has not been seen in a waiting room for 30 seconds is removed from it as if they left, so a closed tab does not keep a room or a player ID taken.
 
 ## Arena and Movement
@@ -92,7 +92,7 @@ These requirements define how the Survivor Game plays in version 1. Survivor Gam
 - SG-40: A team upgrade changes every player. Its limit is counted for the whole team.
 - SG-41: An upgrade can be chosen until its limit is reached. After that it is no longer put in offers.
 - SG-42: If fewer than 3 upgrades are left to offer, fewer are shown. Healing has no limit, so an offer is never empty.
-- SG-43: If a team upgrade reaches its limit while it is still in another player's offer, it is swapped there for a different upgrade.
+- SG-43: If a team upgrade reaches its limit while it is still in another player's offer, it is swapped there for a different upgrade. If no different upgrade is left, it is removed and the offer gets shorter (SG-42).
 
 ## Dropped Connections
 
