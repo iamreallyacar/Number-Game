@@ -48,7 +48,7 @@ These requirements cover player IDs, save slots stored on the server, and high s
 ## Deleting and Locking
 
 - PS-17: A save slot can be deleted from the save slot list, which makes it empty. Player IDs cannot be deleted in the first version.
-- PS-18: A save is locked to the device that opened it most recently. If another device had it open, that device is told the game was opened elsewhere and stops saving to it.
+- PS-18: A save is locked to the device that opened it most recently. If another device had it open, that device is told the game was opened elsewhere and stops saving to it. The lock only covers saving moves, so any device can still delete the save from the save slot list (PS-21).
 
 ## Links to Saved Games
 
