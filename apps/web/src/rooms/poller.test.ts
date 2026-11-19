@@ -58,4 +58,28 @@ describe('Poller', () => {
     await vi.advanceTimersByTimeAsync(1000);
     expect(results).toEqual([]);
   });
+
+  it('drops an answer whose load began before discardLoadsInFlight was called', async () => {
+    const results: PollResult<string>[] = [];
+    let finishLoad: (value: string) => void = () => undefined;
+    const poller = new Poller(
+      () =>
+        new Promise<string>((resolve) => {
+          finishLoad = resolve;
+        }),
+      (result) => results.push(result),
+      100,
+    );
+    poller.start();
+    poller.discardLoadsInFlight();
+    finishLoad('old room');
+    await vi.advanceTimersByTimeAsync(0);
+    expect(results).toEqual([]);
+    // Polling carries on, and the next load is applied.
+    await vi.advanceTimersByTimeAsync(100);
+    finishLoad('newer room');
+    await vi.advanceTimersByTimeAsync(0);
+    expect(results).toEqual([{ kind: 'loaded', value: 'newer room' }]);
+    poller.stop();
+  });
 });

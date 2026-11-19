@@ -107,13 +107,17 @@
 
   async function handleJoin(joiningPlayerId: string): Promise<void> {
     await runAction(async () => {
-      room = await joinRoom(game.id, roomId, joiningPlayerId);
+      const answer = await joinRoom(game.id, roomId, joiningPlayerId);
+      poller.discardLoadsInFlight();
+      room = answer;
     });
   }
 
   async function handleStart(hostPlayerId: string): Promise<void> {
     await runAction(async () => {
-      room = await startRoom(game.id, roomId, hostPlayerId);
+      const answer = await startRoom(game.id, roomId, hostPlayerId);
+      poller.discardLoadsInFlight();
+      room = answer;
     });
   }
 

@@ -10,6 +10,8 @@ export type PollResult<Value> =
 export class Poller<Value> {
   private timer: ReturnType<typeof setTimeout> | null = null;
   private isRunning = false;
+  private discardedBefore = 0;
+  private loadCount = 0;
 
   constructor(
     private readonly load: () => Promise<Value>,
@@ -34,11 +36,20 @@ export class Poller<Value> {
     }
   }
 
+  /**
+   * Call when newer data arrived by another route, so an answer from a load already in flight
+   * (which may predate that data) is not applied. Polling carries on as usual.
+   */
+  discardLoadsInFlight(): void {
+    this.discardedBefore = this.loadCount;
+  }
+
   private isStillRunning(): boolean {
     return this.isRunning;
   }
 
   private async poll(): Promise<void> {
+    const loadNumber = ++this.loadCount;
     let result: PollResult<Value>;
     try {
       result = { kind: 'loaded', value: await this.load() };
@@ -48,7 +59,9 @@ export class Poller<Value> {
     if (!this.isRunning) {
       return;
     }
-    this.onResult(result);
+    if (loadNumber > this.discardedBefore) {
+      this.onResult(result);
+    }
     // The callback may have stopped the poller.
     if (!this.isStillRunning()) {
       return;
