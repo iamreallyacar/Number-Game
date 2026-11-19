@@ -170,6 +170,14 @@ describe('moveBullets', () => {
     expect(moved.enemies.map((enemy) => enemy.health)).toEqual([10, 20]);
   });
 
+  it('keeps the hit of a bullet whose enemy was already beaten in the same step (SG-26)', () => {
+    const enemies = [makeEnemy({ id: 1, x: 10, health: BULLET_DAMAGE })];
+    const moved = moveBullets([makeBullet({ id: 1 }), makeBullet({ id: 2 })], enemies);
+    expect(moved.enemies[0]?.health).toBe(0);
+    expect(moved.bullets.map((bullet) => bullet.id)).toEqual([2]);
+    expect(moved.bullets[0]?.hitsLeft).toBe(BULLET_HITS);
+  });
+
   it('disappears when it has flown its range', () => {
     const last = moveBullets([makeBullet({ distanceLeft: 5 })], []);
     expect(last.bullets).toHaveLength(0);

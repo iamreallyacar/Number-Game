@@ -33,6 +33,10 @@ export function moveBullets(bullets: readonly Bullet[], enemies: readonly Enemy[
     const hitEnemyIds = [...bullet.hitEnemyIds];
     let hitsLeft = bullet.hitsLeft;
     enemies.forEach((enemy, enemyIndex) => {
+      // A beaten enemy is still listed until the step ends, but it has disappeared (SG-26).
+      if ((healthByEnemyIndex[enemyIndex] ?? 0) <= 0) {
+        return;
+      }
       if (hitsLeft > 0 && !hitEnemyIds.includes(enemy.id) && touchesEnemy(flown, enemy)) {
         healthByEnemyIndex[enemyIndex] = (healthByEnemyIndex[enemyIndex] ?? 0) - bullet.damage;
         hitEnemyIds.push(enemy.id);
