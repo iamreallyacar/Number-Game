@@ -1,4 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite';
+import { foldPlayerId } from './fold-player-id.js';
+import { readTextColumn } from './row-values.js';
 import { runInTransaction } from './run-in-transaction.js';
 
 // Each entry upgrades the schema by one version. Never edit an entry that has shipped; add a new
@@ -130,7 +132,37 @@ export const MIGRATIONS: readonly string[] = [
 
   DROP TABLE staged_result_players;
   `,
+  // SQLite's NOCASE only folds ASCII letters, so 'Émile' and 'émile' could both exist. Players
+  // get a key folded in TypeScript, and the unique index on it decides if an ID is taken. The
+  // column cannot be NOT NULL or UNIQUE when added to a table with rows, so the index is made
+  // after the keys are filled. fold_player_id is registered by runMigrations.
+  `
+  ALTER TABLE players ADD COLUMN player_key TEXT;
+  UPDATE players SET player_key = fold_player_id(player_id);
+  CREATE UNIQUE INDEX players_by_player_key ON players (player_key);
+  `,
 ];
+
+const PLAYER_KEY_MIGRATION_VERSION = 8;
+
+// Fails before the migration changes anything, so the message can name every clash instead of
+// the database reporting only the first broken constraint. Nothing is merged or deleted, since
+// the owner of the data has to decide which player keeps the ID.
+function assertNoPlayerIdsDifferingOnlyInCase(database: DatabaseSync): void {
+  const idsByKey = new Map<string, string[]>();
+  for (const row of database.prepare('SELECT player_id FROM players').all()) {
+    const playerId = readTextColumn(row, 'player_id');
+    const key = foldPlayerId(playerId);
+    idsByKey.set(key, [...(idsByKey.get(key) ?? []), playerId]);
+  }
+  const clashes = [...idsByKey.values()].filter((playerIds) => playerIds.length > 1);
+  if (clashes.length > 0) {
+    const described = clashes.map((playerIds) => playerIds.join(' / ')).join('; ');
+    throw new Error(
+      `Player IDs that differ only in letter case must be resolved by hand first: ${described}`,
+    );
+  }
+}
 
 function readSchemaVersion(database: DatabaseSync): number {
   const row = database.prepare('PRAGMA user_version').get();
@@ -150,6 +182,7 @@ export function runMigrations(database: DatabaseSync): void {
         `(${String(MIGRATIONS.length)}). Update the server before using this database`,
     );
   }
+  database.function('fold_player_id', (playerId) => foldPlayerId(String(playerId)));
   for (const [index, migration] of MIGRATIONS.entries()) {
     const targetVersion = index + 1;
     if (targetVersion <= currentVersion) {
@@ -157,6 +190,9 @@ export function runMigrations(database: DatabaseSync): void {
     }
     try {
       runInTransaction(database, () => {
+        if (targetVersion === PLAYER_KEY_MIGRATION_VERSION) {
+          assertNoPlayerIdsDifferingOnlyInCase(database);
+        }
         database.exec(migration);
         database.exec(`PRAGMA user_version = ${String(targetVersion)}`);
       });

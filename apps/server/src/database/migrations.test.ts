@@ -221,4 +221,50 @@ describe('runMigrations', () => {
     `);
     expect(database.prepare('SELECT * FROM high_score_players').all()).toEqual([]);
   });
+
+  it('gives every existing player a letter-case-free key and keeps the ID as created', () => {
+    const database = new DatabaseSync(':memory:');
+    for (const migration of MIGRATIONS.slice(0, 7)) {
+      database.exec(migration);
+    }
+    database.exec('PRAGMA user_version = 7');
+    database.exec(`
+      INSERT INTO players (player_id, created_at) VALUES ('Émile', '2026-01-01'), ('Sam', '2026-01-01');
+    `);
+
+    runMigrations(database);
+
+    const players = database.prepare(
+      'SELECT player_id, player_key FROM players ORDER BY player_id',
+    );
+    expect(players.all().map((row) => ({ ...row }))).toEqual([
+      { player_id: 'Sam', player_key: 'sam' },
+      { player_id: 'Émile', player_key: 'émile' },
+    ]);
+  });
+
+  it('fails and names the player IDs that differ only in letter case', () => {
+    const database = new DatabaseSync(':memory:');
+    for (const migration of MIGRATIONS.slice(0, 7)) {
+      database.exec(migration);
+    }
+    database.exec('PRAGMA user_version = 7');
+    database.exec(`
+      INSERT INTO players (player_id, created_at)
+        VALUES ('Émile', '2026-01-01'), ('émile', '2026-01-02'), ('Sam', '2026-01-01');
+    `);
+
+    let failure: unknown;
+    try {
+      runMigrations(database);
+    } catch (error) {
+      failure = error;
+    }
+    expect(failure).toBeInstanceOf(Error);
+    expect((failure as Error).cause).toMatchObject({
+      message: expect.stringMatching(/Émile.*émile/) as unknown,
+    });
+    const players = database.prepare('SELECT player_id FROM players ORDER BY player_id').all();
+    expect(players).toHaveLength(3);
+  });
 });
